@@ -1,0 +1,29 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Station:</strong>
+  <%= @station.station_id %>
+</p>
+
+<p>
+  <strong>Station name:</strong>
+  <%= @station.station_name %>
+</p>
+
+<p>
+  <strong>Latitude:</strong>
+  <%= @station.latitude %>
+</p>
+
+<p>
+  <strong>Longitude:</strong>
+  <%= @station.longitude %>
+</p>
+
+<p>
+  <strong>Tide info:</strong>
+  <%= @station.tide_info %>
+</p>
+
+<%= link_to 'Edit', edit_station_path(@station) %> |
+<%= link_to 'Back', stations_path %>
