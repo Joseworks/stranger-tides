@@ -10,6 +10,14 @@ class StationsController < ApplicationController
   # GET /stations/1
   # GET /stations/1.json
   def show
+    metadata = Station.metadata_retrieval
+    p "====================#{metadata.inspect}======================================="
+    @station = Station.new
+    @station.station_name = metadata[:name]
+    @station.station_id = metadata[:id]
+    @station.latitude = metadata[:lat]
+    @station.longitude = metadata[:lon]
+    @station.save!
   end
 
   # GET /stations/new
@@ -24,6 +32,7 @@ class StationsController < ApplicationController
   # POST /stations
   # POST /stations.json
   def create
+
     @station = Station.new(station_params)
 
     respond_to do |format|
@@ -69,6 +78,5 @@ class StationsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def station_params
-      params.require(:station).permit(:station_id, :station_name, :latitude, :longitude, :tide_info)
-    end
+      params.require(:station).permit(:station_id, :station_name, :latitude, :longitude, :tide_info)    end
 end
