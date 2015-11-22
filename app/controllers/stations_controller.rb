@@ -29,23 +29,34 @@ class StationsController < ApplicationController
     url_params = {my_station: my_station, product: product, begin_date: begin_date, end_date: end_date}
     uri = TideParsingService::UrlConstructor.new(url_params)
 
+ # The purpose of the url constructor is to have a user interface to enter params without an active record model.
 p " ==========#{uri.constructed_url}======"
 
     url = "http://tidesandcurrents.noaa.gov/api/datagetter?begin_date=#{begin_date} #{begin_time}&end_date=#{end_date} #{end_time}&station=#{my_station}&product=#{product}&datum=#{datum}&units=#{units}&time_zone=#{time_zone}&application=#{application}&format=#{format}"
 
 
+# Trying to change the way metadata is consumed to a class
+    # this metadata_retrieval needs to be a service
+    metadata = TideParsingService::TideProcessor.metadata_retrieval(my_station, product, url) #( And now it is! (W00T!)
 
-    metadata = Station.metadata_retrieval(my_station, product, url)
+
+
+    meta = TideParsingService::Metadata.new(metadata)
+
+
+# Now Trying to change the way tide_info is consumed to a class
+# the purpose of this is to eliminate active record per se and migrate to PORO's
+
     tide_info = Station.tide_level_retrieval(my_station, product, url)
     time_stamp_info = Station.time_stamp_retrieval(my_station, product, url)
-    # p "====================#{time_stamp_info.inspect}======================================="
+
     @station = Station.new
-    @station.station_name = metadata[:name]
-    @station.station_id = metadata[:id]
-    @station.latitude = metadata[:lat]
-    @station.longitude = metadata[:lon]
+    @station.station_name = meta.station_name
+    @station.station_id = meta.station_id
+    @station.latitude = meta.latitude
+    @station.longitude = meta.longitude
     @station.save!
-    @chart = GraphingService::ChartProcessor.grapher(@station.station_name, tide_info, time_stamp_info)
+    @chart = GraphingService::ChartProcessor.grapher(meta.station_name, tide_info, time_stamp_info)
   end
 
   # GET /stations/new

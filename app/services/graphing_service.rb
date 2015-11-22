@@ -29,8 +29,6 @@ module GraphingService
                         }
                  )
 
-
-
           f.series(:name => "Height",
                    :yAxis => 0,
                    :data => tide_information
@@ -61,7 +59,5 @@ module GraphingService
     end
 
   end
-
-
 
 end

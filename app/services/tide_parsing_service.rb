@@ -20,8 +20,25 @@ module TideParsingService
       open(url) do |f|
         json_string = f.read
         parse_json = JSON.parse(json_string)['metadata']
+        parse_json.deep_symbolize_keys
       end
     end
+
+
+  def self.metadata_retrieval(my_station, current_product, url_to_parse)
+    url_validator(url_to_parse)
+    parsed_tide = TideParsingService::TideProcessor.metadata_parser!(url_to_parse)
+    # my_metadata =  TideParsingService::Metadata.new(parsed_tide)
+  end
+
+
+
+
+
+
+
+
+
 
     def self.tide_level_parser!(url)
       # timerodeador =[]
@@ -69,7 +86,6 @@ module TideParsingService
       param_v.each_slice(n).map(&:last)
 
     end
-  # create arrays inside another class here like metadata?
 
 
   end
@@ -90,9 +106,6 @@ module TideParsingService
 
 
 
-
-
-# Not in use as is
   class Metadata
     attr_accessor :station_id, :station_name, :latitude, :longitude
     def initialize(args)
