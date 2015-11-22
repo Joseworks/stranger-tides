@@ -10,17 +10,12 @@ module GraphingService
 
 
 
-          date_stripper = []
-          time_range.each do |d|
-            date_stripper << d.split(" ").last.split(":").join("").to_i
-          end
-          # p date_stripper.inspect
-          p date_stripper
 
-
+          this_tide = date_stripper(time_range)
+          p this_tide
 
           f.xAxis(:categories => ["United States", "Japan", "China", "Germany", "France"])
-          f.xAxis(:categories => date_stripper)
+          f.xAxis(:categories => this_tide)
           # f.series(:name => "GDP in Billions", :yAxis => 0, :data => [14119, 5068, 4985, 3339, 2656])
           f.series(:name => "Height", :yAxis => 0, :data => tide_information)
           # f.series(:name => "Population in Millions", :yAxis => 1, :data => [310, 127, 1340, 81, 65])
@@ -33,6 +28,16 @@ module GraphingService
           f.chart({:defaultSeriesType=>"line"})
         end
     end
+
+
+    def self.date_stripper(local_date)
+      date_integers = []
+      local_date.each do |d|
+        date_integers << d.split(" ").last.split(":").join("").to_i
+      end
+      date_integers
+    end
+
   end
 
 
