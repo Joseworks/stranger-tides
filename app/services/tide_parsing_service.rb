@@ -98,7 +98,7 @@ module TideParsingService
       end
       param_s
       n = 8
-      p param_s.each_slice(n).map(&:last)
+      param_s.each_slice(n).map(&:last)
     end
   end
 

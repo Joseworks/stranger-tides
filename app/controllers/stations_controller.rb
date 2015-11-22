@@ -15,16 +15,26 @@ class StationsController < ApplicationController
     format='json'
     url = "http://tidesandcurrents.noaa.gov/api/datagetter?begin_date=#{begin_date} #{begin_time}&end_date=#{end_date} #{end_time}&station=#{my_station}&product=#{product}&datum=#{datum}&units=#{units}&time_zone=#{time_zone}&application=#{application}&format=#{format}"
 
+  constructed_station_params ={ my_station: my_station,
+                                product: product,
+                                begin_date: begin_date,
+                                begin_time: begin_time,
+                                end_date: end_date,
+                                end_time: end_time,
+                                datum: datum,
+                                units: units,
+                                time_zone: time_zone,
+                                application: application,
+                                format: format,
+                                url: url
+                              }
 
 
- # The purpose of the url constructor is to have a user interface to enter params without an active record model.
-
-    url_params = {my_station: my_station, product: product, begin_date: begin_date, end_date: end_date}
-    uri = TideParsingService::UrlConstructor.new(url_params)
-
-p " ==========#{uri.constructed_url}======"
+   @constructed_station = StationConstructor.new(constructed_station_params)
 
 
+p   @path_build = @constructed_station.url_constructor
+p " =======  IT IS THE TRUTH!!!" if    @constructed_station.url_constructor.valid?
 
 # Trying to change the way metadata is consumed to a class
     # this metadata_retrieval needs to be a service
@@ -41,11 +51,27 @@ p " ==========#{uri.constructed_url}======"
 
 
 
+# Graphing away!
     @chart = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_info, time_stamp_info)
-
 
     @chart1 = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_s_info, time_stamp_info)
 
+
+
+
+
+
+
+
+
+
+
+ # The purpose of the url constructor is to have a user interface to enter params without an active record model.
+
+    # url_params = {my_station: my_station, product: product, begin_date: begin_date, end_date: end_date}
+    # uri = TideParsingService::UrlConstructor.new(url_params)
+
+# p " ==========#{uri.constructed_url}======"
   end
 
 
