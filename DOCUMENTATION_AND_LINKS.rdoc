@@ -12,6 +12,8 @@ http://www.programmableweb.com/api/co-ops
 
 http://www.highcharts.com/demo/line-labels
 
+http://www.highcharts.com/demo/line-basic
+
 API | Weather Underground
 Station Selection - NOAA Tides & Currents
 Predictions
