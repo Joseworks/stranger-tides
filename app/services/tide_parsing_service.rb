@@ -1,5 +1,5 @@
 include ActiveModel::Model
-
+require 'open-uri'
 module TideParsingService
 
   class TideProcessor

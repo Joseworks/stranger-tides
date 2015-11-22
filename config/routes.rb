@@ -1,5 +1,8 @@
 Rails.application.routes.draw do
   resources :stations
+  get 'show_station' => 'stations#show_station'
+  # root 'stations#show_station'
+
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 

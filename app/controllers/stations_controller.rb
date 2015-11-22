@@ -1,6 +1,49 @@
 class StationsController < ApplicationController
   before_action :set_station, only: [:show, :edit, :update, :destroy]
 
+  def show_station
+    my_station = 8454000
+    product = 'water_level'
+    begin_date = '20151120'
+    begin_time ='10:00'
+    end_date = '20151122'
+    end_time ='10:24'
+    datum = 'mllw'
+    units='english'
+    time_zone='gmt'
+    application='web_services'
+    format='json'
+    url = "http://tidesandcurrents.noaa.gov/api/datagetter?begin_date=#{begin_date} #{begin_time}&end_date=#{end_date} #{end_time}&station=#{my_station}&product=#{product}&datum=#{datum}&units=#{units}&time_zone=#{time_zone}&application=#{application}&format=#{format}"
+
+
+
+ # The purpose of the url constructor is to have a user interface to enter params without an active record model.
+
+    url_params = {my_station: my_station, product: product, begin_date: begin_date, end_date: end_date}
+    uri = TideParsingService::UrlConstructor.new(url_params)
+
+p " ==========#{uri.constructed_url}======"
+
+
+
+# Trying to change the way metadata is consumed to a class
+    # this metadata_retrieval needs to be a service
+    metadata = TideParsingService::TideProcessor.metadata_retrieval(my_station, product, url) #( And now it is! (W00T!)
+
+
+
+    meta = TideParsingService::Metadata.new(metadata)
+
+
+# Now Trying to change the way tide_info is consumed to a class
+# the purpose of this is to eliminate active record per se and migrate to PORO's
+
+    tide_info = TideParsingService::TideProcessor.tide_level_retrieval(my_station, product, url)
+    time_stamp_info = TideParsingService::TideProcessor.time_stamp_retrieval(my_station, product, url)
+
+    @chart = GraphingService::ChartProcessor.grapher(meta.station_name, tide_info, time_stamp_info)
+  end
+
   # GET /stations
   # GET /stations.json
   def index
@@ -25,14 +68,12 @@ class StationsController < ApplicationController
 
 
 
+ # The purpose of the url constructor is to have a user interface to enter params without an active record model.
 
     url_params = {my_station: my_station, product: product, begin_date: begin_date, end_date: end_date}
     uri = TideParsingService::UrlConstructor.new(url_params)
 
- # The purpose of the url constructor is to have a user interface to enter params without an active record model.
 p " ==========#{uri.constructed_url}======"
-
-    url = "http://tidesandcurrents.noaa.gov/api/datagetter?begin_date=#{begin_date} #{begin_time}&end_date=#{end_date} #{end_time}&station=#{my_station}&product=#{product}&datum=#{datum}&units=#{units}&time_zone=#{time_zone}&application=#{application}&format=#{format}"
 
 
 # Trying to change the way metadata is consumed to a class
