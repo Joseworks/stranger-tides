@@ -13,7 +13,7 @@ class StationsController < ApplicationController
     time_zone='gmt'
     application='web_services'
     format='json'
-    url = "http://tidesandcurrents.noaa.gov/api/datagetter?begin_date=#{begin_date} #{begin_time}&end_date=#{end_date} #{end_time}&station=#{my_station}&product=#{product}&datum=#{datum}&units=#{units}&time_zone=#{time_zone}&application=#{application}&format=#{format}"
+    # url = "http://tidesandcurrents.noaa.gov/api/datagetter?begin_date=#{begin_date} #{begin_time}&end_date=#{end_date} #{end_time}&station=#{my_station}&product=#{product}&datum=#{datum}&units=#{units}&time_zone=#{time_zone}&application=#{application}&format=#{format}"
 
   constructed_station_params ={ my_station: my_station,
                                 product: product,
@@ -25,8 +25,7 @@ class StationsController < ApplicationController
                                 units: units,
                                 time_zone: time_zone,
                                 application: application,
-                                format: format,
-                                url: url
+                                format: format
                               }
 
 
@@ -36,6 +35,7 @@ class StationsController < ApplicationController
 p   @path_build = @constructed_station.url_constructor
 p " =======  IT IS THE TRUTH!!!" if    @constructed_station.url_constructor.valid?
 
+   url = @path_build
 # Trying to change the way metadata is consumed to a class
     # this metadata_retrieval needs to be a service
     @metadata = TideParsingService::TideProcessor.metadata_retrieval(my_station, product, url) #( And now it is an object.)
