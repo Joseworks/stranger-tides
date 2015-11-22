@@ -65,6 +65,10 @@ module TideParsingService
         param_v << elto[:v].to_f
       end
       param_v
+      # n = 8
+      # (n - 1).step(param_v.size - 1, n).map { |i| param_v[i] }
+      param_v.each_slice(8).map(&:last)
+
     end
   # create arrays inside another class here like metadata?
 
