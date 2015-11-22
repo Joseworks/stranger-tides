@@ -62,7 +62,7 @@ module TideParsingService
     def self.param_v_parser(info)
       param_v =[]
       info.each do |elto|
-        param_v << elto[:v]
+        param_v << elto[:v].to_f
       end
       param_v
     end

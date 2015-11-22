@@ -14,15 +14,15 @@ class StationsController < ApplicationController
     product = 'water_level'
     metadata = Station.metadata_retrieval(my_station, product)
     tide_info = Station.tide_level_retrieval(my_station, product)
-    # p "====================#{tide_info.inspect}======================================="
+    time_stamp_info = Station.time_stamp_retrieval(my_station, product)
+    # p "====================#{time_stamp_info.inspect}======================================="
     @station = Station.new
     @station.station_name = metadata[:name]
     @station.station_id = metadata[:id]
     @station.latitude = metadata[:lat]
     @station.longitude = metadata[:lon]
     @station.save!
-    # grapho = GraphRenderingingService::ChartProcessor.grapher
-     @chart = GraphingService::ChartProcessor.grapher
+    @chart = GraphingService::ChartProcessor.grapher(@station.station_name, tide_info, time_stamp_info)
   end
 
   # GET /stations/new
