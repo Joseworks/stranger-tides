@@ -10,12 +10,6 @@ class Station < ActiveRecord::Base
   # end
 
 
-  # def self.metadata_retrieval(my_station, current_product, url_to_parse)
-    # TideParsingService::TideProcessor.url_validator(url_to_parse)
-    # parsed_tide = TideParsingService::TideProcessor.metadata_parser!(url_to_parse)
-    # my_metadata =  TideParsingService::Metadata.new(parsed_tide)
-  # end
-
   def self.tide_level_retrieval(my_station, current_product, url_to_parse)
     TideParsingService::TideProcessor.url_validator(url_to_parse)
     parsed_tide_info = TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)#.deep_symbolize_keys
