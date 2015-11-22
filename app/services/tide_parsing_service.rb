@@ -28,6 +28,7 @@ module TideParsingService
     def self.metadata_retrieval(my_station, current_product, url_to_parse)
       url_validator(url_to_parse)
       parsed_tide = TideParsingService::TideProcessor.metadata_parser!(url_to_parse)
+      meta = Metadata.new(parsed_tide)
     end
 
 
@@ -65,11 +66,6 @@ module TideParsingService
 
 
     def self.tide_level_parser!(url)
-      # timerodeador =[]
-      # param_v =[]
-      param_s =[]
-      param_f =[]
-      param_q =[]
       open(url) do |f|
         json_string = f.read
         parse_json = JSON.parse(json_string).deep_symbolize_keys

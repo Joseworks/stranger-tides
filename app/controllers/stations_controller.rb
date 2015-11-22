@@ -28,11 +28,7 @@ p " ==========#{uri.constructed_url}======"
 
 # Trying to change the way metadata is consumed to a class
     # this metadata_retrieval needs to be a service
-    @metadata = TideParsingService::TideProcessor.metadata_retrieval(my_station, product, url) #( And now it is! (W00T!)
-
-
-
-    meta = TideParsingService::Metadata.new(@metadata)
+    @metadata = TideParsingService::TideProcessor.metadata_retrieval(my_station, product, url) #( And now it is an object.)
 
 
 # Now Trying to change the way tide_info is consumed to a class
@@ -45,10 +41,10 @@ p " ==========#{uri.constructed_url}======"
 
 
 
-    @chart = GraphingService::ChartProcessor.grapher(meta.station_name, tide_info, time_stamp_info)
+    @chart = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_info, time_stamp_info)
 
 
-    @chart1 = GraphingService::ChartProcessor.grapher(meta.station_name, tide_s_info, time_stamp_info)
+    @chart1 = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_s_info, time_stamp_info)
 
   end
 
