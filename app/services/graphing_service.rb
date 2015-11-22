@@ -1,10 +1,6 @@
 include ActiveModel::Model
 include ActionView::Helpers::DateHelper
-include ActiveModel::Serialization
-
 module GraphingService
-
-
   class ChartProcessor
 
     def self.grapher(station, tide_information, time_range)

@@ -16,18 +16,40 @@ http://www.highcharts.com/demo/line-basic
 
 API | Weather Underground
 Station Selection - NOAA Tides & Currents
+
 Predictions
+http://opendap.co-ops.nos.noaa.gov/axis/webservices/predictions/response.jsp?stationId=8454000&beginDate=20151109&endDate=20151110&datum=MHHW&unit=1&timeZone=0&dataInterval=6&format=html&Submit=Submit
+
+
+
 CO-OPS Data Retrieval API
 Search for NOAA - Libraries
 noaa on Rubygems - Libraries
 sethdeckard/gull
+
+
 FAQ - Tide Predictions and Data - NOAA Tides & Currents
+https://tidesandcurrents.noaa.gov/faq2.html#30
+
+
 Tidal Datums - NOAA Tides & Currents
+https://tidesandcurrents.noaa.gov/datum_options.html
+
+
 NOAA/NOS's VDatum: A tutorial on datums
 Chartkick
+
 michelson/lazy_high_charts
+http://jsfiddle.net/gh/get/jquery/1.9.1/highslide-software/highcharts.com/tree/master/samples/highcharts/demo/line-ajax/
+
+
 RubyTides
 Tide Predictions - DUMFOUNDLING BAY 8723044 Tidal Data Daily View - NOAA Tides & Currents
+
+http://tidesandcurrents.noaa.gov/noaatidepredictions/viewDailyPredictions.jsp?bmon=11&bday=21&byear=2015&timelength=daily&timeZone=0&dataUnits=1&datum=MLLW&interval=highlow&format=Submit&Stationid=8723044
+
+
+
 
 
 http://blog.plataformatec.com.br/2014/07/rails-4-and-postgresql-arrays/

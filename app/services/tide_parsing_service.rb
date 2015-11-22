@@ -36,7 +36,6 @@ module TideParsingService
       url_validator(url_to_parse)
       parsed_tide_info = TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)#.deep_symbolize_keys
       tide_height = TideParsingService::TideProcessor.param_v_parser(parsed_tide_info)
-      # ayudame
     end
 
   def self.time_stamp_retrieval(my_station, current_product, url_to_parse)
