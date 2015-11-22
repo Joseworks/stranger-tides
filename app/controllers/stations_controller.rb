@@ -47,15 +47,9 @@ p " ==========#{uri.constructed_url}======"
 # Now Trying to change the way tide_info is consumed to a class
 # the purpose of this is to eliminate active record per se and migrate to PORO's
 
-    tide_info = Station.tide_level_retrieval(my_station, product, url)
-    time_stamp_info = Station.time_stamp_retrieval(my_station, product, url)
+    tide_info = TideParsingService::TideProcessor.tide_level_retrieval(my_station, product, url)
+    time_stamp_info = TideParsingService::TideProcessor.time_stamp_retrieval(my_station, product, url)
 
-    @station = Station.new
-    @station.station_name = meta.station_name
-    @station.station_id = meta.station_id
-    @station.latitude = meta.latitude
-    @station.longitude = meta.longitude
-    @station.save!
     @chart = GraphingService::ChartProcessor.grapher(meta.station_name, tide_info, time_stamp_info)
   end
 
