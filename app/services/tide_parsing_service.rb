@@ -83,7 +83,7 @@ module TideParsingService
       @end_date = args[:end_date]
     end
 
-    def contructed_url
+    def constructed_url
      URI::HTTP.build({:host => "www.tidesandcurrents.noaa.gov", :query => { :begin_date => @begin_date }.to_query, :path => "/api/datagetter"})
    end
   end

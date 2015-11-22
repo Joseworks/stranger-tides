@@ -12,7 +12,7 @@ class StationsController < ApplicationController
   def show
     my_station = 8454000
     product = 'water_level'
-    begin_date = '20151110'
+    begin_date = '20151120'
     begin_time ='10:00'
     end_date = '20151122'
     end_time ='10:24'
@@ -29,7 +29,7 @@ class StationsController < ApplicationController
     url_params = {my_station: my_station, product: product, begin_date: begin_date, end_date: end_date}
     uri = TideParsingService::UrlConstructor.new(url_params)
 
-p " ==========#{uri.contructed_url}======"
+p " ==========#{uri.constructed_url}======"
 
     url = "http://tidesandcurrents.noaa.gov/api/datagetter?begin_date=#{begin_date} #{begin_time}&end_date=#{end_date} #{end_time}&station=#{my_station}&product=#{product}&datum=#{datum}&units=#{units}&time_zone=#{time_zone}&application=#{application}&format=#{format}"
 

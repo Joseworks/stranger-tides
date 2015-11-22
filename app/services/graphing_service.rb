@@ -1,29 +1,21 @@
 include ActiveModel::Model
+include ActionView::Helpers::DateHelper
+include ActiveModel::Serialization
 
 module GraphingService
-  include ActiveModel::Serialization
+
 
   class ChartProcessor
 
     def self.grapher(station, tide_information, time_range)
         @chart = LazyHighCharts::HighChart.new('graph') do |f|
-          f.title(:text => "Station name: #{station}")
-          f.subtitle( {text: 'Source: NOAA CO-OPS API'})
-
           this_tide = date_converter(time_range)
           time_scale = (this_tide.last - this_tide.first).to_i
+          distance = distance_of_time_in_words(this_tide.last, this_tide.first )
 
-          # f.xAxis(:name => "Time",
-          #         :categories => this_tide,
-          #          tickInterval: time_scale*8,
-          #                          tickWidth: 1,
-          #                          gridLineWidth: 1,
-          #          labels: {
-          #                   align: 'left',
-          #                   x: 30,
-          #                   y: 0
-          #               }
-          #        )
+          f.title(:text => "Station name: #{station}, Time range #{distance}")
+          f.subtitle( {text: 'Source: NOAA CO-OPS API'})
+
           f.xAxis(:name => "Time",
                   :type => 'datetime',
                   :categories => this_tide,
@@ -37,12 +29,6 @@ module GraphingService
                         }
                  )
 
-        # f.xAxis: [{
-        #     type: 'datetime'
-        # }, {
-        #     type: 'datetime',
-        #     opposite: true
-        # }]
 
 
           f.series(:name => "Height",
