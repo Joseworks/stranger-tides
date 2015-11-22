@@ -38,6 +38,21 @@ module TideParsingService
       tide_height = TideParsingService::TideProcessor.param_v_parser(parsed_tide_info)
     end
 
+
+
+
+
+
+
+    def self.tide_s_retrieval(my_station, current_product, url_to_parse)
+      url_validator(url_to_parse)
+      parsed_tide_info = TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)#.deep_symbolize_keys
+      tide_s = TideParsingService::TideProcessor.param_s_parser(parsed_tide_info)
+    end
+
+
+
+
   def self.time_stamp_retrieval(my_station, current_product, url_to_parse)
     url_validator(url_to_parse)
     parsed_tide_info = TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)#.deep_symbolize_keys
@@ -58,46 +73,43 @@ module TideParsingService
       open(url) do |f|
         json_string = f.read
         parse_json = JSON.parse(json_string).deep_symbolize_keys
-        # info = parse_json.except(:metadata)[:data]
         parse_json.except(:metadata)[:data]
-        # info.each do |elto|
-        #   timerodeador << elto[:t]
-        #   # param_v << elto[:v]
-        #   # param_s << elto[:s]
-        #   # param_f << elto[:f]
-        #   # param_q << elto[:q]
-        #   # p  "\n"
-        # end
       end
-      # array_of_tide_info =
-      # p timerodeador
-      # p param_v
-      # p param_s
-      # p param_f
-      # p param_q
     end
 
     def self.time_parser(info)
       timerodeador =[]
-      info.each do |elto|
-        timerodeador << elto[:t]
+      info.each do |element|
+        timerodeador << element[:t]
       end
       timerodeador
     end
 
     def self.param_v_parser(info)
       param_v =[]
-      info.each do |elto|
-        param_v << elto[:v].to_f
+      info.each do |element|
+        param_v << element[:v].to_f
       end
       param_v
       n = 8
       param_v.each_slice(n).map(&:last)
-
     end
 
-
+    def self.param_s_parser(info)
+      param_s =[]
+      info.each do |element|
+        param_s << element[:s].to_f
+      end
+      param_s
+      n = 8
+      p param_s.each_slice(n).map(&:last)
+    end
   end
+
+
+
+
+
 
   class UrlConstructor
     attr_accessor :station_id, :station_name, :latitude, :longitude

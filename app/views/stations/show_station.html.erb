@@ -1,37 +1,53 @@
+
+  <% if @metadata.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@metadata.errors.count, "error") %> prohibited this station from being saved:</h2>
+
+      <ul>
+      <% @metadata.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+<% end %>
+
 <p id="notice"><%= notice %></p>
 
 <p>
-  <strong>Station:</strong>
-  <%#= @station.station_id %>
+  <strong>Station id:</strong>
+  <%= @metadata[:id] %>
+  <%= "Lat #{@metadata[:lat] }"%>
+  <%= "Long #{@metadata[:lon] }"%>
 </p>
 
 <!-- <p>
   <strong>Station name:</strong>
-  <%#= @station.station_name %>
+  <%#= @metadata.station_name %>
 </p>
 
 <p>
   <strong>Latitude:</strong>
-  <%#= @station.latitude %>
+  <%#= @metadata.latitude %>
 </p>
 
 <p>
   <strong>Longitude:</strong>
-  <%#= @station.longitude %>
+  <%#= @metadata.longitude %>
 </p>
 
 <p>
   <strong>Tide info:</strong>
-  <%#= @station.tide_info %>
+  <%#= @metadata.tide_info %>
 </p>
 
 <p>
   <strong>SERVICE</strong>
-  <%#= @station.tide_retrieval.inspect %>
+  <%#= @metadata.tide_retrieval.inspect %>
 </p> -->
 
 <%= high_chart("some_id", @chart) %>
+<%= high_chart("some_other_id", @chart1) %>
 
 
-<%#= link_to 'Edit', edit_station_path(@station) %> |
+<%#= link_to 'Edit', edit_station_path(@metadata) %> |
 <%= link_to 'Back', stations_path %>
