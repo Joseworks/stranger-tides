@@ -12,9 +12,32 @@ class StationsController < ApplicationController
   def show
     my_station = 8454000
     product = 'water_level'
-    metadata = Station.metadata_retrieval(my_station, product)
-    tide_info = Station.tide_level_retrieval(my_station, product)
-    time_stamp_info = Station.time_stamp_retrieval(my_station, product)
+    begin_date = '20151120'
+    begin_time ='10:00'
+    end_date = '20151122'
+    end_time ='10:24'
+    datum = 'mllw'
+    units='english'
+    time_zone='gmt'
+    application='web_services'
+    format='json'
+    url = "http://tidesandcurrents.noaa.gov/api/datagetter?begin_date=#{begin_date} #{begin_time}&end_date=#{end_date} #{end_time}&station=#{my_station}&product=#{product}&datum=#{datum}&units=#{units}&time_zone=#{time_zone}&application=#{application}&format=#{format}"
+
+
+
+
+    url_params = {my_station: my_station, product: product, begin_date: begin_date, end_date: end_date}
+    uri = TideParsingService::UrlConstructor.new(url_params)
+
+p " ==========#{uri.contructed_url}======"
+
+    url = "http://tidesandcurrents.noaa.gov/api/datagetter?begin_date=#{begin_date} #{begin_time}&end_date=#{end_date} #{end_time}&station=#{my_station}&product=#{product}&datum=#{datum}&units=#{units}&time_zone=#{time_zone}&application=#{application}&format=#{format}"
+
+
+
+    metadata = Station.metadata_retrieval(my_station, product, url)
+    tide_info = Station.tide_level_retrieval(my_station, product, url)
+    time_stamp_info = Station.time_stamp_retrieval(my_station, product, url)
     # p "====================#{time_stamp_info.inspect}======================================="
     @station = Station.new
     @station.station_name = metadata[:name]

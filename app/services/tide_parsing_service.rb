@@ -71,6 +71,21 @@ module TideParsingService
 
   end
 
+  class UrlConstructor
+    attr_accessor :station_id, :station_name, :latitude, :longitude
+    def initialize(args)
+      @my_station = args[:my_station]
+      @product = args[:product]
+      @begin_date = args[:begin_date]
+      @end_date = args[:end_date]
+    end
+
+    def contructed_url
+     URI::HTTP.build({:host => "www.tidesandcurrents.noaa.gov", :query => { :begin_date => @begin_date }.to_query, :path => "/api/datagetter"})
+   end
+  end
+
+
 
 
 

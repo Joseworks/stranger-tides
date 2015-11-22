@@ -1,6 +1,7 @@
 include ActiveModel::Model
 
 module GraphingService
+  include ActiveModel::Serialization
 
   class ChartProcessor
 
@@ -8,13 +9,10 @@ module GraphingService
         @chart = LazyHighCharts::HighChart.new('graph') do |f|
           f.title(:text => "Station name: #{station}")
 
-
-
-
           this_tide = date_stripper(time_range)
-          p this_tide
+          # p this_tide
 
-          f.xAxis(:categories => ["United States", "Japan", "China", "Germany", "France"])
+          # f.xAxis(:categories => ["United States", "Japan", "China", "Germany", "France"])
           f.xAxis(:categories => this_tide)
           # f.series(:name => "GDP in Billions", :yAxis => 0, :data => [14119, 5068, 4985, 3339, 2656])
           f.series(:name => "Height", :yAxis => 0, :data => tide_information)
