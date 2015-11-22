@@ -1,7 +1,8 @@
+# require 'uri'
 class StationConstructor
     attr_accessor :my_station,:product,:begin_date,:begin_time,:end_date,:end_time,:datum,:units,:time_zone,:application,:format,:url
     def initialize(args)
-      @my_station = args[:my_station]
+      @station = args[:my_station]
       @product = args[:product]
       @begin_date = args[:begin_date]
       @begin_time = args[:begin_time]
@@ -20,9 +21,16 @@ class StationConstructor
 
     def url_constructor
      URI::HTTP.build({:host => "www.tidesandcurrents.noaa.gov",
-                      :query => { :begin_date => @begin_date }.to_query,
+                      :query => { :begin_date => @begin_date,
+                      :end_date => @end_date,
+                      :station => @station,
+                      :product => @product,
+                      :datum => @datum,
+                      :units => @units,
+                      :time_zone => @time_zone,
+                      :application => @application,
+                      :format => @format
+                      }.to_query,
                       :path => "/api/datagetter"})
    end
-
-
 end
