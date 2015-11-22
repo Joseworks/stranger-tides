@@ -21,6 +21,8 @@ class StationsController < ApplicationController
     @station.latitude = metadata[:lat]
     @station.longitude = metadata[:lon]
     @station.save!
+    # grapho = GraphRenderingingService::ChartProcessor.grapher
+     @chart = GraphingService::ChartProcessor.grapher
   end
 
   # GET /stations/new

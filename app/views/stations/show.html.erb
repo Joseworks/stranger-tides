@@ -30,5 +30,8 @@
   <%#= @station.tide_retrieval.inspect %>
 </p>
 
+<%= high_chart("some_id", @chart) %>
+
+
 <%= link_to 'Edit', edit_station_path(@station) %> |
 <%= link_to 'Back', stations_path %>
