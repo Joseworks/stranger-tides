@@ -12,7 +12,7 @@ class StationsController < ApplicationController
   def show
     my_station = 8454000
     product = 'water_level'
-    begin_date = '20151120'
+    begin_date = '20151110'
     begin_time ='10:00'
     end_date = '20151122'
     end_time ='10:24'
