@@ -10,8 +10,11 @@ class StationsController < ApplicationController
   # GET /stations/1
   # GET /stations/1.json
   def show
-    metadata = Station.metadata_retrieval
-    p "====================#{metadata.inspect}======================================="
+    my_station = 8454000
+    product = 'water_level'
+    metadata = Station.metadata_retrieval(my_station, product)
+    tide_info = Station.tide_level_retrieval(my_station, product)
+    # p "====================#{tide_info.inspect}======================================="
     @station = Station.new
     @station.station_name = metadata[:name]
     @station.station_id = metadata[:id]
