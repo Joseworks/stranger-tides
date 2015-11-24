@@ -33,7 +33,7 @@ class StationsController < ApplicationController
 
 
 p   @path_build = @constructed_station.url_constructor
-p " =======  IT IS THE TRUTH!!!" if @constructed_station.url_constructor.valid?
+# p " =======  IT IS THE TRUTH!!!" if @constructed_station.url_constructor.valid?
 
    url = @path_build
 # Trying to change the way metadata is consumed to a class
