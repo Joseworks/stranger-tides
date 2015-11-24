@@ -96,3 +96,4 @@ currents  Currents data for currents stations.
 ]
 
 
+I took out //= require highcharts/highstock from the manifest to avoid double devlaration of highcharts js error.
