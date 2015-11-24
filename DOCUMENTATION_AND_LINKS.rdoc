@@ -26,7 +26,7 @@ CO-OPS Data Retrieval API
 Search for NOAA - Libraries
 noaa on Rubygems - Libraries
 sethdeckard/gull
-
+http://www.programmableweb.com/api/co-ops
 
 FAQ - Tide Predictions and Data - NOAA Tides & Currents
 https://tidesandcurrents.noaa.gov/faq2.html#30
@@ -60,4 +60,39 @@ http://edgeguides.rubyonrails.org/active_record_postgresql.html
 
 
 http://rubyjunky.com/rails-activerecord-serialize.html
+
+
+
+Products List
+
+water_level Preliminary or verified water levels, depending on availability.
+air_temperature Air temperature as measured at the station.
+water_temperature Water temperature as measured at the station.
+wind  Wind speed, direction, and gusts as measured at the station.
+air_pressure  Barometric pressure as measured at the station.
+air_gap Air Gap (distance between a bridge and the water's surface) at the station.
+conductivity  The water's conductivity as measured at the station.
+visibility  Visibility from the station's visibility sensor. A measure of atmospheric clarity.
+humidity  Relative humidity as measured at the station.
+salinity  Salinity and specific gravity data for the station.
+hourly_height Verified hourly height water level data for the station.
+high_low  Verified high/low water level data for the station.
+daily_mean  Verified daily mean water level data for the station.
+monthly_mean  Verified monthly mean water level data for the station.
+one_minute_water_level  One minute water level data for the station.
+predictions 6 minute predictions water level data for the station.
+datums  datums data for the stations.
+currents  Currents data for currents stations.
+
+
+{"metadata"
+:{"id":"8454000","name":"Providence","lat":"41.8071","lon":"-71.4012"},
+
+ "data": [
+{"t":"2015-11-09 10:00", "v":"3.535", "s":"0.010", "f":"0,0,0,0", "q":"p"},
+{"t":"2015-11-09 10:06", "v":"3.617", "s":"0.013", "f":"0,0,0,0", "q":"p"},
+{"t":"2015-11-09 10:12", "v":"3.715", "s":"0.016", "f":"0,0,0,0", "q":"p"},
+...
+]
+
 

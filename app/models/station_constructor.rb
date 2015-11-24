@@ -15,10 +15,6 @@ class StationConstructor
       @format = args[:format]
     end
 
-  def url_formador
-     "http://tidesandcurrents.noaa.gov/api/datagetter?begin_date=#{@begin_date} #{@begin_time}&end_date=#{@end_date} #{@end_time}&station=#{@my_station}&product=#{@product}&datum=#{@datum}&units=#{@units}&time_zone=#{@time_zone}&application=#{@application}&format=#{@format}"
-  end
-
     def url_constructor
      URI::HTTP.build({:host => "www.tidesandcurrents.noaa.gov",
                       :query => { :begin_date => @begin_date,

@@ -43,8 +43,6 @@ module TideParsingService
 
 
 
-
-
     def self.tide_s_retrieval(my_station, current_product, url_to_parse)
       url_validator(url_to_parse)
       parsed_tide_info = TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)#.deep_symbolize_keys
@@ -73,12 +71,13 @@ module TideParsingService
       end
     end
 
+
     def self.time_parser(info)
-      timerodeador =[]
+      param_t =[]
       info.each do |element|
-        timerodeador << element[:t]
+        param_t << element[:t]
       end
-      timerodeador
+      param_t
     end
 
     def self.param_v_parser(info)
@@ -87,10 +86,11 @@ module TideParsingService
         param_v << element[:v].to_f
       end
       param_v
-      n = 8
+      n = 8 #amount of samples per reading
       param_v.each_slice(n).map(&:last)
     end
 
+#not is use right now
     def self.param_s_parser(info)
       param_s =[]
       info.each do |element|
