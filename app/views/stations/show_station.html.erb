@@ -19,6 +19,7 @@
   <br>
   <strong><%#= @path_build.valid? %></strong>
   <br> -->
+  <%= "Station id:#{@metadata.inspect}" %>
   <%= "Station id:#{@metadata.station_id}" %>
   <%= "Lat #{@metadata.latitude }"%>
   <%= "Long #{@metadata.longitude }"%>
@@ -39,7 +40,7 @@
   var marker = new google.maps.Marker({
     position: myLatLng,
     map: map,
-    title: 'Hello World!'
+    title: "<%= @metadata.station_id + " Station: "+ @metadata.station_name %>"
   });
       }
     </script>
