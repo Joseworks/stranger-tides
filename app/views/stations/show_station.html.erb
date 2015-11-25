@@ -29,11 +29,18 @@
 
     <script type="text/javascript">
       var map;
+      var myLatLng = {lat:<%=@metadata.latitude%>, lng:<%=@metadata.longitude%>};
+
       function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
-          center: {lat:<%=@metadata.latitude%>, lng:<%=@metadata.longitude%>},
-          zoom: 14
+              center: myLatLng,
+          zoom: 10
         });
+  var marker = new google.maps.Marker({
+    position: myLatLng,
+    map: map,
+    title: 'Hello World!'
+  });
       }
     </script>
 
