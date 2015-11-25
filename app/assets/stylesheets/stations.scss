@@ -1,3 +1,35 @@
 // Place all the styles related to the stations controller here.
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
+
+// body {
+//   background-color: #fff;
+//   color: #333;
+//   // font-family: verdana, arial, helvetica, sans-serif;
+//   font-size: 13px;
+//   line-height: 18px;
+//   height: 100%;
+//                    margin: 10;
+//                     padding: 10;
+// }
+
+
+ html,body { height: 100%;
+            margin: 10;
+            padding: 10;
+            }
+
+pre {
+  background-color: #eee;
+  padding: 10px;
+  font-size: 11px;
+}
+
+
+#map {
+  height: 50%;
+}
+
+#graph {
+  height: 50%;
+};

@@ -24,8 +24,28 @@
   <%= "Long #{@metadata.longitude }"%>
 </p>
 
+    <div id="map"></div>
 
-<%= high_chart("some_id", @chart) %>
+
+    <script type="text/javascript">
+      var map;
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat:<%=@metadata.latitude%>, lng:<%=@metadata.longitude%>},
+          zoom: 14
+        });
+      }
+    </script>
+
+    <script async defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAsmBEB76Uhe4AjnkAzZiEZjt6nRtObRJE&callback=initMap">
+    </script>
+
+
+
+
+
+<%= high_chart("graph", @chart) %>
 <%#= high_chart("some_other_id", @chart1) %>
 
 
