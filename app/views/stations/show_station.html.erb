@@ -13,12 +13,7 @@
 <p id="notice"><%= notice %></p>
 
 <p>
-<!--   <strong><%#= @constructed_station.inspect %></strong>
-  <br>
-  <strong><%#= @path_build %></strong>
-  <br>
-  <strong><%#= @path_build.valid? %></strong>
-  <br> -->
+
   <%= "Station id:#{@metadata.inspect}" %>
   <%= "Station id:#{@metadata.station_id}" %>
   <%= "Lat #{@metadata.latitude }"%>
@@ -26,7 +21,6 @@
 </p>
 
     <div id="map"></div>
-
 
     <script type="text/javascript">
       var map;
