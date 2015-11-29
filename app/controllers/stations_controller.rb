@@ -32,15 +32,17 @@ class StationsController < ApplicationController
    @constructed_station = StationConstructor.new(constructed_station_params)
 
 
-p   @path_build = @constructed_station.url_constructor
+   @path_build = @constructed_station.url_constructor
 # p " =======  IT IS THE TRUTH!!!" if @constructed_station.url_constructor.valid?
 
    url = @path_build
 # Trying to change the way metadata is consumed to a class
     # this metadata_retrieval needs to be a service
     @metadata = TideParsingService::TideProcessor.metadata_retrieval(my_station, product, url) #( And now it is an object.)
+    gon.metadata = @metadata
+    # gon.metadata = @metadata
 
-
+# gon.metadata.station_name = @metadata.station_name
 # Now Trying to change the way tide_info is consumed to a class
 # the purpose of this is to eliminate active record per se and migrate to PORO's
 
