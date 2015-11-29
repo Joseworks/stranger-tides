@@ -122,13 +122,11 @@ p '========================='
 # p TideParsingService::TideProcessor.metadata_retrieval(my_station, product, url)
 
   @metadata = TideParsingService::TideProcessor.metadata_retrieval(my_station, product, url)
-  p "This is my @metadata #{@metadata.inspect}"
-  p @metadata.nil?
-  unless @metadata.nil?
 
-    @all_station_metadata << @metadata
+  unless @metadata.nil?
     gon.metadata = @metadata
 
+    @all_station_metadata << @metadata
 
     tide_info = TideParsingService::TideProcessor.tide_level_retrieval(my_station, product, url)
     time_stamp_info = TideParsingService::TideProcessor.time_stamp_retrieval(my_station, product, url)
@@ -136,15 +134,13 @@ p '========================='
      # tide_s_info = TideParsingService::TideProcessor.tide_s_retrieval(my_station, product, url)
 
 
-
-
-    # p "@metadata    #{@metadata.inspect}"
-
         @chart = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_info, time_stamp_info)
         @all_charts << @chart
       end
 
     end
+      gon.all_station_metadata = @all_station_metadata
+      p " All @all_station_metadata #{@all_station_metadata.inspect}"
       p @all_charts.size
       p @all_charts.flatten.size
       @all_charts.flatten
