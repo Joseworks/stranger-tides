@@ -1,8 +1,7 @@
 // Place all the behaviors and hooks related to the matching controller here.
 // All this logic will automatically be available in application.js.
-// alert(gon.metadata);
-// console.log(gon.metadata);
-// console.log(gon.metadata.station_name);
+
+// Array structure: ["station_id", "station_name", "latitude", "longitude", "errors"]
 console.log("This is the name: " + gon.metadata.station_name);
 
 var array_keys = new Array();
@@ -12,7 +11,6 @@ for (var key in gon.metadata) {
     array_keys.push(key);
     array_values.push(gon.metadata[key]);
 }
-
 
 var map;
 var myLatLng = {
