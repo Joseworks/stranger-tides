@@ -20,7 +20,9 @@ module TideParsingService
       open(url) do |f|
         json_string = f.read
         parse_json = JSON.parse(json_string)['metadata']
-        parse_json.deep_symbolize_keys
+        p "parse_json #{parse_json.inspect}"
+
+        parse_json.deep_symbolize_keys unless parse_json.nil?
       end
     end
 
@@ -28,7 +30,8 @@ module TideParsingService
     def self.metadata_retrieval(my_station, current_product, url_to_parse)
       url_validator(url_to_parse)
       parsed_tide = TideParsingService::TideProcessor.metadata_parser!(url_to_parse)
-      meta = Metadata.new(parsed_tide)
+      p "parsed_tide #{parsed_tide.inspect}"
+      meta = Metadata.new(parsed_tide) unless parsed_tide.nil?
     end
 
 
@@ -74,31 +77,42 @@ module TideParsingService
 
     def self.time_parser(info)
       param_t =[]
-      info.each do |element|
-        param_t << element[:t]
+        unless info.nil?
+        info.each do |element|
+          param_t << element[:t]
+        end
       end
       param_t
     end
 
     def self.param_v_parser(info)
       param_v =[]
-      info.each do |element|
-        param_v << element[:v].to_f
+
+
+      # p "info #{info.inspect}"
+      unless info.nil?
+        info.each do |element|
+          param_v << element[:v].to_f
+        end
+        param_v
+        n = 8 #amount of samples per reading
+        param_v.each_slice(n).map(&:last)
       end
-      param_v
-      n = 8 #amount of samples per reading
       param_v.each_slice(n).map(&:last)
     end
 
 #not is use right now
     def self.param_s_parser(info)
       param_s =[]
-      info.each do |element|
-        param_s << element[:s].to_f
+      unless info.nil?
+        info.each do |element|
+          param_s << element[:s].to_f
+        end
+        param_s
+        n = 8
+        param_s.each_slice(n).map(&:last)
       end
-      param_s
-      n = 8
-      param_s.each_slice(n).map(&:last)
+        param_s.each_slice(n).map(&:last)
     end
   end
 

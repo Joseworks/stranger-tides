@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   resources :stations
   get 'show_station' => 'stations#show_station'
+  get 'show_stations' => 'stations#show_stations'
   root 'stations#show_station'
 
   # The priority is based upon order of creation: first created -> highest priority.

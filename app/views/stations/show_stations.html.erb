@@ -1,0 +1,28 @@
+
+
+<p id="notice"><%= notice %></p>
+
+
+<p>
+  <%= @all_reporting_stations %>
+</p>
+
+
+
+<p>
+  <%#= @constructed_station.inspect %>
+</p>
+
+
+
+<%#= high_chart("graph", @chart) %>
+<%#= high_chart("some_other_id", @chart1) %>
+
+<%= link_to 'Back', stations_path %>
+
+<% @all_charts.each_with_index do |chart, index| %>
+
+  <%#= chart.inspect %>
+  <%= high_chart("graph"+index.to_s , chart) %>
+<% end %>
+

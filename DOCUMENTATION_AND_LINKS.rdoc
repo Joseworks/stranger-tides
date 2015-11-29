@@ -97,3 +97,33 @@ currents  Currents data for currents stations.
 
 
 I took out //= require highcharts/highstock from the manifest to avoid double devlaration of highcharts js error.
+
+
+
+
+
+
+    Water Level 6 Minute Raw Data (juneau)
+
+Station   --  Unique seven character identifier for the station
+D         --  A one character identifier for the data collection
+              platform (DCP) at a station
+SE        --  A two character identifier for the data sensor
+Date Time --  Date and time the data were collected by the DCP
+WL        --  Water level height
+Sigma     --  Standard deviation of 1 second samples used
+              to compute the water level height
+O         --  Count of number of samples that fall outside
+              a 3-sigma band about the mean
+F         --  A flag that when set to 1 indicates that the
+              flat tolerance limit was exceeded
+R         --  A flag that when set to 1 indicates that the
+              rate of change tolerance limit was exceeded
+L         --  A flag that when set to 1 indicates that either
+              the maximum or minimum expected water level
+              height limit was exceeded
+Data are in Meters above MLLW
+Times are on UTC (GMT)
+Additional Query Options
+----------------------------------------------------------------
+Station D SE Date       Time      WL    Sigma   O F R L
