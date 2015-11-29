@@ -141,9 +141,9 @@ function setMarkers(map) {
       position: {lat: station[1], lng: station[2]},
       map: map,
       // icon: image,
-      shape: shape,
-      title: station[0],
-      zIndex: station[3]
+      // shape: shape,
+      title: station[0]
+      // zIndex: station[3]
     });
   }
 }
