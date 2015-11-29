@@ -2,7 +2,7 @@ class StationsController < ApplicationController
   before_action :set_station, only: [:show, :edit, :update, :destroy]
 
   def show_station
-    my_station = 8454000
+    my_station = 8723214
     product = 'water_level'
     begin_date = '20151120'
     begin_time ='10:00'
