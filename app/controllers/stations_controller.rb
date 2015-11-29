@@ -118,7 +118,7 @@ def show_stations
 
      url = @path_build
 # p constructed_station_params
-p '========================='
+# p '========================='
 # p TideParsingService::TideProcessor.metadata_retrieval(my_station, product, url)
 
   @metadata = TideParsingService::TideProcessor.metadata_retrieval(my_station, product, url)
@@ -140,7 +140,7 @@ p '========================='
 
     end
       gon.all_station_metadata = @all_station_metadata
-      p " All @all_station_metadata #{@all_station_metadata.inspect}"
+      # p " All @all_station_metadata #{@all_station_metadata.inspect}"
       p @all_charts.size
       p @all_charts.flatten.size
       @all_charts.flatten

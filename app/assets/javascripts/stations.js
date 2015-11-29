@@ -100,7 +100,7 @@ var station_markers = split(station_name, all_stations.length);
 
 function initMap() {
   var map = new google.maps.Map(document.getElementById('map'), {
-    zoom: 8,
+    zoom: 3,
     center: {lat: 38.88, lng: -98.35}
   });
 
@@ -136,6 +136,7 @@ function setMarkers(map) {
   };
   for (var i = 0; i < stations.length; i++) {
     var station = stations[i];
+    console.log(station)
     var marker = new google.maps.Marker({
       position: {lat: station[1], lng: station[2]},
       map: map,
