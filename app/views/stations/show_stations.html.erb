@@ -4,25 +4,27 @@
 
 
 <p>
-  <%= @all_reporting_stations %>
+  <% @all_station_metadata.each do |metadata| %>
+  <%= metadata.station_name %>
+  <% end %>
 </p>
 
 
+    <div id="map"></div>
 
-<p>
-  <%#= @constructed_station.inspect %>
-</p>
+    <script async defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAsmBEB76Uhe4AjnkAzZiEZjt6nRtObRJE&callback=initMap">
+    </script>
 
 
 
 <%#= high_chart("graph", @chart) %>
 <%#= high_chart("some_other_id", @chart1) %>
 
-<%= link_to 'Back', stations_path %>
+<%#= link_to 'Back', stations_path %>
 
-<% @all_charts.each_with_index do |chart, index| %>
-
+<%# @all_charts.each_with_index do |chart, index| %>
   <%#= chart.inspect %>
-  <%= high_chart("graph"+index.to_s , chart) %>
-<% end %>
+  <%#= high_chart("graph"+index.to_s , chart) %>
+<%# end %>
 

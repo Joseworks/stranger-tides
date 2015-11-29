@@ -85,6 +85,8 @@ def show_stations
 
    @all_reporting_stations = StationListService::TideStation.parse_stations_id
    @all_charts = []
+   @all_station_metadata = []
+
    @all_reporting_stations.each do |station_id|
       my_station = station_id
       product = 'water_level'
@@ -114,7 +116,6 @@ def show_stations
      @constructed_station = StationConstructor.new(constructed_station_params)
      @path_build = @constructed_station.url_constructor
 
-
      url = @path_build
 # p constructed_station_params
 p '========================='
@@ -124,6 +125,8 @@ p '========================='
   p "This is my @metadata #{@metadata.inspect}"
   p @metadata.nil?
   unless @metadata.nil?
+
+    @all_station_metadata << @metadata
     gon.metadata = @metadata
 
 
