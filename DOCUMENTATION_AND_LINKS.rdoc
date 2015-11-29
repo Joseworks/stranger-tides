@@ -1,3 +1,12 @@
+AIzaSyD2RIJ6Azcnl2QJ-309Hn_6NESecq5eTN4
+
+
+
+JS KEY MAPS AIzaSyAsmBEB76Uhe4AjnkAzZiEZjt6nRtObRJE
+
+
+
+
 
 http://opendap.co-ops.nos.noaa.gov/axis/webservices/predictions/response.jsp?stationId=8454000&beginDate=20151109&endDate=20151110&datum=MHHW&unit=1&timeZone=0&dataInterval=6&format=html&Submit=Submit
 

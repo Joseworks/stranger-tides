@@ -25,10 +25,15 @@ pre {
   font-size: 11px;
 }
 
-
-#map {
+#full_map {
   height: 100%;
 }
+
+
+#map {
+  height: 50%;
+}
+
 
 #graph {
   height: 50%;

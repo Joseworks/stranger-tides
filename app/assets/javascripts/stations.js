@@ -99,7 +99,7 @@ var station_markers = split(station_name, all_stations.length);
 // }
 
 function initMap() {
-  var map = new google.maps.Map(document.getElementById('map'), {
+  var map = new google.maps.Map(document.getElementById('full_map'), {
     zoom: 3,
     center: {lat: 38.88, lng: -98.35}
   });
