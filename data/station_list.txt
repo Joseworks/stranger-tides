@@ -1,3 +1,8 @@
+9461380 Adak Island, AK 9457804 Alitak, AK 9455920 Anchorage, AK
+9461710 Atka, AK 9450406 Block Island, AK 9490096 Cape Espenberg, Kotzebue Sound, AK
+9454050 Cordova, AK 9452634 Elfin Cove, AK 9469833 Goodhope Bay, AK
+9452210 Juneau, AK 9450460 Ketchikan, AK 9459881 King Cove, AK
+9457292 Kodiak Island, AK 9490424 Kotzebue, AK 9455760 Nikiski, AK
 9462450 Nikolski, AK 9468756 Nome, Norton Sound, AK 9451054 Port Alexander, AK
 9463502 Port Moller, AK 9497645 Prudhoe Bay, AK 9491094 Red Dog Dock, AK
 9459450 Sand Point, AK 9455500 Seldovia, AK 9455090 Seward, AK
@@ -7,4 +12,115 @@
 2695540 Bermuda, St. Georges Island, Bermuda
 9414750 Alameda, CA 9416841 Arena Cove, CA 9414958 Bolinas, Bolinas Lagoon, CA
 9414575 Coyote Creek, CA 9419750 Crescent City, CA 9410689 Gerald Desmond Bridge Air Gap, CA
+9410230 La Jolla, CA 9410660 Los Angeles, CA 9415102 Martinez-Amorco Pier, CA
 9413450 Monterey, CA 9418767 North Spit, CA 9411406 Oil Platform Harvest, CA
+9415020 Point Reyes, CA 9415144 Port Chicago, CA 9412110 Port San Luis, CA
+9414523 Redwood City, CA 9414863 Richmond, CA 9410170 San Diego, CA
+9414304 San Francisco-Oakland Bay Bridge Air Gap, CA 9414290 San Francisco, CA 9411340 Santa Barbara, CA
+9410840 Santa Monica, CA
+9759412 Aguadilla, PR 9757809 Arecibo, PR 9761115 Barbuda, Antigua and Barbuda
+9757112 Caja de Muertos, PR 9751639 Charlotte Amalie, VI 9751364 Christiansted Harbor, St Croix, VI
+9752695 Esperanza, Vieques Island, PR 9753216 Fajardo, PR 9752619 Isabel Segunda, Vieques Island, PR
+9751381 Lameshur Bay, St John, VI 9751401 Lime Tree Bay, VI 9759110 Magueyes Island, PR
+9759394 Mayaguez, PR 9759938 Mona Island, PR 9755371 San Juan, PR
+9754228 Yabucoa Harbor, PR
+8467150 Bridgeport, CT 8469057 Mianus, CT 8465705 New Haven, CT
+8461490 New London, CT
+8555889 Brandywine Shoal Light, DE 8551762 Delaware City, DE 8557380 Lewes, DE
+8551911 Reedy Point Air Gap, DE 8551910 Reedy Point, DE
+8594900 Washington, DC
+8728690 Apalachicola, FL 8727520 Cedar Key, FL 8726724 Clearwater Beach, FL
+8720376 Dames Point Bridge Air Gap, FL 8720219 Dames Point, FL 8720030 Fernandina Beach, FL
+8725520 Fort Myers, FL 8720357 I-295 Bridge, St Johns River, FL 8724580 Key West, FL
+8722670 Lake Worth Pier, FL 8720218 Mayport (Bar Pilots Dock), FL 8726667 Mckay Bay Entrance, FL
+8725110 Naples, FL 8726607 Old Port Tampa, FL 8729210 Panama City Beach, FL
+8729108 Panama City, FL 8729840 Pensacola, FL 8726384 Port Manatee, FL
+8720625 Racy Point, St Johns River, FL 8720503 Red Bay Point, St Johns River, FL 8720226 Southbank Riverwalk, St Johns River, FL
+8726520 St Petersburg, FL 8721604 Trident Pier, FL 8723970 Vaca Key, FL
+8723214 Virginia Key, FL
+8670870 Fort Pulaski, GA
+9044036 Fort Wayne, MI 9044020 Gibraltar, MI 9044049 Windmill Point, MI
+9044030 Wyandotte, MI
+9063020 Buffalo, NY 9063063 Cleveland, OH 9063038 Erie, PA
+9063053 Fairport, OH 9063090 Fermi Power Plant, MI 9063079 Marblehead, OH
+9063028 Sturgeon Point, NY 9063085 Toledo, OH
+9075065 Alpena, MI 9075099 De Tour Village, MI 9075035 Essexville, MI
+9075014 Harbor Beach, MI 9075002 Lakeport, MI 9075080 Mackinaw City, MI
+9087044 Calumet Harbor, IL 9087079 Green Bay, WI 9087031 Holland, MI
+9087068 Kewaunee, WI 9087023 Ludington, MI 9087088 Menominee, MI
+9087038 Michigan City, IN 9087057 Milwaukee, WI 9087096 Port Inland, MI
+9087072 Sturgeon Bay Canal, WI 9087010 Traverse City, MI
+9052000 Cape Vincent, NY 9052076 Olcott, NY 9052030 Oswego, NY
+9052058 Rochester, NY
+9034052 St Clair Shores, MI
+9099064 Duluth, MN 9099090 Grand Marais, MN 9099018 Marquette C.G., MI
+9099013 Munising, MI 9099044 Ontonagon, MI 9099004 Point Iroquois, MI
+9063009 American Falls, NY 9063007 Ashland Ave, NY 9063012 Niagara Intake, NY
+9014070 Algonac, MI 9014087 Dry Dock, MI 9014096 Dunn Paper, MI
+9014098 Fort Gratiot, MI 9014090 Mouth of the Black River, MI 9014080 St Clair State Police, MI
+8311062 Alexandria Bay, NY 8311030 Ogdensburg, NY
+9076033 Little Rapids, MI 9076024 Rock Cut, MI 9076070 S.W. Pier, MI
+9076060 U.S. Slip, MI 9076027 West Neebish Island, MI
+1617760 Hilo, Hilo Bay, Kuhio Bay, HI 1612340 Honolulu, HI 1615680 Kahului, Kahului Harbor, HI
+1617433 Kawaihae, HI 1612480 Mokuoloe, HI 1611400 Nawiliwili, HI
+8764044 Berwick, Atchafalaya River, LA 8767961 Bulk Terminal, LA 8768094 Calcasieu Pass, LA
+8761955 Carrollton, LA 8761847 Crescent City Air Gap, LA 8764314 Eugene Island, North of, LA
+8766072 Freshwater Canal Locks, LA 8761724 Grand Isle, LA 8762002 Huey Long Bridge Air Gap,
+8762483 I-10 Bonnet Carre Floodway, LA 8764227 LAWMA, Amerada Pass, LA 8767931 Lake Charles I-210 Bridge Air Gap, LA
+8767816 Lake Charles, LA 8761927 New Canal Station, LA 8760922 Pilots Station East, SW Pass, LA
+8760721 Pilottown, LA 8762075 Port Fourchon, Belle Pass, LA 8761305 Shell Beach, LA
+8762482 West Bank 1, Bayou Gauche, LA
+8417143 Augusta, Calumet Bridge, Kennebec River, ME 8413320 Bar Harbor, ME 8411060 Cutler Farris Wharf, ME
+8410140 Eastport, ME 8418150 Portland, ME 8419317 Wells, ME
+8575512 Annapolis, MD 8571072 Ape Hole Creek, MD 8574680 Baltimore, MD
+8575432 Bay Bridge Air Gap, MD 8571421 Bishops Head, MD 8571892 Cambridge, MD
+8573928 Chesapeake City Air Gap, MD 8573927 Chesapeake City, MD 8574728 Francis Scott Key Bridge, MD
+8570283 Ocean City Inlet, MD 8577330 Solomons Island, MD 8573364 Tolchester Beach, MD
+8443970 Boston, MA 8447435 Chatham, MA 8447386 Fall River, MA
+8449130 Nantucket Island, MA 8447930 Woods Hole, MA
+8747437 Bay Waveland Yacht Club, MS 8741041 Dock E, Port of Pascagoula, MS 8740166 Grand Bay NERR, Mississippi Sound, MS
+8741533 Pascagoula NOAA Lab, MS
+8423898 Fort Point, NH
+8534720 Atlantic City, NJ 8539094 Burlington, Delaware River, NJ 8536110 Cape May, NJ
+8535419 Ingram Thorofare, NJ 8531680 Sandy Hook, NJ 8537121 Ship John Shoal, NJ
+8533365 Stouts Creek, NJ 8533051 Toms River, NJ
+8519461 Bayonne Bridge Air Gap, NY 8519483 Bergen Point West Reach, NY 8516945 Kings Point, NY
+8510560 Montauk, NY 8514779 Seaview Ferry Dock, NY 8518750 The Battery, NY
+8517986 Verrazano-Narrows Air Gap, NY
+8656483 Beaufort, NC 8651370 Duck, NC 8657098 MILE HAMMOCK BAY, NC
+8652587 Oregon Inlet Marina, NC 8654467 USCG Station Hatteras, NC 8658120 Wilmington, NC
+8658163 Wrightsville Beach, NC
+9439040 Astoria, OR 9432780 Charleston, OR 9437540 Garibaldi, OR
+9431647 Port Orford, OR 9435380 South Beach, OR 9439201 St Helens, OR
+9439099 Wauna, OR
+1630000 Apra Harbor, Guam, United States of America 1820000 Kwajalein, Marshall Islands, United States of America 1631428 Pago Bay, Guam, United States of America
+1770000 Pago Pago, American Samoa, American Samoa 1619910 Sand Island, Midway Islands, United States of America 1890000 Wake Island, Pacific Ocean,
+8546252 Bridesburg, PA 8548989 Newbold, PA 8545240 Philadelphia, PA
+8452944 Conimicut Light, RI 8452660 Newport, RI 8454000 Providence, RI
+8454049 Quonset Point, RI
+8665530 Charleston, SC 8664753 Don Holt Bridge Air Gap, SC 8662245 Oyster Landing (N Inlet Estuary), SC
+8661070 Springmaid Pier, SC
+8774230 Aransas Wildlife Refuge (TCOON), TX 8776604 Baffin Bay (TCOON), TX 8775870 Bob Hall Pier, Corpus Christi, TX
+8774513 Copano Bay (TCOON), TX 8771013 Eagle Point, TX 8771341 Galveston Bay Entrance, North Jetty, TX
+8771450 Galveston Pier 21, TX 8771486 Galveston Railroad Bridge (TCOON), TX 8770808 High Island (TCOON), TX
+8770733 Lynchburg Landing (TCOON), TX 8770777 Manchester (TCOON), TX 8773146 Matagorda City (TCOON), TX
+8770613 Morgans Point, TX 8775244 Nueces Bay (TCOON), TX 8775792 Packery Channel (TCOON), TX
+8775237 Port Aransas (TCOON), TX 8770475 Port Arthur (TCOON), TX 8775283 Port Ingleside (TCOON), TX
+8779770 Port Isabel, TX 8773259 Port Lavaca (TCOON), TX 8778490 Port Mansfield (TCOON), TX
+8773701 Port O’Connor (TCOON), TX 8770520 Rainbow Bridge (TCOON), TX 8779280 Realitos Peninsula (TCOON), TX
+8777812 Rincon Del San Jose (TCOON), TX 8774770 Rockport, TX 8770971 Rollover Pass (TCOON), TX
+8776139 S. Bird Island (TCOON), TX 8770570 Sabine Pass North, TX 8771972 San Luis Pass (TCOON), TX
+8772985 Sargent (TCOON), TX 8773037 Seadrift (TCOON), TX 8779748 South Padre Island CG Station (TCOON), TX
+8770822 Texas Point, Sabine Pass, TX 8772447 USCG Freeport, TX 8775296 USS Lexington, TX
+8638863 Chesapeake Bay Bridge Tunnel, VA 8635027 Dahlgren, VA 8632200 Kiptopeke, VA
+8635750 Lewisetta, VA 8639348 Money Point, VA 8638610 Sewells Point, VA
+8631044 Wachapreague, VA 8636580 Windmill Point, VA 8637689 Yorktown USCG Training Center, VA
+9440581 Cape Disappointment, WA 9449424 Cherry Point, WA 9449880 Friday Harbor, WA
+9447883 Green Bank, WA 9449865 Kanaka Bay, Lopez Island, WA 9449856 Kanaka Bay, San Juan Island, WA
+9442396 La Push, WA 9440422 Longview, WA 9443090 Neah Bay, WA
+9449639 Point Roberts, WA 9444090 Port Angeles, WA 9444900 Port Townsend, WA
+9449771 Rosario, Orcas Island, WA 9449711 Rosario, WA 9446804 Sandy Point, Anderson Island, WA
+9447130 Seattle, WA 9440569 Skamokawa, WA 9448682 Swinomish, WA
+9446484 Tacoma, WA 9441644 Taholah, WA 9449988 Telegraph Bay, WA
+9440910 Toke Point, WA 9449911 Upright Head, WA 9440083 Vancouver, WA
+9449746 Waldron Island, WA 9446291 Wauna, WA 9441102 Westport, WA

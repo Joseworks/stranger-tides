@@ -38,7 +38,7 @@ module TideParsingService
 
     def self.tide_level_retrieval(my_station, current_product, url_to_parse)
       url_validator(url_to_parse)
-      parsed_tide_info = TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)#.deep_symbolize_keys
+      parsed_tide_info = TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)
       tide_height = TideParsingService::TideProcessor.param_v_parser(parsed_tide_info)
     end
 
@@ -48,7 +48,7 @@ module TideParsingService
 
     def self.tide_s_retrieval(my_station, current_product, url_to_parse)
       url_validator(url_to_parse)
-      parsed_tide_info = TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)#.deep_symbolize_keys
+      parsed_tide_info = TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)
       tide_s = TideParsingService::TideProcessor.param_s_parser(parsed_tide_info)
     end
 
@@ -57,7 +57,7 @@ module TideParsingService
 
   def self.time_stamp_retrieval(my_station, current_product, url_to_parse)
     url_validator(url_to_parse)
-    parsed_tide_info = TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)#.deep_symbolize_keys
+    parsed_tide_info = TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)
     tide_time = TideParsingService::TideProcessor.time_parser(parsed_tide_info)
   end
 
@@ -87,8 +87,6 @@ module TideParsingService
 
     def self.param_v_parser(info)
       param_v =[]
-
-
       # p "info #{info.inspect}"
       unless info.nil?
         info.each do |element|
@@ -98,7 +96,10 @@ module TideParsingService
         n = 8 #amount of samples per reading
         param_v.each_slice(n).map(&:last)
       end
+      # p "I got here because there is some metadata"
+      # param_v
       param_v.each_slice(n).map(&:last)
+
     end
 
 #not is use right now
@@ -112,7 +113,9 @@ module TideParsingService
         n = 8
         param_s.each_slice(n).map(&:last)
       end
-        param_s.each_slice(n).map(&:last)
+      # param_s
+      param_s.each_slice(n).map(&:last)
+
     end
   end
 
