@@ -42,7 +42,9 @@ class StationsController < ApplicationController
     gon.metadata = @metadata
     # gon.metadata = @metadata
 
-# gon.metadata.station_name = @metadata.station_name
+
+    @all_reporting_stations = StationListService::TideStation.parse_stations_id
+
 # Now Trying to change the way tide_info is consumed to a class
 # the purpose of this is to eliminate active record per se and migrate to PORO's
 
