@@ -83,7 +83,8 @@ class StationsController < ApplicationController
 
 def show_stations
 
-   @all_reporting_stations = StationListService::TideStation.parse_stations_id
+   @all_reporting_stations = Station.last.tide_info
+   # @all_reporting_stations = StationListService::TideStation.parse_stations_id
    @all_charts = []
    @all_station_metadata = []
 
@@ -117,9 +118,6 @@ def show_stations
      @path_build = @constructed_station.url_constructor
 
      url = @path_build
-# p constructed_station_params
-# p '========================='
-# p TideParsingService::TideProcessor.metadata_retrieval(my_station, product, url)
 
   @metadata = TideParsingService::TideProcessor.metadata_retrieval(my_station, product, url)
 
@@ -141,10 +139,9 @@ def show_stations
     end
       gon.all_station_metadata = @all_station_metadata
       # p " All @all_station_metadata #{@all_station_metadata.inspect}"
-      p @all_charts.size
-      p @all_charts.flatten.size
-      @all_charts.flatten
-
+      # p @all_charts.size
+      # p @all_charts.flatten.size
+      # @all_charts.flatten
 end
 
 
