@@ -58,23 +58,8 @@ class StationsController < ApplicationController
     @chart = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_info, time_stamp_info)
 
     @chart1 = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_s_info, time_stamp_info)
-
-
-
-
-
-
-
-
-
-
-
  # The purpose of the url constructor is to have a user interface to enter params without an active record model.
 
-    # url_params = {my_station: my_station, product: product, begin_date: begin_date, end_date: end_date}
-    # uri = TideParsingService::UrlConstructor.new(url_params)
-
-# p " ==========#{uri.constructed_url}======"
   end
 
 
@@ -83,9 +68,8 @@ class StationsController < ApplicationController
 
 def show_stations
 
-   @all_reporting_stations = Station.last.tide_info
-   p @all_reporting_stations
-   # @all_reporting_stations = StationListService::TideStation.parse_stations_id
+   # @all_reporting_stations = Station.last.tide_info
+   @all_reporting_stations = StationListService::TideStation.parse_stations_id
    @all_charts = []
    @all_station_metadata = []
 
@@ -118,31 +102,21 @@ def show_stations
      @constructed_station = StationConstructor.new(constructed_station_params)
      @path_build = @constructed_station.url_constructor
 
-     url = @path_build
+    url = @path_build
 
-  @metadata = TideParsingService::TideProcessor.metadata_retrieval(my_station, product, url)
+    @metadata = TideParsingService::TideProcessor.metadata_retrieval(my_station, product, url)
 
-  unless @metadata.nil?
-    gon.metadata = @metadata
-
-    @all_station_metadata << @metadata
-
-    tide_info = TideParsingService::TideProcessor.tide_level_retrieval(my_station, product, url)
-    time_stamp_info = TideParsingService::TideProcessor.time_stamp_retrieval(my_station, product, url)
-
-     # tide_s_info = TideParsingService::TideProcessor.tide_s_retrieval(my_station, product, url)
-
-
-        @chart = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_info, time_stamp_info)
-        @all_charts << @chart
-      end
-
+    unless @metadata.nil?
+      gon.metadata = @metadata
+      @all_station_metadata << @metadata
+      tide_info = TideParsingService::TideProcessor.tide_level_retrieval(my_station, product, url)
+      time_stamp_info = TideParsingService::TideProcessor.time_stamp_retrieval(my_station, product, url)
+       # tide_s_info = TideParsingService::TideProcessor.tide_s_retrieval(my_station, product, url)
+      @chart = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_info, time_stamp_info)
+      @all_charts << @chart
     end
-      gon.all_station_metadata = @all_station_metadata
-      # p " All @all_station_metadata #{@all_station_metadata.inspect}"
-      # p @all_charts.size
-      # p @all_charts.flatten.size
-      # @all_charts.flatten
+  end
+  gon.all_station_metadata = @all_station_metadata
 end
 
 
