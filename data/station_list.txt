@@ -11,3 +11,39 @@
 9453220 Yakutat, Yakutat Bay, AK
 2695540 Bermuda, St. Georges Island, Bermuda
 9414750 Alameda, CA 9416841 Arena Cove, CA 9414958 Bolinas, Bolinas Lagoon, CA
+9414575 Coyote Creek, CA 9419750 Crescent City, CA 9410689 Gerald Desmond Bridge Air Gap, CA
+9410230 La Jolla, CA 9410660 Los Angeles, CA 9415102 Martinez-Amorco Pier, CA
+9413450 Monterey, CA 9418767 North Spit, CA 9411406 Oil Platform Harvest, CA
+9415020 Point Reyes, CA 9415144 Port Chicago, CA 9412110 Port San Luis, CA
+9414523 Redwood City, CA 9414863 Richmond, CA 9410170 San Diego, CA
+9414304 San Francisco-Oakland Bay Bridge Air Gap, CA 9414290 San Francisco, CA 9411340 Santa Barbara, CA
+9410840 Santa Monica, CA
+9759412 Aguadilla, PR 9757809 Arecibo, PR 9761115 Barbuda, Antigua and Barbuda
+9757112 Caja de Muertos, PR 9751639 Charlotte Amalie, VI 9751364 Christiansted Harbor, St Croix, VI
+9752695 Esperanza, Vieques Island, PR 9753216 Fajardo, PR 9752619 Isabel Segunda, Vieques Island, PR
+9751381 Lameshur Bay, St John, VI 9751401 Lime Tree Bay, VI 9759110 Magueyes Island, PR
+9759394 Mayaguez, PR 9759938 Mona Island, PR 9755371 San Juan, PR
+9754228 Yabucoa Harbor, PR
+8467150 Bridgeport, CT 8469057 Mianus, CT 8465705 New Haven, CT
+8461490 New London, CT
+8555889 Brandywine Shoal Light, DE 8551762 Delaware City, DE 8557380 Lewes, DE
+8551911 Reedy Point Air Gap, DE 8551910 Reedy Point, DE
+8594900 Washington, DC
+8728690 Apalachicola, FL 8727520 Cedar Key, FL 8726724 Clearwater Beach, FL
+8720376 Dames Point Bridge Air Gap, FL 8720219 Dames Point, FL 8720030 Fernandina Beach, FL
+8725520 Fort Myers, FL 8720357 I-295 Bridge, St Johns River, FL 8724580 Key West, FL
+8722670 Lake Worth Pier, FL 8720218 Mayport (Bar Pilots Dock), FL 8726667 Mckay Bay Entrance, FL
+8725110 Naples, FL 8726607 Old Port Tampa, FL 8729210 Panama City Beach, FL
+8729108 Panama City, FL 8729840 Pensacola, FL 8726384 Port Manatee, FL
+8720625 Racy Point, St Johns River, FL 8720503 Red Bay Point, St Johns River, FL 8720226 Southbank Riverwalk, St Johns River, FL
+8726520 St Petersburg, FL 8721604 Trident Pier, FL 8723970 Vaca Key, FL
+8723214 Virginia Key, FL
+8670870 Fort Pulaski, GA
+9044036 Fort Wayne, MI 9044020 Gibraltar, MI 9044049 Windmill Point, MI
+9044030 Wyandotte, MI
+9063020 Buffalo, NY 9063063 Cleveland, OH 9063038 Erie, PA
+9063053 Fairport, OH 9063090 Fermi Power Plant, MI 9063079 Marblehead, OH
+9063028 Sturgeon Point, NY 9063085 Toledo, OH
+9075065 Alpena, MI 9075099 De Tour Village, MI 9075035 Essexville, MI
+9075014 Harbor Beach, MI 9075002 Lakeport, MI 9075080 Mackinaw City, MI
+9087044 Calumet Harbor, IL 9087079 Green Bay, WI 9087031 Holland, MI

@@ -84,6 +84,7 @@ class StationsController < ApplicationController
 def show_stations
 
    @all_reporting_stations = Station.last.tide_info
+   p @all_reporting_stations
    # @all_reporting_stations = StationListService::TideStation.parse_stations_id
    @all_charts = []
    @all_station_metadata = []
