@@ -78,7 +78,7 @@ var station_markers = split(station_name, all_stations.length);
     // console.log(station_markers_array[i]);
   // }
 
-    console.log(station_markers_array);
+    // console.log(station_markers_array);
 
 // var map;
 // var myLatLng = {
@@ -107,11 +107,28 @@ function initMap() {
   setMarkers(map);
 }
 
+
+
+
 // Data for the markers consisting of a name, a LatLng and a zIndex for the
 // order in which these markers should display on top of each other.
 var stations = station_markers_array;
 function setMarkers(map) {
   // Adds markers to the map.
+
+
+if(navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(function(position){
+    var lat = position.coords.latitude;
+    var lon = position.coords.longitude;
+    var myLatLng = {lat: lat, lng:lon};
+    var marker = new google.maps.Marker({
+        position: myLatLng,
+        map: map,
+        title: " You are HERE"
+    });
+  });
+}
 
   // Marker sizes are expressed as a Size of X,Y where the origin of the image
   // (0,0) is located in the top left of the image.
@@ -119,7 +136,7 @@ function setMarkers(map) {
   // Origins, anchor positions and coordinates of the marker increase in the X
   // direction to the right and in the Y direction down.
   var image = {
-    // url: 'images/stationflag.png',
+    url: '/images/orange_marker.png',
     // This marker is 20 pixels wide by 32 pixels high.
     size: new google.maps.Size(20, 32),
     // The origin for this image is (0, 0).
@@ -134,13 +151,14 @@ function setMarkers(map) {
     coords: [1, 1, 1, 20, 18, 20, 18, 1],
     type: 'poly'
   };
+
   for (var i = 0; i < stations.length; i++) {
     var station = stations[i];
-    console.log(station)
+    // console.log(station)
     var marker = new google.maps.Marker({
       position: {lat: station[1], lng: station[2]},
       map: map,
-      // icon: image,
+      icon: asset_path('orange_marker.png'),
       // shape: shape,
       title: station[0]
       // zIndex: station[3]
