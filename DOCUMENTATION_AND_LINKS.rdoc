@@ -5,6 +5,16 @@ AIzaSyD2RIJ6Azcnl2QJ-309Hn_6NESecq5eTN4
 JS KEY MAPS AIzaSyAsmBEB76Uhe4AjnkAzZiEZjt6nRtObRJE
 
 
+*** Notes for sidekiq:
+* Increased pool in database.yml to 25
+* Added to the Procfile:
+worker: bundle exec sidekiq # Command to start sidekiq
+* Naming the workers files NEEDS to be consistent with the class name!!!
+*
+
+
+
+
 
 
 
