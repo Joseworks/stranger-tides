@@ -67,6 +67,11 @@ class StationsController < ApplicationController
 
 
 def show_stations
+            # HardWorker.perform_in(1.minute, 'bob', 5)
+
+    HardWorker.perform_async('bob', 5)
+
+
 
    # @all_reporting_stations = Station.last.tide_info
    @all_reporting_stations = StationListService::TideStation.parse_stations_id

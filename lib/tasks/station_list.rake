@@ -77,6 +77,8 @@ namespace :station_list do
 
       @metadata = TideParsingService::TideProcessor.metadata_retrieval(my_station, product, url)
 
+
+
       unless @metadata.nil?
         # gon.metadata = @metadata
         @all_station_metadata << @metadata

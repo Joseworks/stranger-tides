@@ -125,7 +125,7 @@ if(navigator.geolocation) {
     var marker = new google.maps.Marker({
         position: myLatLng,
         map: map,
-        title: " You are HERE"
+        title: " You are SO HERE"
     });
   });
 }
