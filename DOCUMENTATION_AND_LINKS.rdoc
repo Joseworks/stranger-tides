@@ -10,7 +10,53 @@ JS KEY MAPS AIzaSyAsmBEB76Uhe4AjnkAzZiEZjt6nRtObRJE
 * Added to the Procfile:
 worker: bundle exec sidekiq # Command to start sidekiq
 * Naming the workers files NEEDS to be consistent with the class name!!!
-*
+*  REDIS is necessary as a dependency for HEROKU.
+heroku redis:info -a stranger-tides
+returns:
+=== redis-clear-4937 (REDIS_URL)
+Plan      Hobby Dev
+Status    available
+Created   2015-12-01 04:49 UTC
+Version   3.0.5
+Timeout   300
+Maxmemory noeviction
+
+
+REDIS related logs:
+ heroku logs -p heroku-redis -t
+
+
+BOB not showing up in heroku logs!!!!
+
+ heroku config | grep REDIS
+
+REDIS_URL:                redis://h:p6e3lhuuf3m5nhjjriiq6rb3uh@ec2-54-221-194-57.compute-1.amazonaws.com:12249
+
+
+
+
+Heroku
+
+Using sidekiq with Heroku is simple, you need to use the (default) Cedar stack and add a Procfile to your Rails app to start a sidekiq worker process:
+
+web: bundle exec unicorn ...
+worker: bundle exec sidekiq ...
+Before version 3.0 Sidekiq will automatically configure itself to use Redis-to-Go so you don't need to customize the Redis server location. Starting from 3.0 version the built-in support for Redis-to-Go is removed, you'll need to set heroku config:set REDIS_PROVIDER=REDISTOGO_URL env variable for it to work.
+
+Keep in mind that Heroku puts a hard limit of 10 seconds on a process restart and you cannot send a USR1 signal so restarting Sidekiq gracefully when running long running jobs is tough. Sidekiq will push the unfinished jobs back to Redis; make sure your jobs are idempotent so it can restart them when the process starts back up.
+
+See this page for more details about Procfiles, Foreman and Heroku.
+
+
+
+
+
+** Notes for Maps API
+* Added Gem  'js_assets' to load pictures in the js files.
+* requires to add a JS_assetes.rb config: JsAssets::List.allow << '*.png'
+
+
+
 
 
 

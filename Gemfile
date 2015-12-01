@@ -27,6 +27,9 @@ gem 'lazy_high_charts'
 gem 'gon'
 gem 'js_assets'
 gem 'sidekiq'
+gem 'redis'
+
+
 
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
