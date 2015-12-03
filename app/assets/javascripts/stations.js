@@ -1,87 +1,25 @@
-// Array structure: ["station_id", "station_name", "latitude", "longitude", "errors"]
-// console.log("This is the name: " + gon.metadata.station_name);
-
-// var array_keys = new Array();
-// var array_values = new Array();
-
-// for (var key in gon.metadata) {
-//   array_keys.push(key);
-//   array_values.push(gon.metadata[key]);
-// }
-
-// console.log("This is the longitude: " + parseFloat(array_values[3]));
-
-
-
-// alert("Got you now!");
-
-
 var station_name = new Array();
 var station_markers = new Array();
 var station_markers_array = new Array();
 var all_stations = gon.all_station_metadata;
 
-console.log(all_stations);
-
-
-
-if (all_stations != null) {
-
-  formArray(all_stations);
-
-
-
-
-  // Data for the markers consisting of a name, a LatLng and a zIndex for the
-  // order in which these markers should display on top of each other.
-  var stations = station_markers_array;
-
-  function setMarkers(map) {
-    // Adds markers to the map.
-
-
-
-    // Marker sizes are expressed as a Size of X,Y where the origin of the image
-    // (0,0) is located in the top left of the image.
-    // Origins, anchor positions and coordinates of the marker increase in the X
-    // direction to the right and in the Y direction down.
-    var image = {
-      url: '/images/orange_marker.png',
-      // This marker is 20 pixels wide by 32 pixels high.
-      size: new google.maps.Size(20, 32),
-      // The origin for this image is (0, 0).
-      origin: new google.maps.Point(0, 0),
-      // The anchor for this image is the base of the flagpole at (0, 32).
-      anchor: new google.maps.Point(0, 32)
-    };
-    // Shapes define the clickable region of the icon. The type defines an HTML
-    // <area> element 'poly' which traces out a polygon as a series of X,Y points.
-    // The final coordinate closes the poly by connecting to the first coordinate.
-    var shape = {
-      coords: [1, 1, 1, 20, 18, 20, 18, 1],
-      type: 'poly'
-    };
-
-    for (var i = 0; i < stations.length; i++) {
-      var station = stations[i];
-      // console.log(station)
-      var marker = new google.maps.Marker({
-        position: {
-          lat: station[1],
-          lng: station[2]
-        },
-        map: map,
-        icon: asset_path('orange_marker.png'),
-        shape: shape,
-        title: station[0],
-        zIndex: station[3]
-      });
+function initMap() {
+  var map = new google.maps.Map(document.getElementById('full_map'), {
+    zoom: 3,
+    center: {
+      lat: 38.88,
+      lng: -98.35
     }
-  }
+  });
+  myPosition(map);
 
+  if (all_stations != null) {
+    formArray(all_stations);
+    var stations = station_markers_array;
+    setMarkers(map,stations);
+  };
 
-
-};
+}
 
 
 
@@ -104,21 +42,46 @@ function myPosition(map) {
   }
 }
 
+function setMarkers(map, stations) {
+  // Adds markers to the map.
+  // Marker sizes are expressed as a Size of X,Y where the origin of the image
+  // (0,0) is located in the top left of the image.
+  // Origins, anchor positions and coordinates of the marker increase in the X
+  // direction to the right and in the Y direction down.
+  // Data for the markers consisting of a name, a LatLng and a zIndex for the
+  // order in which these markers should display on top of each other.
+  var image = {
+    url: '/images/orange_marker.png',
+    // This marker is 20 pixels wide by 32 pixels high.
+    size: new google.maps.Size(20, 32),
+    // The origin for this image is (0, 0).
+    origin: new google.maps.Point(0, 0),
+    // The anchor for this image is the base of the flagpole at (0, 32).
+    anchor: new google.maps.Point(0, 32)
+  };
+  // Shapes define the clickable region of the icon. The type defines an HTML
+  // <area> element 'poly' which traces out a polygon as a series of X,Y points.
+  // The final coordinate closes the poly by connecting to the first coordinate.
+  var shape = {
+    coords: [1, 1, 1, 20, 18, 20, 18, 1],
+    type: 'poly'
+  };
 
-
-
-
-function initMap() {
-  var map = new google.maps.Map(document.getElementById('full_map'), {
-    zoom: 3,
-    center: {
-      lat: 38.88,
-      lng: -98.35
-    }
-  });
-
-  setMarkers(map);
-  myPosition(map);
+  for (var i = 0; i < stations.length; i++) {
+    var station = stations[i];
+    // console.log(station)
+    var marker = new google.maps.Marker({
+      position: {
+        lat: station[1],
+        lng: station[2]
+      },
+      map: map,
+      icon: asset_path('orange_marker.png'),
+      shape: shape,
+      title: station[0],
+      zIndex: station[3]
+    });
+  }
 }
 
 function formArray(all_stations) {
