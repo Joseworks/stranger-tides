@@ -1,6 +1,7 @@
+Add tro the list to use json to store hashes in postgres :)! (JSON)
+
+
 AIzaSyD2RIJ6Azcnl2QJ-309Hn_6NESecq5eTN4
-
-
 
 JS KEY MAPS AIzaSyAsmBEB76Uhe4AjnkAzZiEZjt6nRtObRJE
 
