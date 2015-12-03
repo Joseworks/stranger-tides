@@ -23,9 +23,9 @@ var all_stations = gon.all_station_metadata;
 
 console.log(all_stations);
 
+
+
 if (all_stations != null) {
-
-
 
   formArray(all_stations);
 
@@ -39,22 +39,7 @@ if (all_stations != null) {
   function setMarkers(map) {
     // Adds markers to the map.
 
-    // This adds the marker for my location ( From Dominique snippet :)
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(function(position) {
-        var lat = position.coords.latitude;
-        var lon = position.coords.longitude;
-        var myLatLng = {
-          lat: lat,
-          lng: lon
-        };
-        var marker = new google.maps.Marker({
-          position: myLatLng,
-          map: map,
-          title: " You are SO HERE"
-        });
-      });
-    }
+
 
     // Marker sizes are expressed as a Size of X,Y where the origin of the image
     // (0,0) is located in the top left of the image.
@@ -99,42 +84,67 @@ if (all_stations != null) {
 };
 
 
-  function initMap() {
-    var map = new google.maps.Map(document.getElementById('full_map'), {
-      zoom: 3,
-      center: {
-        lat: 38.88,
-        lng: -98.35
-      }
+
+function myPosition(map) {
+  // This adds the marker for my location ( From Dominique snippet :)
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      var lat = position.coords.latitude;
+      var lon = position.coords.longitude;
+      var myLatLng = {
+        lat: lat,
+        lng: lon
+      };
+      var marker = new google.maps.Marker({
+        position: myLatLng,
+        map: map,
+        title: " You are SO HERE"
+      });
     });
+  }
+}
 
-    setMarkers(map);
+
+
+
+
+function initMap() {
+  var map = new google.maps.Map(document.getElementById('full_map'), {
+    zoom: 3,
+    center: {
+      lat: 38.88,
+      lng: -98.35
+    }
+  });
+
+  setMarkers(map);
+  myPosition(map);
+}
+
+function formArray(all_stations) {
+  for (var i = 0; i < all_stations.length; i++) {
+    var station = all_stations[i];
+    station_name.push(all_stations[i].station_name);
+    station_name.push(parseFloat(all_stations[i].latitude));
+    station_name.push(parseFloat(all_stations[i].longitude));
   }
 
-  function formArray(all_stations) {
-    for (var i = 0; i < all_stations.length; i++) {
-      var station = all_stations[i];
-      station_name.push(all_stations[i].station_name);
-      station_name.push(parseFloat(all_stations[i].latitude));
-      station_name.push(parseFloat(all_stations[i].longitude));
-    }
+  var station_markers = split(station_name, all_stations.length);
 
-    var station_markers = split(station_name, all_stations.length);
+  for (var i = 0; i < station_markers.length; i++) {
+    station_markers_array.push(station_markers[i]);
 
-    for (var i = 0; i < station_markers.length; i++) {
-      station_markers_array.push(station_markers[i]);
-
-    }
-  };
-
-  function split(a, n) {
-    var len = a.length,
-      out = [],
-      i = 0;
-    while (i < len) {
-      var size = Math.ceil((len - i) / n--);
-      out.push(a.slice(i, i + size));
-      i += size;
-    }
-    return out;
   }
+};
+
+function split(a, n) {
+  var len = a.length,
+    out = [],
+    i = 0;
+  while (i < len) {
+    var size = Math.ceil((len - i) / n--);
+    out.push(a.slice(i, i + size));
+    i += size;
+  }
+  return out;
+}
