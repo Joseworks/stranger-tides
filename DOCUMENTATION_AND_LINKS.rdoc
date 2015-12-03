@@ -10,6 +10,11 @@ JS KEY MAPS AIzaSyAsmBEB76Uhe4AjnkAzZiEZjt6nRtObRJE
 * Added to the Procfile:
 worker: bundle exec sidekiq # Command to start sidekiq
 * Naming the workers files NEEDS to be consistent with the class name!!!
+
+
+https://devcenter.heroku.com/articles/heroku-redis#migrating-to-heroku-redis
+
+
 *  REDIS is necessary as a dependency for HEROKU.
 heroku redis:info -a stranger-tides
 returns:
@@ -26,13 +31,13 @@ REDIS related logs:
  heroku logs -p heroku-redis -t
 
 
-BOB not showing up in heroku logs!!!!
 
  heroku config | grep REDIS
 
 REDIS_URL:                redis://h:p6e3lhuuf3m5nhjjriiq6rb3uh@ec2-54-221-194-57.compute-1.amazonaws.com:12249
 
 
+BOB not showing up in heroku logs!!!!
 
 
 Heroku

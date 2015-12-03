@@ -1,9 +1,5 @@
-9461380 Adak Island, AK 9457804 Alitak, AK 9455920 Anchorage, AK
 9461710 Atka, AK 9450406 Block Island, AK 9490096 Cape Espenberg, Kotzebue Sound, AK
-9454050 Cordova, AK 9452634 Elfin Cove, AK 9469833 Goodhope Bay, AK
 9452210 Juneau, AK 9450460 Ketchikan, AK 9459881 King Cove, AK
 9457292 Kodiak Island, AK 9490424 Kotzebue, AK 9455760 Nikiski, AK
 9462450 Nikolski, AK 9468756 Nome, Norton Sound, AK 9451054 Port Alexander, AK
 9463502 Port Moller, AK 9497645 Prudhoe Bay, AK 9491094 Red Dog Dock, AK
-9459450 Sand Point, AK 9455500 Seldovia, AK 9455090 Seward, AK
-9451600 Sitka, AK 9452400 Skagway, AK 9457588 South Arm of Uganik Bay, AK

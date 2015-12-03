@@ -1,5 +1,4 @@
 include ActiveModel::Model
-# require 'open-uri'
 module StationListService
 
   class TideStation
