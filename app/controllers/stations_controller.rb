@@ -69,7 +69,7 @@ class StationsController < ApplicationController
 def show_stations
 
     HardWorker.perform_async('BOB', 5)
-   p @all_station_metadata
+    @all_station_metadata = Station.last.metadata
     # HardWorker.perform_in(1.minute, 'bob', 5)
 
 
@@ -262,5 +262,6 @@ p " ==========#{uri.constructed_url}======"
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def station_params
-      params.require(:station).permit(:station_id, :station_name, :latitude, :longitude, :tide_info)    end
+      params.require(:station).permit(:station_id, :station_name, :latitude, :longitude, :tide_info, :metadata)
+    end
 end

@@ -91,8 +91,13 @@ namespace :station_list do
 
 
     p  @all_station_metadata
-    Station.create(metadata: @all_station_metadata)
-
+    # Station.create(metadata: @all_station_metadata)
+    new_station = Station.find_or_create_by(station_name: "All stations")
+    new_station = Station.last
+    p new_station.inspect
+    new_station.metadata = @all_station_metadata
+    new_station.save
+    p new_station.inspect
     end
 
 end
