@@ -69,68 +69,68 @@ class StationsController < ApplicationController
 def show_stations
 
     HardWorker.perform_async('BOB', 5)
-
+   p @all_station_metadata
     # HardWorker.perform_in(1.minute, 'bob', 5)
 
 
    # @all_reporting_stations = Station.last.tide_info
-   @all_reporting_stations = StationListService::TideStation.parse_stations_id
-   @all_charts = []
-   @all_station_metadata = []
+  #  @all_reporting_stations = StationListService::TideStation.parse_stations_id
+  #  @all_charts = []
+  #  @all_station_metadata = []
 
-   @all_reporting_stations.each do |station_id|
-      # my_station = station_id
-      # product = 'water_level'
-      # begin_date = '20151120'
-      # begin_time ='10:00'
-      # end_date = '20151122'
-      # end_time ='10:24'
-      # datum = 'mllw'
-      # units='english'
-      # time_zone='gmt'
-      # application='web_services'
-      # format='json'
-
-
-      constructed_station_params ={ my_station: station_id,
-                                    product: 'water_level',
-                                    begin_date: '20151120',
-                                    begin_time: '10:00',
-                                    end_date: '20151122',
-                                    end_time: '10:24',
-                                    datum: 'mllw',
-                                    units: 'english',
-                                    time_zone: 'gmt',
-                                    application: 'web_services',
-                                    format: 'json'
-                                  }
+  #  @all_reporting_stations.each do |station_id|
+  #     # my_station = station_id
+  #     # product = 'water_level'
+  #     # begin_date = '20151120'
+  #     # begin_time ='10:00'
+  #     # end_date = '20151122'
+  #     # end_time ='10:24'
+  #     # datum = 'mllw'
+  #     # units='english'
+  #     # time_zone='gmt'
+  #     # application='web_services'
+  #     # format='json'
 
 
-
-
-     @constructed_station = StationConstructor.new(constructed_station_params)
-     @path_build = @constructed_station.url_constructor
+  #     constructed_station_params ={ my_station: station_id,
+  #                                   product: 'water_level',
+  #                                   begin_date: '20151120',
+  #                                   begin_time: '10:00',
+  #                                   end_date: '20151122',
+  #                                   end_time: '10:24',
+  #                                   datum: 'mllw',
+  #                                   units: 'english',
+  #                                   time_zone: 'gmt',
+  #                                   application: 'web_services',
+  #                                   format: 'json'
+  #                                 }
 
 
 
-    url = @path_build
 
-    @metadata = TideParsingService::TideProcessor.metadata_retrieval(constructed_station_params[:my_station], constructed_station_params[:product], url)
-
-
-
-    unless @metadata.nil?
-      @all_station_metadata << @metadata
-      tide_info = TideParsingService::TideProcessor.tide_level_retrieval(constructed_station_params[:my_station], constructed_station_params[:product], url)
-      time_stamp_info = TideParsingService::TideProcessor.time_stamp_retrieval(constructed_station_params[:my_station], constructed_station_params[:product], url)
-       # tide_s_info = TideParsingService::TideProcessor.tide_s_retrieval(my_station, product, url)
-      @chart = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_info, time_stamp_info)
-      @all_charts << @chart
-    end
+  #    @constructed_station = StationConstructor.new(constructed_station_params)
+  #    @path_build = @constructed_station.url_constructor
 
 
 
-  end
+  #   url = @path_build
+
+  #   @metadata = TideParsingService::TideProcessor.metadata_retrieval(constructed_station_params[:my_station], constructed_station_params[:product], url)
+
+
+
+  #   unless @metadata.nil?
+  #     @all_station_metadata << @metadata
+  #     tide_info = TideParsingService::TideProcessor.tide_level_retrieval(constructed_station_params[:my_station], constructed_station_params[:product], url)
+  #     time_stamp_info = TideParsingService::TideProcessor.time_stamp_retrieval(constructed_station_params[:my_station], constructed_station_params[:product], url)
+  #      # tide_s_info = TideParsingService::TideProcessor.tide_s_retrieval(my_station, product, url)
+  #     @chart = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_info, time_stamp_info)
+  #     @all_charts << @chart
+  #   end
+
+
+
+  # end
 
 
 

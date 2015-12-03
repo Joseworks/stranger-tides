@@ -80,20 +80,21 @@ namespace :station_list do
 
 
       unless @metadata.nil?
-        # gon.metadata = @metadata
         @all_station_metadata << @metadata
         tide_info = TideParsingService::TideProcessor.tide_level_retrieval(my_station, product, url)
         time_stamp_info = TideParsingService::TideProcessor.time_stamp_retrieval(my_station, product, url)
          # tide_s_info = TideParsingService::TideProcessor.tide_s_retrieval(my_station, product, url)
         @chart = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_info, time_stamp_info)
         @all_charts << @chart
-        p @chart
+        # p @chart
       end
 
       # gon.all_station_metadata = @all_station_metadata
 
 
     end
+          p  @all_station_metadata.last
+
   end
 
 end
