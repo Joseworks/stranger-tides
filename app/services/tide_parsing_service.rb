@@ -30,7 +30,7 @@ module TideParsingService
     def self.metadata_retrieval(my_station, current_product, url_to_parse)
       url_validator(url_to_parse)
       parsed_tide = TideParsingService::TideProcessor.metadata_parser!(url_to_parse)
-      p "parsed_tide #{parsed_tide.inspect}"
+      # p "parsed_tide #{parsed_tide.inspect}"
       meta = Metadata.new(parsed_tide) unless parsed_tide.nil?
     end
 

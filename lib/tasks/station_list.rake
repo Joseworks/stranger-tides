@@ -88,7 +88,11 @@ namespace :station_list do
         end
 
       end
-          p  @all_station_metadata.last
+
+
+    p  @all_station_metadata
+    Station.create(metadata: @all_station_metadata)
+
     end
 
 end
