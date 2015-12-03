@@ -17,6 +17,8 @@ function initMap() {
     formArray(all_stations);
     var stations = station_markers_array;
     setMarkers(map, stations);
+  }else{
+    console.log('No valid stations to show!')
   };
 
 }
