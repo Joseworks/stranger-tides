@@ -16,7 +16,7 @@ function initMap() {
   if (all_stations != null) {
     formArray(all_stations);
     var stations = station_markers_array;
-    setMarkers(map,stations);
+    setMarkers(map, stations);
   };
 
 }
@@ -26,7 +26,7 @@ function initMap() {
 function myPosition(map) {
   // This adds the marker for my location ( From Dominique snippet :)
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(function(position) {
+    navigator.geolocation.getCurrentPosition(function (position) {
       var lat = position.coords.latitude;
       var lon = position.coords.longitude;
       var myLatLng = {
@@ -77,7 +77,7 @@ function setMarkers(map, stations) {
       },
       map: map,
       icon: asset_path('orange_marker.png'),
-      shape: shape,
+      // shape: shape,
       title: station[0],
       zIndex: station[3]
     });

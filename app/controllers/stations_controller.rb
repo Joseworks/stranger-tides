@@ -120,7 +120,6 @@ def show_stations
 
 
     unless @metadata.nil?
-      # gon.metadata = @metadata
       @all_station_metadata << @metadata
       tide_info = TideParsingService::TideProcessor.tide_level_retrieval(constructed_station_params[:my_station], constructed_station_params[:product], url)
       time_stamp_info = TideParsingService::TideProcessor.time_stamp_retrieval(constructed_station_params[:my_station], constructed_station_params[:product], url)
