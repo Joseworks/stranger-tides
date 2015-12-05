@@ -60,7 +60,7 @@ function myPosition(map) {
         lat: lat,
         lng: lon
       };
-      console.log(map)
+
       var marker = new google.maps.Marker({
         position: myLatLng,
         map: map,
@@ -68,12 +68,26 @@ function myPosition(map) {
       });
 
       var infoWindow = new google.maps.InfoWindow({map: map});
-      infoWindow.setPosition(myLatLng);
-      infoWindow.setContent('Location found. Use the controls to zoom in');
-      map.setCenter(myLatLng);
+        infoWindow.setPosition(myLatLng);
+        infoWindow.setContent('Location found. Use the controls to zoom in');
+        map.setCenter(myLatLng);
+        map.setZoom(9);
+      var lineSymbol = {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 8,
+        strokeColor: '#3367d6'
+      };
 
+      var line = new google.maps.Polyline({
+        path: [{lat: lat, lng: lon}, {lat: lat - .0001, lng: lon}],
+        icons: [{
+          icon: lineSymbol,
+          offset: '100%'
+        }],
+        map: map
+      });
 
-
+      animateCircle(line);
 
   // marker.addListener('click', function() {
   //   map.setZoom(12);
@@ -153,4 +167,18 @@ function split(a, n) {
     i += size;
   }
   return out;
+}
+
+
+
+
+function animateCircle(line) {
+    var count = 0;
+    window.setInterval(function() {
+      count = (count + 1) % 200;
+
+      var icons = line.get('icons');
+      icons[0].offset = (count / 2) + '%';
+      line.set('icons', icons);
+  }, 20);
 }
