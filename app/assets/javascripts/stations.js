@@ -3,15 +3,35 @@ var station_markers = new Array();
 var station_markers_array = new Array();
 var all_stations = gon.all_station_metadata;
 
+
+
+
+
+
+
+
+
+
+
+
 function initMap() {
   var map = new google.maps.Map(document.getElementById('full_map'), {
     zoom: 3,
+    scaleControl: true,
+    streetViewControl: true,
+    // streetViewControlOptions: {
+        // position: google.maps.ControlPosition.LEFT_TOP
+    // },
+    zoomControl: true,
+
     center: {
       lat: 38.88,
       lng: -98.35
     }
   });
   myPosition(map);
+
+
 
   if (all_stations != null) {
     formArray(all_stations);
@@ -35,11 +55,20 @@ function myPosition(map) {
         lat: lat,
         lng: lon
       };
+      console.log(map)
       var marker = new google.maps.Marker({
         position: myLatLng,
         map: map,
-        title: " You are SO HERE"
+        title: " You are SO HERE. Click on the marker to center the map"
       });
+
+
+  marker.addListener('click', function() {
+  //   map.setZoom(12);
+    map.setCenter(marker.getPosition());
+    // console.log('It is here!')
+  });
+
     });
   }
 }
