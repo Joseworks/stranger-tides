@@ -19,10 +19,15 @@ function initMap() {
     zoom: 3,
     scaleControl: true,
     streetViewControl: true,
-    // streetViewControlOptions: {
-        // position: google.maps.ControlPosition.LEFT_TOP
-    // },
     zoomControl: true,
+    mapTypeControl: true,
+    scaleControl: true,
+    rotateControl: true,
+
+    scaleControlOptions: {
+        position: google.maps.ControlPosition.LEFT_TOP
+    },
+
 
     center: {
       lat: 38.88,
@@ -59,15 +64,22 @@ function myPosition(map) {
       var marker = new google.maps.Marker({
         position: myLatLng,
         map: map,
-        title: " You are SO HERE. Click on the marker to center the map"
+        title: " You are SO HERE"
       });
 
+      var infoWindow = new google.maps.InfoWindow({map: map});
+      infoWindow.setPosition(myLatLng);
+      infoWindow.setContent('Location found. Use the controls to zoom in');
+      map.setCenter(myLatLng);
 
-  marker.addListener('click', function() {
+
+
+
+  // marker.addListener('click', function() {
   //   map.setZoom(12);
-    map.setCenter(marker.getPosition());
-    // console.log('It is here!')
-  });
+  //   map.setCenter(marker.getPosition());
+  //   // console.log('It is here!')
+  // });
 
     });
   }
