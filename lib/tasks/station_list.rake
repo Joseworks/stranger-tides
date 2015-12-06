@@ -1,6 +1,12 @@
 namespace :station_list do
   require 'open-uri'
 
+  desc "Delete Station List"
+    task :delete_station_list => :environment do
+      Station.delete_all
+      p " All stations have been erased"
+    end
+
   desc "Station List"
     task :process_station_list => :environment do
       @all_reporting_stations = []
@@ -29,18 +35,15 @@ namespace :station_list do
     end
   end
 
-  desc "Delete Station List"
-    task :delete_station_list => :environment do
-      Station.delete_all
-      p " All stations have been erased"
-    end
 
 
 
   desc "Run Process"
-    task :try_this => :environment do
+    task :process_all_stations => :environment do
 
-      p " All stations!"
+      p "Processing all stations"
+
+
       @all_reporting_stations = Station.last.tide_info
       @all_charts = []
       @all_station_metadata = []
@@ -48,10 +51,14 @@ namespace :station_list do
       @all_reporting_stations.each do |station_id|
         my_station = station_id
         product = 'water_level'
-        begin_date = '20151120'
+        # begin_date = '20151120'
+        begin_date = 1.days.ago.strftime("%Y%m%d")
         begin_time ='10:00'
-        end_date = '20151122'
-        end_time ='10:24'
+        begin_time = 1.days.ago.strftime('%R')
+        # end_date = '20151122'
+        end_date = Time.now.strftime("%Y%m%d")
+        # end_time ='10:24'
+        end_time = Time.now.strftime('%R')
         datum = 'mllw'
         units='english'
         time_zone='gmt'
@@ -84,20 +91,20 @@ namespace :station_list do
            # tide_s_info = TideParsingService::TideProcessor.tide_s_retrieval(my_station, product, url)
           @chart = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_info, time_stamp_info)
           @all_charts << @chart
-          # p @chart
         end
 
       end
 
 
-    p  @all_station_metadata
+    # p  @all_station_metadata
     # Station.create(metadata: @all_station_metadata)
     new_station = Station.find_or_create_by(station_name: "All stations")
     new_station = Station.last
-    p new_station.inspect
+    # p new_station.inspect
     new_station.metadata = @all_station_metadata
     new_station.save
-    p new_station.inspect
+    # p new_station.inspect
+    p 'Done!'
     end
 
 end

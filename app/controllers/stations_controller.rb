@@ -31,23 +31,25 @@ class StationsController < ApplicationController
 
    @constructed_station = StationConstructor.new(constructed_station_params)
 
-
    @path_build = @constructed_station.url_constructor
 
    url = @path_build
 # Trying to change the way metadata is consumed to a class
     # this metadata_retrieval needs to be a service
 
+
     @metadata = TideParsingService::TideProcessor.metadata_retrieval(my_station, product, url) #( And now it is an object.)
     gon.metadata = @metadata
     # gon.metadata = @metadata
-
 
 
 # Now Trying to change the way tide_info is consumed to a class
 # the purpose of this is to eliminate active record per se and migrate to PORO's
 
     tide_info = TideParsingService::TideProcessor.tide_level_retrieval(my_station, product, url)
+
+
+
     time_stamp_info = TideParsingService::TideProcessor.time_stamp_retrieval(my_station, product, url)
 
      tide_s_info = TideParsingService::TideProcessor.tide_s_retrieval(my_station, product, url)
@@ -71,6 +73,7 @@ def show_stations
   @all_station_metadata = Station.last.metadata
   # HardWorker.perform_in(1.minute, 'bob', 5)
   gon.all_station_metadata = @all_station_metadata
+  # p @all_charts.inspect
 end
 
 
@@ -118,7 +121,6 @@ end
     url_params = {my_station: my_station, product: product, begin_date: begin_date, end_date: end_date}
     uri = TideParsingService::UrlConstructor.new(url_params)
 
-p " ==========#{uri.constructed_url}======"
 
 
 # Trying to change the way metadata is consumed to a class
