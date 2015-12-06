@@ -24,13 +24,15 @@
 </p>
 
 
-    <div id="map"></div>
+    <!-- <div id="map"></di v> -->
 
-    <script async defer
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAsmBEB76Uhe4AjnkAzZiEZjt6nRtObRJE&callback=initMap">
-    </script>
+    <!-- <script async defer -->
+      <!-- src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAsmBEB76Uhe4AjnkAzZiEZjt6nRtObRJE&callback=initMap"> -->
+    <!-- </script> -->
 
 <%= high_chart("graph", @chart) %>
 <%#= high_chart("some_other_id", @chart1) %>
+
+<%=    render partial: "graph_partial", locals: { chart: @chart } %>
 
 <%= link_to 'Back', stations_path %>

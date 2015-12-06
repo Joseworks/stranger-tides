@@ -7,30 +7,37 @@ module TideParsingService
     def self.url_validator(url)
       begin
         file = open(url)
-      rescue Errno::ECONNREFUSED
+        # handle file here
+      rescue Errno::ECONNREFUSED => e
         self.errors.add :station, 'We can not connect to this url'
-      rescue Errno::ENOENT
+      rescue Errno::ENOENT => e
         self.errors.add :station, 'No such file or directory - does/not/exist'
-      rescue
-        self.errors.add :station, 'This url can not be parsed'
+      rescue OpenURI::HTTPError => e
+        if e.message == "The service appeqard to be offline at #{ Time.now}404 Not Found"
+          # handle 404 error
+          p e.message.inspect
+        else
+          raise e
+        end
       end
+
+
+
     end
 
     def self.metadata_parser!(url)
       open(url) do |f|
         json_string = f.read
         parse_json = JSON.parse(json_string)['metadata']
-        # p "parse_json #{parse_json.inspect}"
-
+        # p "parse_json #{parse_json.inspect}""
         parse_json.deep_symbolize_keys unless parse_json.nil?
       end
     end
 
-
     def self.metadata_retrieval(my_station, current_product, url_to_parse)
       url_validator(url_to_parse)
       parsed_tide = TideParsingService::TideProcessor.metadata_parser!(url_to_parse)
-      p "parsed_tide #{parsed_tide.inspect}"
+      p "Parsing #{parsed_tide[:name]} station"
       meta = Metadata.new(parsed_tide) unless parsed_tide.nil?
     end
 
@@ -96,7 +103,6 @@ module TideParsingService
         n = 8 #amount of samples per reading
         param_v.each_slice(n).map(&:last)
       end
-      # p "I got here because there is some metadata"
       # param_v
       param_v.each_slice(n).map(&:last)
 

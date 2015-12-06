@@ -14,7 +14,7 @@
 // }
 
 
- html,body { height: 100%;
+ html,body { height: 80%;
             margin: 10;
             padding: 10;
             }
@@ -36,5 +36,8 @@ pre {
 
 
 #graph {
+  height: 50%;
+};
+#graph-partial {
   height: 50%;
 };

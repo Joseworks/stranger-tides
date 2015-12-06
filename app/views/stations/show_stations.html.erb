@@ -20,6 +20,7 @@
     </script>
 
 
+<%= render partial: "graph_partial", locals: { chart: @chart } %>
 
 <%#= high_chart("graph", @chart) %>
 <%#= high_chart("some_other_id", @chart1) %>
@@ -31,3 +32,8 @@
   <%#= high_chart("graph"+index.to_s , chart) %>
 <%# end %>
 
+
+
+<!-- I need to create a partial that receives the station id (or name) so I can append it on click. -->
+
+<!-- Now I have a sigle station partial. The idea is to render it when I select a station. That implies that the view needs to pass to the controller ( or processor) the station info for it to parse the graph. -->

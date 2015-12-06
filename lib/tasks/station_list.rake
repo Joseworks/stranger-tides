@@ -53,7 +53,7 @@ namespace :station_list do
         product = 'water_level'
         # begin_date = '20151120'
         begin_date = 1.days.ago.strftime("%Y%m%d")
-        begin_time ='10:00'
+        # begin_time ='10:00'
         begin_time = 1.days.ago.strftime('%R')
         # end_date = '20151122'
         end_date = Time.now.strftime("%Y%m%d")
@@ -96,14 +96,18 @@ namespace :station_list do
       end
 
 
-    # p  @all_station_metadata
-    # Station.create(metadata: @all_station_metadata)
     new_station = Station.find_or_create_by(station_name: "All stations")
     new_station = Station.last
-    # p new_station.inspect
     new_station.metadata = @all_station_metadata
     new_station.save
-    # p new_station.inspect
+    chart = @all_charts.last
+    # p chart.inspect
+
+    # p chart.series_data
+    # p chart.options
+    # p chart.html_options
+    # p chart.placeholder
+
     p 'Done!'
     end
 

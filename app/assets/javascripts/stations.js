@@ -5,7 +5,15 @@ var all_stations = gon.all_station_metadata;
 
 
 
-
+// $("div.some-class").click(function()
+// {
+//     $.ajax(
+//     {
+//       url:"url/to/controller/action",
+//       type:<GET>/<POST>,
+//       data://If you wish to sent any payload
+//     });
+// });
 
 
 
@@ -69,7 +77,7 @@ function myPosition(map) {
 
       var infoWindow = new google.maps.InfoWindow({map: map});
         infoWindow.setPosition(myLatLng);
-        infoWindow.setContent('Location found. Use the controls to zoom in');
+        infoWindow.setContent('Location found. Use the controls to zoom in or out');
         map.setCenter(myLatLng);
         map.setZoom(9);
       var lineSymbol = {
@@ -88,6 +96,9 @@ function myPosition(map) {
       });
 
       animateCircle(line);
+
+
+
 
   // marker.addListener('click', function() {
   //   map.setZoom(12);
@@ -126,7 +137,6 @@ function setMarkers(map, stations) {
 
   for (var i = 0; i < stations.length; i++) {
     var station = stations[i];
-    // console.log(station)
     var marker = new google.maps.Marker({
       position: {
         lat: station[1],
@@ -135,9 +145,19 @@ function setMarkers(map, stations) {
       map: map,
       icon: asset_path('orange_marker.png'),
       // shape: shape,
-      title: station[0],
-      zIndex: station[3]
+      title: station[0]
+      // zIndex: station[3]
     });
+  // marker.addListener('click', function() {
+  //   // map.setZoom(12);
+  //   // console.log(marker.getPosition())
+    console.log(marker)
+  // });
+
+// google.maps.event.addListener( marker.serviceObject, 'click', function(object) {
+// alert('lat: '+object.latLng.Na+' long: '+object.latLng.Oa);
+// });
+
   }
 }
 
