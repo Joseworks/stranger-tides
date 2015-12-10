@@ -1,4 +1,3 @@
-# require 'uri'
 class StationConstructor
     attr_accessor :my_station,:product,:begin_date,:begin_time,:end_date,:end_time,:datum,:units,:time_zone,:application,:format,:url
     def initialize(args)

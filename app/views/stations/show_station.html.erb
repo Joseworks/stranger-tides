@@ -1,15 +1,3 @@
-<% if @metadata.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(@metadata.errors.count, "error") %> prohibited this station from being saved:</h2>
-
-      <ul>
-      <% @metadata.errors.full_messages.each do |message| %>
-        <li><%= message %></li>
-      <% end %>
-      </ul>
-    </div>
-<% end %>
-
 <p id="notice"><%= notice %></p>
 
 <p>

@@ -5,23 +5,6 @@ var all_stations = gon.all_station_metadata;
 
 
 
-// $("div.some-class").click(function()
-// {
-//     $.ajax(
-//     {
-//       url:"url/to/controller/action",
-//       type:<GET>/<POST>,
-//       data://If you wish to sent any payload
-//     });
-// });
-
-
-
-
-
-
-
-
 function initMap() {
   var map = new google.maps.Map(document.getElementById('full_map'), {
     zoom: 3,
@@ -33,7 +16,7 @@ function initMap() {
     rotateControl: true,
 
     scaleControlOptions: {
-        position: google.maps.ControlPosition.LEFT_TOP
+      position: google.maps.ControlPosition.LEFT_TOP
     },
 
 
@@ -50,7 +33,7 @@ function initMap() {
     formArray(all_stations);
     var stations = station_markers_array;
     setMarkers(map, stations);
-  }else{
+  } else {
     console.log('No valid stations to show!')
   };
 
@@ -61,7 +44,7 @@ function initMap() {
 function myPosition(map) {
   // This adds the marker for my location ( From Dominique snippet :)
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(function (position) {
+    navigator.geolocation.getCurrentPosition(function(position) {
       var lat = position.coords.latitude;
       var lon = position.coords.longitude;
       var myLatLng = {
@@ -75,11 +58,13 @@ function myPosition(map) {
         title: " You are SO HERE"
       });
 
-      var infoWindow = new google.maps.InfoWindow({map: map});
-        infoWindow.setPosition(myLatLng);
-        infoWindow.setContent('Location found. Use the controls to zoom in or out');
-        map.setCenter(myLatLng);
-        map.setZoom(9);
+      var infoWindow = new google.maps.InfoWindow({
+        map: map
+      });
+      infoWindow.setPosition(myLatLng);
+      infoWindow.setContent('Your location has been found. Use the controls to zoom in or out');
+      map.setCenter(myLatLng);
+      map.setZoom(16);
       var lineSymbol = {
         path: google.maps.SymbolPath.CIRCLE,
         scale: 8,
@@ -87,7 +72,13 @@ function myPosition(map) {
       };
 
       var line = new google.maps.Polyline({
-        path: [{lat: lat, lng: lon}, {lat: lat - .0001, lng: lon}],
+        path: [{
+          lat: lat,
+          lng: lon
+        }, {
+          lat: lat - .0001,
+          lng: lon
+        }],
         icons: [{
           icon: lineSymbol,
           offset: '100%'
@@ -100,11 +91,29 @@ function myPosition(map) {
 
 
 
-  // marker.addListener('click', function() {
-  //   map.setZoom(12);
-  //   map.setCenter(marker.getPosition());
-  //   // console.log('It is here!')
-  // });
+      marker.addListener('click', function() {
+        map.setZoom(14);
+        map.setCenter(marker.getPosition());
+        console.log('It is here!');
+
+
+
+        // $("div.tide-graph").click(function() {
+        $.ajax({
+          url: "./show_graph",
+          type: "POST",
+          data: {
+            content: marker[0]
+          }
+        }).success(function(data) {
+          console.log('made it to ajax success!');
+          $("div.tide-graph").replaceWith("<h2>Something else</h2>");
+
+        });
+        // });
+
+      });
+
 
     });
   }
@@ -146,17 +155,17 @@ function setMarkers(map, stations) {
       icon: asset_path('orange_marker.png'),
       // shape: shape,
       title: station[0]
-      // zIndex: station[3]
+        // zIndex: station[3]
     });
-  // marker.addListener('click', function() {
-  //   // map.setZoom(12);
-  //   // console.log(marker.getPosition())
-    console.log(marker)
-  // });
+    // marker.addListener('click', function() {
+    //   // map.setZoom(12);
+    //   // console.log(marker.getPosition())
+    // console.log(marker)
+    // });
 
-// google.maps.event.addListener( marker.serviceObject, 'click', function(object) {
-// alert('lat: '+object.latLng.Na+' long: '+object.latLng.Oa);
-// });
+    // google.maps.event.addListener( marker.serviceObject, 'click', function(object) {
+    // alert('lat: '+object.latLng.Na+' long: '+object.latLng.Oa);
+    // });
 
   }
 }
@@ -193,12 +202,12 @@ function split(a, n) {
 
 
 function animateCircle(line) {
-    var count = 0;
-    window.setInterval(function() {
-      count = (count + 1) % 200;
+  var count = 0;
+  window.setInterval(function() {
+    count = (count + 1) % 200;
 
-      var icons = line.get('icons');
-      icons[0].offset = (count / 2) + '%';
-      line.set('icons', icons);
+    var icons = line.get('icons');
+    icons[0].offset = (count / 2) + '%';
+    line.set('icons', icons);
   }, 20);
 }
