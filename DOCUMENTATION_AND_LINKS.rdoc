@@ -1,4 +1,14 @@
-Add tro the list to use json to store hashes in postgres :)! (JSON)
+rake station_list:delete_station_list   # Delete Station List
+rake station_list:process_station_list  # Station List
+rake station_list:process_all_stations  # Run Process
+
+to the controller
+  HardWorker.perform_async('BOB', 5)
+   HardWorker.perform_in(1.minute, 'bob', 5)
+
+
+
+Add to the list to use json to store hashes in postgres :)! (JSON)
 
 
 AIzaSyD2RIJ6Azcnl2QJ-309Hn_6NESecq5eTN4
