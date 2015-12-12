@@ -47,15 +47,14 @@ class StationsController < ApplicationController
     tide_s_info = TideParsingService::TideProcessor.tide_s_retrieval(station_id, current_product, url)
     @chart = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_info, time_stamp_info)
 
-    render partial: "graph_partial", layout: false,locals: { chart: @chart }
+    # render partial: "graph_partial", layout: false,locals: { chart: @chart }
 
 
      if request.xhr?
       respond_to do |format|
-        format.html { render partial: "graph_partial", layout: false,locals: { chart: @chart  }, notice: "made it HERE to show graph" }
-        format.json { render json: :graph_partial, status: :created, location:graph_partial  }
+        # format.html { render partial: "graph_partial", layout: false,locals: { chart: @chart  }, notice: "made it HERE to show graph" }
+        # format.json { render json: :graph_partial, status: :created, location:graph_partial  }
         format.js
-
       end
     end
 

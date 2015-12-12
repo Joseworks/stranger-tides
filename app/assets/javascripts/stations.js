@@ -64,7 +64,7 @@ function myPosition(map) {
       infoWindow.setPosition(myLatLng);
       infoWindow.setContent('Your location has been found. Use the controls to zoom in or out');
       map.setCenter(myLatLng);
-      map.setZoom(16);
+      map.setZoom(14);
       var lineSymbol = {
         path: google.maps.SymbolPath.CIRCLE,
         scale: 8,
@@ -92,7 +92,7 @@ function myPosition(map) {
 
 
       marker.addListener('click', function() {
-        map.setZoom(14);
+        map.setZoom(10);
         map.setCenter(marker.getPosition());
         console.log('It is here!');
 
@@ -157,11 +157,12 @@ function setMarkers(map, stations) {
       title: station[0]
         // zIndex: station[3]
     });
-    // marker.addListener('click', function() {
-    //   // map.setZoom(12);
-    //   // console.log(marker.getPosition())
-    // console.log(marker)
-    // });
+
+    marker.addListener('click', function() {
+      // map.setZoom(12);
+      // console.log(marker.getPosition())
+    console.log(marker)
+    });
 
     // google.maps.event.addListener( marker.serviceObject, 'click', function(object) {
     // alert('lat: '+object.latLng.Na+' long: '+object.latLng.Oa);
