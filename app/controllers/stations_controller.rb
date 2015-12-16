@@ -2,26 +2,18 @@ class StationsController < ApplicationController
   before_action :set_station, only: [:show, :edit, :update, :destroy]
 
   def show_station
-    station_id = 8723214
-    # station_id = @all_station_metadata.first['station_id'].to_i
-    current_station = StationDataRangeConstructor.new(station_id)
-    constructed_station_params = current_station.range_constructor
-    current_product = constructed_station_params[:product]
+    # Temporary override to ensure showing one station. Needs to receive from js the id of the station marker.
+    @all_station_metadata = Station.last.metadata
 
-    @constructed_station = StationConstructor.new(constructed_station_params)
-    url = @constructed_station.url_constructor
+    # tide_info = TideParsingService::TideProcessor.tide_level_retrieval(station_id, current_product, url)
 
-    @metadata = TideParsingService::TideProcessor.metadata_retrieval(station_id, current_product, url)
-    gon.metadata = @metadata
+    # time_stamp_info = TideParsingService::TideProcessor.time_stamp_retrieval(station_id, current_product, url)
 
-    tide_info = TideParsingService::TideProcessor.tide_level_retrieval(station_id, current_product, url)
-    time_stamp_info = TideParsingService::TideProcessor.time_stamp_retrieval(station_id, current_product, url)
-    tide_s_info = TideParsingService::TideProcessor.tide_s_retrieval(station_id, current_product, url)
-    @chart = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_info, time_stamp_info)
-    # render partial: "graph_partial", locals: { chart: @chart }
+    # tide_s_info = TideParsingService::TideProcessor.tide_s_retrieval(station_id, current_product, url)
 
-    # @chart1 = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_s_info, time_stamp_info)
-    # The purpose of the url constructor is to have a user interface to enter params without an active record model.
+    @chart =GraphProcessorService::GraphProcessor.graph_constructor(@all_station_metadata)
+
+    #   @chart1 = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_s_info, time_stamp_info)
 
   end
 
@@ -31,18 +23,7 @@ class StationsController < ApplicationController
     @all_station_metadata = Station.last.metadata
     gon.all_station_metadata = @all_station_metadata
     @chart =GraphProcessorService::GraphProcessor.graph_constructor(@all_station_metadata)
-    # render partial: "graph_partial", layout: false,locals: { chart: @chart }
-
-
-     if request.xhr?
-      respond_to do |format|
-        # format.html { render partial: "graph_partial", layout: false,locals: { chart: @chart  }, notice: "made it HERE to show graph" }
-        # format.json { render json: :graph_partial, status: :created, location:graph_partial  }
-        format.js
-      end
-    end
-
-
+    gon.chart = @chart
   end
 
 
@@ -50,41 +31,15 @@ class StationsController < ApplicationController
   def show_graph
     @all_station_metadata = Station.last.metadata
     gon.all_station_metadata = @all_station_metadata
-
-    station_id = @all_station_metadata.first['station_id'].to_i
-    current_station = StationDataRangeConstructor.new(station_id)
-    constructed_station_params = current_station.range_constructor
-    current_product = constructed_station_params[:product]
-
-    @constructed_station = StationConstructor.new(constructed_station_params)
-    url = @constructed_station.url_constructor
-
-    @metadata = TideParsingService::TideProcessor.metadata_retrieval(station_id, current_product, url)
-    gon.metadata = @metadata
-
-    tide_info = TideParsingService::TideProcessor.tide_level_retrieval(station_id, current_product, url)
-    time_stamp_info = TideParsingService::TideProcessor.time_stamp_retrieval(station_id, current_product, url)
-    tide_s_info = TideParsingService::TideProcessor.tide_s_retrieval(station_id, current_product, url)
-    @chart = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_info, time_stamp_info)
-
-
-    # render partial: "_graph_partial", layout: false, locals: { chart: @chart  }
+    @chart =GraphProcessorService::GraphProcessor.graph_constructor(@all_station_metadata)
 
 
     if request.xhr?
       respond_to do |format|
-        format.html { render partial: "graph_partial", layout: false,locals: { chart: @chart  }, notice: "made it HERE to show graph" }
-        format.json { render json: :graph_partial, status: :created, location:graph_partial  }
         format.js
-
       end
-
-    # render :show_stations do |page|
-    #        page["tide-graph"].replace_html :partial => "graph_partial",layout: false, locals: { chart: @chart  }
-
     end
   end
-
 
 
 

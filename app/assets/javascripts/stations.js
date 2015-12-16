@@ -2,6 +2,7 @@ var station_name = new Array();
 var station_markers = new Array();
 var station_markers_array = new Array();
 var all_stations = gon.all_station_metadata;
+var jschart = gon.chart
 
 
 
@@ -18,7 +19,6 @@ function initMap() {
     scaleControlOptions: {
       position: google.maps.ControlPosition.LEFT_TOP
     },
-
 
     center: {
       lat: 38.88,
@@ -89,16 +89,10 @@ function myPosition(map) {
       animateCircle(line);
 
 
-
-
       marker.addListener('click', function() {
         map.setZoom(10);
         map.setCenter(marker.getPosition());
-        console.log('It is here!');
 
-
-
-        // $("div.tide-graph").click(function() {
         $.ajax({
           url: "./show_graph",
           type: "POST",
@@ -106,12 +100,10 @@ function myPosition(map) {
             content: marker[0]
           }
         }).success(function(data) {
-          console.log('made it to ajax success!');
-          $("div.tide-graph").replaceWith("<h2>Something else</h2>");
+          // console.log(jschart);
+
 
         });
-        // });
-
       });
 
 

@@ -1,26 +1,15 @@
 <p id="notice"><%= notice %></p>
 
 <p>
-
-  <%= "Station id:#{@metadata.station_id}" %>
-  <%= "Lat #{@metadata.latitude }"%>
-  <%= "Long #{@metadata.longitude }"%>
+  <%= "Station id:#{@all_station_metadata.first['station_id'].to_i}" %>
+  <%= "Lat #{@all_station_metadata.first['latitude'].to_i }"%>
+  <%= "Long #{@all_station_metadata.first['longitude'].to_i}"%>
 </p>
 
 <p>
   <%= @all_reporting_stations %>
 </p>
 
-
-    <!-- <div id="map"></di v> -->
-
-    <!-- <script async defer -->
-      <!-- src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAsmBEB76Uhe4AjnkAzZiEZjt6nRtObRJE&callback=initMap"> -->
-    <!-- </script> -->
-
 <%= high_chart("graph", @chart) %>
-<%#= high_chart("some_other_id", @chart1) %>
+<%#\= high_chart("some_other_id", @chart1) %>
 
-<%=    render partial: "graph_partial", locals: { chart: @chart } %>
-
-<%= link_to 'Back', stations_path %>

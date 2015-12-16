@@ -1,0 +1,2 @@
+$('body').append("<div id='tide-graph'>");
+$("#tide-graph").html("<%=j render :partial => 'stations/graph_partial', locals: { chart: @chart } %>")
