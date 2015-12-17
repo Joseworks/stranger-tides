@@ -1,6 +1,13 @@
-rake station_list:delete_station_list   # Delete Station List
-rake station_list:process_station_list  # Station List
-rake station_list:process_all_stations  # Run Process
+rake station_list:delete_station_list
+rake station_list:process_station_list
+rake station_list:try_this --trace
+
+
+
+heroku rake station_list:delete_station_list
+heroku rake station_list:process_station_list
+heroku rake station_list:try_this --trace
+
 
 to the controller
   HardWorker.perform_async('BOB', 5)
