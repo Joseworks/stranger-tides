@@ -3,11 +3,12 @@ var station_markers = new Array();
 var station_markers_array = new Array();
 var all_stations = gon.all_station_metadata;
 var jschart = gon.chart
+var map_div = 'full_map'
 
 
 
 function initMap() {
-  var map = new google.maps.Map(document.getElementById('full_map'), {
+  var map = new google.maps.Map(document.getElementById(map_div), {
     zoom: 3,
     scaleControl: true,
     streetViewControl: true,

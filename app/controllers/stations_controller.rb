@@ -22,7 +22,7 @@ class StationsController < ApplicationController
   def show_stations
     @all_station_metadata = Station.last.metadata
     gon.all_station_metadata = @all_station_metadata
-    @chart =GraphProcessorService::GraphProcessor.graph_constructor(@all_station_metadata)
+    @chart = GraphProcessorService::GraphProcessor.graph_constructor(@all_station_metadata)
     gon.chart = @chart
   end
 
