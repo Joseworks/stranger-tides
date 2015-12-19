@@ -40,9 +40,7 @@ namespace :station_list do
 
   desc "Run Process"
     task :process_all_stations => :environment do
-
       p "Processing all stations"
-
 
       @all_reporting_stations = Station.last.tide_info
       @all_charts = []
@@ -51,13 +49,9 @@ namespace :station_list do
       @all_reporting_stations.each do |station_id|
         my_station = station_id
         product = 'water_level'
-        # begin_date = '20151120'
         begin_date = 1.days.ago.strftime("%Y%m%d")
-        # begin_time ='10:00'
         begin_time = 1.days.ago.strftime('%R')
-        # end_date = '20151122'
         end_date = Time.now.strftime("%Y%m%d")
-        # end_time ='10:24'
         end_time = Time.now.strftime('%R')
         datum = 'mllw'
         units='english'
@@ -102,7 +96,6 @@ namespace :station_list do
     new_station.save
     chart = @all_charts.last
     # p chart.inspect
-
     # p chart.series_data
     # p chart.options
     # p chart.html_options
