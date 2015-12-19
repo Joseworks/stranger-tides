@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe "stations/show", type: :view do
+RSpec.describe "stations/show_stations", type: :view do
   before(:each) do
     @station = assign(:station, Station.create!())
   end
