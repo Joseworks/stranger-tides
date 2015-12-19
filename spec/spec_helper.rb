@@ -31,7 +31,15 @@ SimpleCov.start do
   add_group 'Views', 'app/views'
 end if ENV["COVERAGE"]
 
-
+require "shoulda/matchers"
+Shoulda::Matchers.configure do |config|
+  config.integrate do |with|
+    with.test_framework :rspec
+   # This require statement solves the uninitialized constant / NameError issue
+    require "active_model"
+    with.library :active_model
+  end
+end
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
