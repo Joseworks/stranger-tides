@@ -18,6 +18,8 @@ RSpec.describe StationDataRangeConstructor, type: :model do
     it { is_expected.to have_key(:application)}
     it { is_expected.to have_key(:format)}
     it { is_expected.to include(my_station: 1234567)}
+    it { is_expected.to include(product: 'water_level')}
+    it { is_expected.to include(format: 'json')}
   end
 
   context 'with invalid station_id' do
