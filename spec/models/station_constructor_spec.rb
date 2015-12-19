@@ -2,31 +2,23 @@ require 'rails_helper'
 
 RSpec.describe StationConstructor, type: :model do
 
-describe StationConstructor do
-  it "has a valid factory" do
-       expect(FactoryGirl.create(:station)).to be_valid
+  describe StationConstructor do
+    station_id = 8454000
+    current_station_data_range = StationDataRangeConstructor.new(station_id).range_constructor
+    constructed_station = StationConstructor.new(current_station_data_range)
+
+    response_as_json =constructed_station.url_constructor.as_json
+      subject {response_as_json}
+      it { is_expected.to include('metadata')}
+
+    subject{URI(constructed_station.url_constructor)}
+      it { is_expected.to be_an_instance_of(String) }
+      it { should be_a(String) }
+      it { should be_a_kind_of(String) }
+
+    response = Net::HTTP.get(constructed_station.url_constructor)
+      subject {response}
+      it { is_expected.to be_an_instance_of(String) }
+      it { is_expected.to include('8454000')}
   end
-
-
-  # it "has a valid station"
-  # it "has a valid product"
-  # it "has a valid begin_date"
-  # it "has a valid begin_time"
-  # it "has a valid end_date"
-  # it "has a valid end_time"
-  # it "has a valid datum"
-  # it "has a valid units"
-  # it "has a valid time_zone"
-  # it "has a valid application"
-  # it "has a valid format"
-
-  # it "is invalid without a missing attribute"
-end
-
-  # describe StationConstructor::url_constructor do
-    # it "returns a url as a string"
-  # end
-
-
-
 end
