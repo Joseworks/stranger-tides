@@ -1,2 +1,12 @@
+// var $target = $(href);
+// $('#map-container-full').replaceWith("<h1>Here</h1>");
+$('#map-container-full').replaceWith("<div id='map-container-small'>");
+$('#map-container-small').append("<div id='full_map'></div>");
+
+
 $('body').append("<div id='tide-graph'>");
 $("#tide-graph").html("<%=j render :partial => 'stations/graph_partial', locals: { chart: @chart } %>")
+
+
+
+// Need to render the small map as a partial(html or js) and add it
