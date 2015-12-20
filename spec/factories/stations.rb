@@ -1,5 +1,6 @@
 FactoryGirl.define do
   factory :station do
+    # skip_create
     my_station = 8723214
     product = 'water_level'
     begin_date = 1.days.ago.strftime("%Y%m%d")
@@ -12,5 +13,4 @@ FactoryGirl.define do
     application='web_services'
     format='json'
   end
-
 end
