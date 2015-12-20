@@ -4,8 +4,9 @@ namespace :station_list do
   desc "Delete Station List"
     task :delete_station_list => :environment do
       Station.delete_all
-      p " All stations have been erased"
+      p "All stations have been erased"
     end
+
 
   desc "Station List"
     task :process_station_list => :environment do
@@ -34,8 +35,6 @@ namespace :station_list do
       station_id_list
     end
   end
-
-
 
 
   desc "Run Process"
@@ -86,21 +85,13 @@ namespace :station_list do
           @chart = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_info, time_stamp_info)
           @all_charts << @chart
         end
-
       end
-
 
     new_station = Station.find_or_create_by(station_name: "All stations")
     new_station = Station.last
     new_station.metadata = @all_station_metadata
     new_station.save
     chart = @all_charts.last
-    # p chart.inspect
-    # p chart.series_data
-    # p chart.options
-    # p chart.html_options
-    # p chart.placeholder
-
     p 'Done!'
     end
 

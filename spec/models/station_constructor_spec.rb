@@ -16,8 +16,8 @@ RSpec.describe StationConstructor, type: :model do
       it { should be_a(String) }
       it { should be_a_kind_of(String) }
 
-    response = Net::HTTP.get(constructed_station.url_constructor)
-      subject {response}
+      response = Net::HTTP.get(constructed_station.url_constructor)
+    subject {response}
       it { is_expected.to be_an_instance_of(String) }
       it { is_expected.to include('8454000')}
   end

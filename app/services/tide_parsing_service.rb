@@ -3,33 +3,27 @@ require 'open-uri'
 module TideParsingService
 
   class TideProcessor
-
     def self.url_validator(url)
       begin
         file = open(url)
-        # handle file here
       rescue Errno::ECONNREFUSED => e
         self.errors.add :station, 'We can not connect to this url'
       rescue Errno::ENOENT => e
         self.errors.add :station, 'No such file or directory - does/not/exist'
       rescue OpenURI::HTTPError => e
         if e.message == "The service appeqard to be offline at #{ Time.now}404 Not Found"
-          # handle 404 error
+          # todo: handle 404 error
           p e.message.inspect
         else
           raise e
         end
       end
-
-
-
     end
 
     def self.metadata_parser!(url)
       open(url) do |f|
         json_string = f.read
         parse_json = JSON.parse(json_string)['metadata']
-        # p "parse_json #{parse_json.inspect}""
         parse_json.deep_symbolize_keys unless parse_json.nil?
       end
     end
@@ -45,17 +39,11 @@ module TideParsingService
       meta = Metadata.new(parsed_tide) unless parsed_tide.nil?
     end
 
-
-
     def self.tide_level_retrieval(my_station, current_product, url_to_parse)
       url_validator(url_to_parse)
       parsed_tide_info = TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)
       tide_height = TideParsingService::TideProcessor.param_v_parser(parsed_tide_info)
     end
-
-
-
-
 
     def self.tide_s_retrieval(my_station, current_product, url_to_parse)
       url_validator(url_to_parse)
@@ -63,19 +51,11 @@ module TideParsingService
       tide_s = TideParsingService::TideProcessor.param_s_parser(parsed_tide_info)
     end
 
-
-
-
-  def self.time_stamp_retrieval(my_station, current_product, url_to_parse)
-    url_validator(url_to_parse)
-    parsed_tide_info = TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)
-    tide_time = TideParsingService::TideProcessor.time_parser(parsed_tide_info)
-  end
-
-
-
-
-
+    def self.time_stamp_retrieval(my_station, current_product, url_to_parse)
+      url_validator(url_to_parse)
+      parsed_tide_info = TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)
+      tide_time = TideParsingService::TideProcessor.time_parser(parsed_tide_info)
+    end
 
     def self.tide_level_parser!(url)
       open(url) do |f|
@@ -98,7 +78,6 @@ module TideParsingService
 
     def self.param_v_parser(info)
       param_v =[]
-      # p "info #{info.inspect}"
       unless info.nil?
         info.each do |element|
           param_v << element[:v].to_f
@@ -109,10 +88,9 @@ module TideParsingService
       end
       # param_v
       param_v.each_slice(n).map(&:last)
-
     end
 
-#not is use right now
+   #not is use right now, displays a different set of parameters read from the tide station.
     def self.param_s_parser(info)
       param_s =[]
       unless info.nil?
@@ -125,30 +103,8 @@ module TideParsingService
       end
       # param_s
       param_s.each_slice(n).map(&:last)
-
     end
   end
-
-
-
-
-
-
-  class UrlConstructor
-    attr_accessor :station_id, :station_name, :latitude, :longitude
-    def initialize(args)
-      @my_station = args[:my_station]
-      @product = args[:product]
-      @begin_date = args[:begin_date]
-      @end_date = args[:end_date]
-    end
-
-    def constructed_url
-     URI::HTTP.build({:host => "www.tidesandcurrents.noaa.gov", :query => { :begin_date => @begin_date }.to_query, :path => "/api/datagetter"})
-   end
-  end
-
-
 
   class Metadata
     attr_accessor :station_id, :station_name, :latitude, :longitude
@@ -159,6 +115,4 @@ module TideParsingService
       @longitude = args[:lon]
     end
   end
-
-
 end

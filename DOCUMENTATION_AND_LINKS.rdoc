@@ -3,7 +3,8 @@ Factory girl cannot be used passing arguments!
 
 rake station_list:delete_station_list
 rake station_list:process_station_list
-rake station_list:try_this --trace
+rake station_list:process_all_stations  # Run Process
+
 
 
 
