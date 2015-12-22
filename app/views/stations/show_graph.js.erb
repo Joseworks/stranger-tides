@@ -1,4 +1,2 @@
-$('#map-container-full').replaceWith("<div id='map-container-small'>");
-$('#map-container-small').append("<div id='full_map'></div>");
+$('#map-container-full').attr("id","map-container-small");
 $('body').append("<div id='tide-graph'>");
-$("#tide-graph").html("<%=j render :partial => 'stations/graph_partial', locals: { chart: @chart } %>")
