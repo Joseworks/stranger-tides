@@ -31,11 +31,9 @@ function initMap() {
     var stations = station_markers_array;
     setMarkers(map, stations);
   } else {
-    console.log('No valid stations to show!')
+    alert('No valid stations to show!')
   };
-
 }
-
 
 
 function myPosition(map) {
@@ -61,7 +59,7 @@ function myPosition(map) {
       infoWindow.setPosition(myLatLng);
       infoWindow.setContent('Your location has been found. Use the controls to zoom in or out');
       map.setCenter(myLatLng);
-      map.setZoom(8);
+      map.setZoom(6);
       var lineSymbol = {
         path: google.maps.SymbolPath.CIRCLE,
         scale: 8,
@@ -87,7 +85,7 @@ function myPosition(map) {
 
 
       marker.addListener('click', function() {
-        map.setZoom(7);
+        map.setZoom(8);
         map.setCenter(marker.getPosition());
         $.ajax({
           url: "./show_graph",
@@ -96,12 +94,8 @@ function myPosition(map) {
             content: marker[0]
           }
         }).success(function(data) {
-          // console.log(jschart);
-          // console.log(data);
         });
       });
-
-
     });
   }
 }
@@ -127,15 +121,9 @@ function setMarkers(map, stations) {
   for (var i = 0; i < stations.length; i++) {
     var station = stations[i];
     var marker_station_name =  station [0] + " " + station[3].toString()
-
     var tmpLat = station[1];
     var tmpLng = station[2];
     var tmpName = marker_station_name;
-    // var tmpAdr = stations[i].adr;
-    // var tmpTel = stations[i].pc;
-    // var tmpPc = stations[i].tel;
-    // console.log(tmpName);
-
     var marker = _newGoogleMapsMarker({
         _map: map,
         _lat: tmpLat,
@@ -146,9 +134,6 @@ function setMarkers(map, stations) {
 
   }
 }
-
-
-
 
 
 function _newGoogleMapsMarker(param) {
@@ -176,13 +161,11 @@ function _newGoogleMapsMarker(param) {
 }
 
 
-
 function extract_station(full_title) {
     var n = full_title.split(" ");
     last_word = n[n.length - 1];
     return parseInt(last_word);
 }
-
 
 function ajaxToController(station_sent){
     $.ajax({
@@ -210,7 +193,6 @@ function formArray(all_stations) {
 
   for (var i = 0; i < station_markers.length; i++) {
     station_markers_array.push(station_markers[i]);
-    // console.log(station_markers[i]);
   }
 };
 
