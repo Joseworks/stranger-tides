@@ -6,7 +6,6 @@ RSpec.describe GraphProcessorService, type: :service do
 
     context 'with a valid station metadata' do
       it 'should return the graph object' do
-        p valid_station_metadata
       end
     end
 

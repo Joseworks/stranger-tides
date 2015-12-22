@@ -26,7 +26,6 @@ RSpec.describe StationDataRangeConstructor, type: :model do
     station_id = nil
     current_station = StationDataRangeConstructor.new(station_id)
     subject {current_station.range_constructor}
-    it { is_expected.to have_key(:my_station)}
     it { is_expected.not_to include(my_station: 1234567)}
   end
 end
