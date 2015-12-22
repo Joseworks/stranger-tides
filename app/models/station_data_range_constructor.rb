@@ -1,6 +1,6 @@
 class StationDataRangeConstructor
     include ActiveModel::Model
-    validates :metadata, presence: true, numericality: { only_integer: true }
+    validates :my_station, presence: true, numericality: { only_integer: true }
 
     attr_accessor :my_station,:product,:begin_date,:begin_time,:end_date,:end_time,:datum,:units,:time_zone,:application,:format,:url, :range_constructor
     def initialize(metadata)

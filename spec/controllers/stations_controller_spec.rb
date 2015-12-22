@@ -59,13 +59,6 @@ RSpec.describe StationsController, type: :controller do
   #   end
   # end
 
-  describe "GET #edit" do
-    it "assigns the requested station as @station" do
-      station = Station.create! valid_attributes
-      get :edit, {:id => station.to_param}, valid_session
-      expect(assigns(:station)).to eq(station)
-    end
-  end
 
   describe "POST #create" do
     context "with valid params" do

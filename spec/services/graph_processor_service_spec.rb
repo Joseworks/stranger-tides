@@ -8,8 +8,4 @@ RSpec.describe GraphProcessorService, type: :service do
       it 'should return the graph object' do
       end
     end
-
-
-
-
 end
