@@ -69,6 +69,6 @@ This rake task uses the TideParsingService, and prevents inconsistent data if an
 * Deployment instructions
 rake station_list:delete_station_list
 rake station_list:process_station_list
-rake station_list:process_station_list
+rake station_list:process_all_stations
 
 

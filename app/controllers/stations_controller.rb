@@ -4,17 +4,13 @@ class StationsController < ApplicationController
   def show_station
     # Temporary override to ensure showing one station. Needs to receive from js the id of the station marker.
     @all_station_metadata = Station.last.metadata
-
     # tide_info = TideParsingService::TideProcessor.tide_level_retrieval(station_id, current_product, url)
-
     # time_stamp_info = TideParsingService::TideProcessor.time_stamp_retrieval(station_id, current_product, url)
-
     # tide_s_info = TideParsingService::TideProcessor.tide_s_retrieval(station_id, current_product, url)
-
     @chart =GraphProcessorService::GraphProcessor.graph_constructor(@all_station_metadata)
 
-    #   @chart1 = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_s_info, time_stamp_info)
 
+    #   @chart1 = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_s_info, time_stamp_info)
   end
 
 
@@ -22,8 +18,6 @@ class StationsController < ApplicationController
   def show_stations
     @all_station_metadata = Station.last.metadata
     gon.all_station_metadata = @all_station_metadata
-    @chart = GraphProcessorService::GraphProcessor.graph_constructor(@all_station_metadata)
-    gon.chart = @chart
   end
 
 
@@ -31,12 +25,11 @@ class StationsController < ApplicationController
   def show_graph
     @all_station_metadata = Station.last.metadata
     gon.all_station_metadata = @all_station_metadata
-    @chart =GraphProcessorService::GraphProcessor.graph_constructor(@all_station_metadata)
-
 
     if request.xhr?
       respond_to do |format|
-        format.js
+        @chart = GraphProcessorService::GraphProcessor.graph_constructor(params[:content])
+         format.js
       end
     end
   end
