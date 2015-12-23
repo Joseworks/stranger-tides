@@ -1,8 +1,7 @@
 include ActiveModel::Model
 module GraphProcessorService
   class GraphProcessor
-    def self.graph_constructor(all_station_metadata)
-      station_id = all_station_metadata
+    def self.graph_constructor(station_id)
       current_station = StationDataRangeConstructor.new(station_id)
       constructed_station_params = current_station.range_constructor
       current_product = constructed_station_params[:product]
