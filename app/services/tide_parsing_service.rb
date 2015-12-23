@@ -34,7 +34,7 @@ module TideParsingService
       if parsed_tide.nil?
         p "This station is not reporting at this time"
       else
-        p "Parsing #{parsed_tide[:name]} station"
+        p "Parsing #{parsed_tide[:name]} station at #{Time.now}"
       end
       meta = Metadata.new(parsed_tide) unless parsed_tide.nil?
     end
@@ -82,7 +82,6 @@ module TideParsingService
         info.each do |element|
           param_v << element[:v].to_f
         end
-        p param_v.inspect
         n = 1 #amount of samples per reading
         param_v.each_slice(n).map(&:last)
       end

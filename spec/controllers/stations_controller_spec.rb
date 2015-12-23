@@ -52,14 +52,6 @@ RSpec.describe StationsController, type: :controller do
     end
   end
 
-  # describe "GET #new" do
-  #   it "assigns a new station as @station" do
-  #     get :new, {}, valid_session
-  #     expect(assigns(:station)).to be_a_new(Station)
-  #   end
-  # end
-
-
   describe "POST #create" do
     context "with valid params" do
       it "creates a new Station" do

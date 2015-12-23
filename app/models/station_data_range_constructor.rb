@@ -3,8 +3,8 @@ class StationDataRangeConstructor
     validates :my_station, presence: true, numericality: { only_integer: true }
 
     attr_accessor :my_station,:product,:begin_date,:begin_time,:end_date,:end_time,:datum,:units,:time_zone,:application,:format,:url, :range_constructor
-    def initialize(metadata)
-      @range_constructor ={  my_station:  metadata,
+    def initialize(station_id)
+      @range_constructor ={  my_station:  station_id,
                             product:  'water_level',
                             begin_date:  2.days.ago.strftime("%Y%m%d"),
                             begin_time:  2.days.ago.strftime('%R'),

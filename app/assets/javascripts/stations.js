@@ -192,13 +192,10 @@ function split(a, n) {
 }
 
 
-
-
 function animateCircle(line) {
   var count = 0;
   window.setInterval(function() {
     count = (count + 1) % 200;
-
     var icons = line.get('icons');
     icons[0].offset = (count / 2) + '%';
     line.set('icons', icons);
