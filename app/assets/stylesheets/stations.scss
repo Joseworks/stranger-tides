@@ -1,23 +1,12 @@
 // Place all the styles related to the stations controller here.
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
-
-// body {
-//   background-color: #fff;
-//   color: #333;
-//   // font-family: verdana, arial, helvetica, sans-serif;
-//   font-size: 13px;
-//   line-height: 18px;
-//   height: 100%;
-//                    margin: 10;
-//                     padding: 10;
-// }
-
-
- html,body { height: 100%;
-            margin: 10;
-            padding: 10;
-            }
+html,
+body {
+  height: 100%;
+  margin: 10;
+  padding: 10;
+}
 
 pre {
   background-color: #eee;
@@ -25,39 +14,39 @@ pre {
   font-size: 11px;
 }
 
-#map-container-small{
-   height: 50%;
-   border-width: 20px;
- }
+#map-container-small {
+  height: 50%;
+  border-width: 20px;
+}
 
-#map-container-full{
-   height: 100%;
-   border-width: 20px;
- }
+#map-container-full {
+  height: 100%;
+  border-width: 20px;
+}
 
 #full_map {
-  height: 100%;
+  height: 89%;
 }
 
-#tide-graph-container{
-  height: 50%;
-};
-
-
-
-#map {
+#tide-graph-container {
   height: 50%;
 }
 
-
-#graph {
-  height: 50%;
+#header {
+  height: .3em;
+  font-size: 13px;
+  font-family: verdana;
+  // margin-left: auto;
+  // margin-right: auto;
+  letter-spacing: 2px;
+  // padding: 2em 50%;
+  padding: 2em 1% 3em;
+  background: #2c3e50;
+  color: #fff;
+  p.blocktext {
+    margin-left: auto;
+    margin-right: auto;
+    width: 6em;
+    color: white;
+  };
 };
-
-#graph-partial {
-  height: 50%;
-};
-
-
-
-
