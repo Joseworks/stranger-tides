@@ -82,11 +82,10 @@ module TideParsingService
         info.each do |element|
           param_v << element[:v].to_f
         end
-        param_v
-        n = 8 #amount of samples per reading
+        p param_v.inspect
+        n = 1 #amount of samples per reading
         param_v.each_slice(n).map(&:last)
       end
-      # param_v
       param_v.each_slice(n).map(&:last)
     end
 
@@ -101,10 +100,10 @@ module TideParsingService
         n = 8
         param_s.each_slice(n).map(&:last)
       end
-      # param_s
       param_s.each_slice(n).map(&:last)
     end
   end
+
 
   class Metadata
     attr_accessor :station_id, :station_name, :latitude, :longitude
