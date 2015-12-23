@@ -15,7 +15,7 @@ module GraphingService
           f.xAxis(:name => "Time",
                   :type => 'datetime',
                   :categories => this_tide,
-                   tickInterval: time_scale*8,
+                   tickInterval: time_scale * 30,
                                    tickWidth: 1,
                                    gridLineWidth: 1,
                    labels: {
