@@ -24,8 +24,6 @@ function initMap() {
   });
   myPosition(map);
 
-
-
   if (all_stations != null) {
     formArray(all_stations);
     var stations = station_markers_array;
@@ -37,7 +35,6 @@ function initMap() {
 
 
 function myPosition(map) {
-  // This adds the marker for my location ( From Dominique snippet :)
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(position) {
       var lat = position.coords.latitude;
@@ -54,10 +51,11 @@ function myPosition(map) {
       });
 
       var infoWindow = new google.maps.InfoWindow({
-        map: map
+        map: map,
+        maxWidth: 200
       });
       infoWindow.setPosition(myLatLng);
-      infoWindow.setContent('Your location has been found. Use the controls to zoom in or out');
+      infoWindow.setContent('Your location has been found');
       map.setCenter(myLatLng);
       map.setZoom(6);
       var lineSymbol = {
@@ -80,21 +78,11 @@ function myPosition(map) {
         }],
         map: map
       });
-
       animateCircle(line);
 
-
       marker.addListener('click', function() {
-        map.setZoom(8);
+        map.setZoom(5);
         map.setCenter(marker.getPosition());
-        $.ajax({
-          url: "./show_graph",
-          type: "POST",
-          data: {
-            content: marker[0]
-          }
-        }).success(function(data) {
-        });
       });
     });
   }
@@ -116,20 +104,18 @@ function setMarkers(map, stations) {
   };
 
 
-
-
   for (var i = 0; i < stations.length; i++) {
     var station = stations[i];
-    var marker_station_name =  station [0] + " " + station[3].toString()
+    var marker_station_name = station[0] + " " + station[3].toString()
     var tmpLat = station[1];
     var tmpLng = station[2];
     var tmpName = marker_station_name;
     var marker = _newGoogleMapsMarker({
-        _map: map,
-        _lat: tmpLat,
-        _lng: tmpLng,
-        _head: '|' + new google.maps.LatLng(tmpLat, tmpLng),
-        _data: tmpName
+      _map: map,
+      _lat: tmpLat,
+      _lng: tmpLng,
+      _head: '|' + new google.maps.LatLng(tmpLat, tmpLng),
+      _data: tmpName
     });
 
   }
@@ -137,46 +123,43 @@ function setMarkers(map, stations) {
 
 
 function _newGoogleMapsMarker(param) {
-    var r = new google.maps.Marker({
-        map: param._map,
-        position: new google.maps.LatLng(param._lat, param._lng),
-        icon: asset_path('orange_marker.png'),
-        title: param._data
+  var r = new google.maps.Marker({
+    map: param._map,
+    position: new google.maps.LatLng(param._lat, param._lng),
+    icon: asset_path('orange_marker.png'),
+    title: param._data
+  });
+  if (param._data) {
+    google.maps.event.addListener(r, 'click', function() {
+      var selected_station = extract_station(r.title);
+      ajaxToController(selected_station);
+      // this -> the marker on which the onclick event is being attached
+      if (!this.getMap()._infoWindow) {
+        this.getMap()._infoWindow = new google.maps.InfoWindow();
+      }
+      this.getMap()._infoWindow.close();
+      this.getMap()._infoWindow.setContent(param._data);
+      this.getMap()._infoWindow.open(this.getMap(), this);
     });
-    if (param._data) {
-        google.maps.event.addListener(r, 'click', function() {
-              var selected_station = extract_station(r.title);
-              console.log(selected_station);
-               ajaxToController(selected_station);
-            // this -> the marker on which the onclick event is being attached
-            if (!this.getMap()._infoWindow) {
-                this.getMap()._infoWindow = new google.maps.InfoWindow();
-            }
-            this.getMap()._infoWindow.close();
-            this.getMap()._infoWindow.setContent(param._data);
-            this.getMap()._infoWindow.open(this.getMap(), this);
-        });
-    }
-    return r;
+  }
+  return r;
 }
 
 
 function extract_station(full_title) {
-    var n = full_title.split(" ");
-    last_word = n[n.length - 1];
-    return parseInt(last_word);
+  var n = full_title.split(" ");
+  last_word = n[n.length - 1];
+  return parseInt(last_word);
 }
 
-function ajaxToController(station_sent){
-    $.ajax({
+function ajaxToController(station_sent) {
+  $.ajax({
     url: "./show_graph",
     type: "POST",
     data: {
       content: station_sent
     }
-  }).success(function(data) {
-    console.log(data);
-  });
+  }).success(function(data) {});
 };
 
 
