@@ -18,7 +18,10 @@ class StationsController < ApplicationController
 
   private
     def set_station
-      @all_station_metadata = Station.last.metadata
+      @station = Station.last
+      if @station
+        @all_station_metadata = @station.metadata
+      end
     end
 
     def station_params
