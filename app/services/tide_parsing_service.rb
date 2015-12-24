@@ -31,11 +31,7 @@ module TideParsingService
     def self.metadata_retrieval(my_station, current_product, url_to_parse)
       url_validator(url_to_parse)
       parsed_tide = TideParsingService::TideProcessor.metadata_parser!(url_to_parse)
-      if parsed_tide.nil?
-        p "This station is not reporting at this time"
-      else
-        p "Parsing #{parsed_tide[:name]} station at #{Time.now}"
-      end
+      print '.' unless parsed_tide.nil?
       meta = Metadata.new(parsed_tide) unless parsed_tide.nil?
     end
 

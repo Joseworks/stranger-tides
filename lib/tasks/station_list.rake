@@ -58,7 +58,6 @@ namespace :station_list do
         application='web_services'
         format='json'
 
-
         constructed_station_params ={ my_station: my_station,
                                       product: product,
                                       begin_date: begin_date,
@@ -79,11 +78,6 @@ namespace :station_list do
 
         unless @metadata.nil?
           @all_station_metadata << @metadata
-          tide_info = TideParsingService::TideProcessor.tide_level_retrieval(my_station, product, url)
-          time_stamp_info = TideParsingService::TideProcessor.time_stamp_retrieval(my_station, product, url)
-           # tide_s_info = TideParsingService::TideProcessor.tide_s_retrieval(my_station, product, url)
-          @chart = GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_info, time_stamp_info)
-          @all_charts << @chart
         end
       end
 
@@ -91,7 +85,6 @@ namespace :station_list do
     new_station = Station.last
     new_station.metadata = @all_station_metadata
     new_station.save
-    chart = @all_charts.last
     p 'Done!'
     end
 

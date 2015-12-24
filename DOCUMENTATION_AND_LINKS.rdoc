@@ -1,16 +1,17 @@
 Factory girl cannot be used passing arguments!
 
 
-rake station_list:delete_station_list
-rake station_list:process_station_list
-rake station_list:process_all_stations  # Run Process
+time rake station_list:delete_station_list
+time rake station_list:process_station_list
+time rake station_list:process_all_stations
 
 
 
 
 heroku rake station_list:delete_station_list
 heroku rake station_list:process_station_list
-heroku rake station_list:try_this --trace
+heroku rake station_list:process_all_stations
+
 
 
 to the controller

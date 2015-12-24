@@ -16,20 +16,29 @@ pre {
 
 #map-container-small {
   height: 50%;
-  border-width: 20px;
+  border-width: 10px;
 }
 
 #map-container-full {
   height: 100%;
-  border-width: 20px;
+  border-width: 10px;
 }
 
 #full_map {
   height: 89%;
 }
 
+
+#graph-partial {
+  height: 100%;
+}
+
+#tide-graph {
+  height: 41%;
+}
+
 #tide-graph-container {
-  height: 50%;
+  height: 100%;
 }
 
 #header {

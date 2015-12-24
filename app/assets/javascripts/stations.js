@@ -2,7 +2,6 @@ var station_name = new Array();
 var station_markers = new Array();
 var station_markers_array = new Array();
 var all_stations = gon.all_station_metadata;
-var jschart = gon.chart
 var map_div = 'full_map'
 
 function initMap() {
