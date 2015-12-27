@@ -11,13 +11,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151227111938) do
+ActiveRecord::Schema.define(version: 20151227112425) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
   create_table "stations", force: :cascade do |t|
-    t.integer  "station_id"
     t.string   "station_name"
     t.text     "tide_info",    default: [],              array: true
     t.datetime "created_at",                null: false
