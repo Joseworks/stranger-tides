@@ -24,66 +24,92 @@ RSpec.describe StationsController, type: :controller do
   # Station. As you add validations to Station, be sure to
   # adjust the attributes here as well.
   let(:valid_attributes) {
-    skip("Add a hash of attributes valid for your model")
+                           {station_name: 'All stations',
+                           tide_info: "{9461710,9454050,9452210,9457292,9462450,9463502}",
+                            metadata: [
+  {"station_id":"9461710","station_name":"Atka","latitude":"52.2317","longitude":"-174.1730"},
+  {"station_id":"9454050","station_name":"Cordova","latitude":"60.5583","longitude":"-145.7530"},
+  {"station_id":"9452210","station_name":"Juneau","latitude":"58.2983","longitude":"-134.4120"},
+  {"station_id":"9462450","station_name":"Nikolski","latitude":"52.9406","longitude":"-168.8713"},
+  {"station_id":"9463502","station_name":"Port Moller","latitude":"55.9900","longitude":"-160.5620"}]
   }
+                         }
 
   let(:invalid_attributes) {
-    skip("Add a hash of attributes invalid for your model")
+{station_name: 'Nothing',
+                           tide_info: "{9461710,9454050,9452210,9457292,9462450,9463502}",
+                            metadata: [
+  {"station_id":"","station_name":"Atka","latitude":"52.2317","longitude":"-174.1730"},
+  {"station_id":"9454050","station_name":"","latitude":"60.5583","longitude":"-145.7530"},
+  {"station_id":"9452210","station_name":"Juneau","latitude":"","longitude":"-134.4120"},
+  {"station_id":"9462450","station_name":"Nikolski","latitude":"52.9406","longitude":""},
+  {"station_id":"","station_name":"","latitude":"","longitude":""}]
   }
+                         }
 
   # This should return the minimal set of values that should be in the session
   # in order to pass any filters (e.g. authentication) defined in
   # StationsController. Be sure to keep this updated too.
   let(:valid_session) { {} }
 
-  describe "GET #index" do
-    it "assigns all stations as @stations" do
-      station = Station.create! valid_attributes
-      get :index, {}, valid_session
-      expect(assigns(:stations)).to eq([station])
-    end
-  end
 
-  describe "GET #show" do
-    it "assigns the requested station as @station" do
+
+
+
+  describe "GET #show_stations" do
+    it "assigns the last station as @station" do
       station = Station.create! valid_attributes
-      get :show, {:id => station.to_param}, valid_session
+      get :show_stations, {:id => station.to_param}, valid_session
       expect(assigns(:station)).to eq(station)
     end
   end
 
-  describe "POST #create" do
-    context "with valid params" do
-      it "creates a new Station" do
-        expect {
-          post :create, {:station => valid_attributes}, valid_session
-        }.to change(Station, :count).by(1)
-      end
 
-      it "assigns a newly created station as @station" do
-        post :create, {:station => valid_attributes}, valid_session
-        expect(assigns(:station)).to be_a(Station)
-        expect(assigns(:station)).to be_persisted
-      end
 
-      it "redirects to the created station" do
-        post :create, {:station => valid_attributes}, valid_session
-        expect(response).to redirect_to(Station.last)
-      end
-    end
 
-    context "with invalid params" do
-      it "assigns a newly created but unsaved station as @station" do
-        post :create, {:station => invalid_attributes}, valid_session
-        expect(assigns(:station)).to be_a_new(Station)
-      end
 
-      it "re-renders the 'new' template" do
-        post :create, {:station => invalid_attributes}, valid_session
-        expect(response).to render_template("new")
-      end
-    end
-  end
+  # describe "GET #index" do
+  #   it "assigns all stations as @stations" do
+  #     station = Station.create! valid_attributes
+  #     get :index, {}, valid_session
+  #     expect(assigns(:stations)).to eq([station])
+  #   end
+  # end
+
+
+
+  # describe "POST #create" do
+  #   context "with valid params" do
+  #     it "creates a new Station" do
+  #       expect {
+  #         post :create, {:station => valid_attributes}, valid_session
+  #       }.to change(Station, :count).by(1)
+  #     end
+
+  #     it "assigns a newly created station as @station" do
+  #       post :create, {:station => valid_attributes}, valid_session
+  #       expect(assigns(:station)).to be_a(Station)
+  #       expect(assigns(:station)).to be_persisted
+  #     end
+
+  #     it "redirects to the created station" do
+  #       post :create, {:station => valid_attributes}, valid_session
+  #       expect(response).to redirect_to(Station.last)
+  #     end
+  #   end
+
+  #   context "with invalid params" do
+  #     it "assigns a newly created but unsaved station as @station" do
+  #       post :create, {:station => invalid_attributes}, valid_session
+  #       expect(assigns(:station)).to be_a_new(Station)
+  #     end
+
+  #     it "re-renders the 'new' template" do
+  #       post :create, {:station => invalid_attributes}, valid_session
+  #       expect(response).to render_template("new")
+  #     end
+  #   end
+  # end
 
 
 end
