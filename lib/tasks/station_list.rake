@@ -37,44 +37,24 @@ namespace :station_list do
   end
 
 
+
+
   desc "Run Process"
     task :process_all_stations => :environment do
-      p "Processing all stations"
+      puts "Processing all stations"
 
       @all_reporting_stations = Station.last.tide_info
       @all_charts = []
       @all_station_metadata = []
 
       @all_reporting_stations.each do |station_id|
-        my_station = station_id
-        product = 'water_level'
-        begin_date = 1.days.ago.strftime("%Y%m%d")
-        begin_time = 1.days.ago.strftime('%R')
-        end_date = Time.now.strftime("%Y%m%d")
-        end_time = Time.now.strftime('%R')
-        datum = 'mllw'
-        units='english'
-        time_zone='gmt'
-        application='web_services'
-        format='json'
-
-        constructed_station_params ={ my_station: my_station,
-                                      product: product,
-                                      begin_date: begin_date,
-                                      begin_time: begin_time,
-                                      end_date: end_date,
-                                      end_time: end_time,
-                                      datum: datum,
-                                      units: units,
-                                      time_zone: time_zone,
-                                      application: application,
-                                      format: format
-                                    }
-
+        current_station = StationDataRangeConstructor.new(station_id)
+        constructed_station_params = current_station.range_constructor
+        current_product = constructed_station_params[:product]
         @constructed_station = StationConstructor.new(constructed_station_params)
         @path_build = @constructed_station.url_constructor
         url = @path_build
-        @metadata = TideParsingService::TideProcessor.metadata_retrieval(my_station, product, url)
+        @metadata = TideParsingService::TideProcessor.metadata_retrieval(station_id, current_product, url)
 
         unless @metadata.nil?
           @all_station_metadata << @metadata
