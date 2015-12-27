@@ -200,3 +200,13 @@ function animateCircle(line) {
     line.set('icons', icons);
   }, 20);
 }
+
+
+function removeGraph() {
+  var elem_1 = document.getElementById('tide-graph-container');
+  var elem_2 = document.getElementById('tide-graph');
+  elem_1.parentNode.removeChild(elem_1);
+  elem_2.parentNode.removeChild(elem_2);
+  $('#map-container-small').attr("id","map-container-full");
+  return false;
+}
