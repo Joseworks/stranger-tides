@@ -19,12 +19,12 @@ deploy:
 	git push --tags
 	git push heroku master
 	heroku run rake db:migrate --app=stranger-tides
-	heroku rake station_list:delete_station_list
-	heroku rake station_list:process_station_list
-	heroku rake station_list:process_all_stations
+	heroku run rake stations_delete:delete_station_list
+	heroku run rake station_list:process_station_list
+	heroku run rake station_list:process_all_stations
 	heroku maintenance:off --app=stranger-tides
 local-rake:
 	rake db:migrate
-	rake station_list:delete_station_list
+	rake stations_delete:delete_station_list
 	rake station_list:process_station_list
 	rake station_list:process_all_stations
