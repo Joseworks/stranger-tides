@@ -20,15 +20,6 @@ describe 'station_list' do
                                               })
       expect(Station.last.metadata).to be_kind_of(Array)
     end
-    it "should not retrieve all the stations metadata to a station when tide_info is nil" do
-
-      Rake::Task["station_list:retrieve_all_stations_metadata"].invoke
-
-      expect(Station.last.metadata).to include({"station_id"=>"9461380",
-                                                 "station_name"=>"Adak Island",
-                                                 "latitude"=>"51.8633",
-                                                  "longitude"=>"-176.6320"
-                                              })
   end
 end
 
