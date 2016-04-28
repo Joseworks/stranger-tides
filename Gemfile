@@ -3,6 +3,8 @@ ruby '2.2.4'
 
 gem 'rails', '4.2.4'
 gem 'pg'
+gem 'passages'
+
 gem 'sass-rails', '~> 5.0'
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier', '>= 1.3.0'

@@ -61,8 +61,20 @@ This rake task uses the TideParsingService, and prevents inconsistent data if an
 
 
 
-
 * Deployment instructions
 rake station_list:delete_station_list
 rake station_list:process_station_list
 rake station_list:process_all_stations
+
+
+* Passages Routing
+This Rails Engine adds the ability to search over different attributes of Ruby on Rails routes within an application.
+
+For example, an internal (or very permissive external) API can now expose a single page that will answer simple questions like: "What was the HTTP verb for the /users/clear_password route?" or "Does a v2 or v3 version for this route exist?".
+
+Once the local server is up, append `'passages` to the url, when asked about authentication use:
+
+username=username
+password=password
+
+
