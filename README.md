@@ -62,10 +62,9 @@ This rake task uses the TideParsingService, and prevents inconsistent data if an
 
 
 * Deployment instructions
-rake station_list:delete_station_list
-rake station_list:process_station_list
-rake station_list:process_all_stations
-
+rake stations_delete:delete_station_list          # Delete Station List
+rake stations_id_list:process_station_list        # Station List
+rake station_list:retrieve_all_stations_metadata  # Process metadata
 
 * Passages Routing
 This Rails Engine adds the ability to search over different attributes of Ruby on Rails routes within an application.
