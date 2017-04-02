@@ -11,7 +11,7 @@ module TideParsingService
       rescue Errno::ENOENT => e
         self.errors.add :station, 'No such file or directory - does/not/exist'
       rescue OpenURI::HTTPError => e
-        if e.message == "The service appeqard to be offline at #{ Time.now}404 Not Found"
+        if e.message == "The service appears to be offline at #{ Time.now}404 Not Found"
           # todo: handle 404 error
           p e.message.inspect
         else
