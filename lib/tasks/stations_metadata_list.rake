@@ -4,7 +4,7 @@ namespace :station_list do
   desc "Process metadata"
     task :retrieve_all_stations_metadata => :environment do
       puts "Processing all stations"
-      # The intention is not to invoke directly stations_id_list, but invoke it from this taks, ensurin that there will be an existing record once we finish.
+      # The intention is not to invoke directly stations_id_list, but invoke it from this task, ensuring that there will be an existing record once we finish.
       Rake::Task["stations_id_list:process_station_list"].reenable
       Rake::Task["stations_id_list:process_station_list"].invoke
 

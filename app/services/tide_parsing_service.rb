@@ -10,6 +10,8 @@ module TideParsingService
         self.errors.add :station, 'We can not connect to this url'
       rescue Errno::ENOENT => e
         self.errors.add :station, 'No such file or directory - does/not/exist'
+      rescue Net::OpenTimeout => e
+        self.errors.add :station, 'Net::OpenTimeout: execution expired'
       rescue OpenURI::HTTPError => e
         if e.message == "The service appears to be offline at #{ Time.now}404 Not Found"
           # todo: handle 404 error

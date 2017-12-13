@@ -48,7 +48,7 @@ In order to achieve that, a rake process will read all the current tide stations
  => ["9461380", "9461710",...]
 
 
-- rake station_list:process_all_stations  # Run Process
+- rake station_list:retrieve_all_stations_metadata # Run Process
 
 Reads the list of all stations from station_list.txt, and appends to the record saved by the above process another single row with a JSON field (metadata) that stores all of the stations metadata, eg:
 
@@ -57,7 +57,7 @@ Reads the list of all stations from station_list.txt, and appends to the record 
    "latitude"=>"51.8633",
     "longitude"=>"-176.6320"}
 
-This rake task uses the TideParsingService, and prevents inconsistent data if an station in particular is not reporting tide levels. It also parses the parameters 's' and the timestaps for this readings.
+This rake task uses the TideParsingService, and prevents inconsistent data if an station in particular is not reporting tide levels. It also parses the parameters 's' and the timestamps for this readings.
 
 
 
