@@ -17,5 +17,5 @@ DOCUMENTATION_AND_LINKS.rdoc
 dump.rdb
 *.dump
 .env
-/public/system
-/public/assets/
+/public
+
