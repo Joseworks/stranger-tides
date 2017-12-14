@@ -4,6 +4,67 @@ var station_markers_array = new Array();
 var all_stations = gon.all_station_metadata;
 var map_div = 'full_map'
 
+function CenterControl(controlDiv, map, center) {
+  // We set up a variable for this since we're adding event listeners
+  // later.
+  var control = this;
+
+  // Set the center property upon construction
+  control.center_ = center;
+  controlDiv.style.clear = 'both';
+
+  // Set CSS for the control border
+  var goCenterUI = document.createElement('div');
+  goCenterUI.id = 'goCenterUI';
+  goCenterUI.title = 'Click to recenter the map';
+  controlDiv.appendChild(goCenterUI);
+
+  // Set CSS for the control interior
+  var goCenterText = document.createElement('div');
+  goCenterText.id = 'goCenterText';
+  goCenterText.innerHTML = 'Center Map on your location';
+  goCenterUI.appendChild(goCenterText);
+
+  // Set CSS for the setCenter control border
+  var setCenterUI = document.createElement('div');
+  setCenterUI.id = 'setCenterUI';
+  setCenterUI.title = 'Click to change the center of the map';
+  controlDiv.appendChild(setCenterUI);
+
+
+  // Set up the click event listener for 'Center Map': Set the center of
+  // the map
+  // to the current center of the control.
+  goCenterUI.addEventListener('click', function() {
+    var currentCenter = control.getCenter();
+    map.setZoom(12);
+    map.setCenter(currentCenter);
+  });
+}
+
+/**
+ * Define a property to hold the center state.
+ * @private
+ */
+CenterControl.prototype.center_ = null;
+
+/**
+ * Gets the map center.
+ * @return {?google.maps.LatLng}
+ */
+CenterControl.prototype.getCenter = function() {
+  return this.center_;
+};
+
+/**
+ * Sets the map center.
+ * @param {?google.maps.LatLng} center
+ */
+CenterControl.prototype.setCenter = function(center) {
+  this.center_ = center;
+};
+
+
 function initMap() {
   var map = new google.maps.Map(document.getElementById(map_div), {
     zoom: 3,
@@ -30,6 +91,7 @@ function initMap() {
   } else {
     alert('No valid stations to show!')
   };
+
 }
 
 
@@ -43,6 +105,16 @@ function myPosition(map) {
         lng: lon
       };
 
+      // Create the DIV to hold the control and call the CenterControl()
+      // constructor
+      // passing in this DIV.
+      var centerControlDiv = document.createElement('div');
+      var centerControl = new CenterControl(centerControlDiv, map, myLatLng);
+
+      centerControlDiv.index = 1;
+      centerControlDiv.style['padding-top'] = '10px';
+      map.controls[google.maps.ControlPosition.TOP_CENTER].push(centerControlDiv);
+
       var marker = new google.maps.Marker({
         position: myLatLng,
         map: map,
@@ -53,31 +125,6 @@ function myPosition(map) {
         map: map,
         maxWidth: 200
       });
-      infoWindow.setPosition(myLatLng);
-      infoWindow.setContent('Your location has been found');
-      map.setCenter(myLatLng);
-      map.setZoom(6);
-      var lineSymbol = {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 8,
-        strokeColor: '#3367d6'
-      };
-
-      var line = new google.maps.Polyline({
-        path: [{
-          lat: lat,
-          lng: lon
-        }, {
-          lat: lat - .0001,
-          lng: lon
-        }],
-        icons: [{
-          icon: lineSymbol,
-          offset: '100%'
-        }],
-        map: map
-      });
-      animateCircle(line);
 
       marker.addListener('click', function() {
         map.setZoom(5);
@@ -101,7 +148,6 @@ function setMarkers(map, stations) {
     coords: [1, 1, 1, 20, 18, 20, 18, 1],
     type: 'poly'
   };
-
 
   for (var i = 0; i < stations.length; i++) {
     var station = stations[i];
@@ -132,7 +178,7 @@ function _newGoogleMapsMarker(param) {
     google.maps.event.addListener(r, 'click', function() {
       var selected_station = extract_station(r.title);
       ajaxToController(selected_station);
-      // this -> the marker on which the onclick event is being attached
+      // this -> the marker on which the on click event is being attached
       if (!this.getMap()._infoWindow) {
         this.getMap()._infoWindow = new google.maps.InfoWindow();
       }
@@ -207,6 +253,6 @@ function removeGraph() {
   var elem_2 = document.getElementById('tide-graph');
   elem_1.parentNode.removeChild(elem_1);
   elem_2.parentNode.removeChild(elem_2);
-  $('#map-container-small').attr("id","map-container-full");
+  $('#map-container-small').attr("id", "map-container-full");
   return false;
 }

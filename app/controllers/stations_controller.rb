@@ -7,24 +7,27 @@ class StationsController < ApplicationController
 
   def show_graph
     gon.all_station_metadata = @all_station_metadata
-    if request.xhr?
-      respond_to do |format|
-        @chart = GraphProcessorService::GraphProcessor.graph_constructor(params[:content])
-         format.js
-      end
+    return unless request.xhr?
+    respond_to do |format|
+      @chart = GraphProcessorService::GraphProcessor.graph_constructor(params[:content])
+      format.js
     end
   end
-
 
   private
-    def set_station
-      @station = Station.last
-      if @station
-        @all_station_metadata = @station.metadata
-      end
-    end
 
-    def station_params
-      params.require(:station).permit(:station_id, :station_name, :latitude, :longitude, :tide_info, :metadata, :range_constructor)
-    end
+  def set_station
+    @station = Station.last
+    @all_station_metadata = @station.metadata if @station
   end
+
+  def station_params
+    params.require(:station).permit(:station_id,
+                                    :station_name,
+                                    :latitude,
+                                    :longitude,
+                                    :tide_info,
+                                    :metadata,
+                                    :range_constructor)
+  end
+end

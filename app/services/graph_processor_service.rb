@@ -10,7 +10,8 @@ module GraphProcessorService
       @metadata = TideParsingService::TideProcessor.metadata_retrieval(station_id, current_product, url)
       tide_info = TideParsingService::TideProcessor.tide_level_retrieval(station_id, current_product, url)
       time_stamp_info = TideParsingService::TideProcessor.time_stamp_retrieval(station_id, current_product, url)
-      tide_s_info = TideParsingService::TideProcessor.tide_s_retrieval(station_id, current_product, url)
+      # tide_s_info
+      TideParsingService::TideProcessor.tide_s_retrieval(station_id, current_product, url)
       GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_info, time_stamp_info)
     end
   end

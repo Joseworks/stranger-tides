@@ -1,8 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe "stations/show_stations", type: :view do
-  before(:each) do
-    @station = assign(:station, Station.create!())
+  before do
+    @station = assign(:station, Station.create!)
   end
 
   it "renders attributes in <p>" do

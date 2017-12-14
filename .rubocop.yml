@@ -1,0 +1,41 @@
+require: rubocop-rspec
+inherit_from: .rubocop_todo.yml
+
+AllCops:
+  TargetRubyVersion: 2.3.3
+  DisplayCopNames: true
+  Include:
+    - Rakefile
+    - config.ru
+    - lib/**/*.rake
+  Exclude:
+    - 'vendor/**/*'
+    - 'spec/fixtures/**/*'
+    - 'spec/support/fixtures/**/*'
+    - 'tmp/**/*'
+    - 'db/schema.rb'
+    - 'Gemfile'
+
+Metrics/MethodLength:
+  # Default is 10
+  Max: 10
+
+Metrics/CyclomaticComplexity:
+  Max: 8
+
+Metrics/PerceivedComplexity:
+  Max: 12
+
+Metrics/LineLength:
+  # Default is 80
+  Max: 80
+  Exclude:
+    - 'lib/**/*'
+
+Metrics/AbcSize:
+  # Default is 15
+  Max: 15
+
+Metrics/BlockLength:
+  # Default is 25
+  Max: 25

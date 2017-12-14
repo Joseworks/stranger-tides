@@ -5,8 +5,8 @@ FactoryGirl.define do
     product = 'water_level'
     begin_date = 1.days.ago.strftime("%Y%m%d")
     begin_time = 1.days.ago.strftime('%R')
-    end_date = Time.now.strftime("%Y%m%d")
-    end_time = Time.now.strftime('%R')
+    end_date = Time.zone.now.strftime("%Y%m%d")
+    end_time = Time.zone.now.strftime('%R')
     datum = 'mllw'
     units='english'
     time_zone='gmt'
