@@ -37,7 +37,7 @@ function CenterControl(controlDiv, map, center) {
   // to the current center of the control.
   goCenterUI.addEventListener('click', function() {
     var currentCenter = control.getCenter();
-    map.setZoom(12);
+    map.setZoom(9);
     map.setCenter(currentCenter);
   });
 }
