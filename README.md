@@ -1,4 +1,3 @@
-== README
 Note:  Specs, testing and development still in progress.
        This code/site/code has no affiliation whatsoever with NOAA, COOPS (Center for Operational Oceanographic Products and Services), NWLON (National Water Level Observation Network ) or any other government institutions.
 
@@ -11,21 +10,14 @@ Note:  Specs, testing and development still in progress.
  - Foreman as a manager for Procfile-based applications
  - Lazy high charts
  - gon
- - sidekiq
- - redis
  - Rspec
 
 
 * Database
  - PostgreSQL
 
-
 * How to run the test suite
  - rspec spec
-
-* Services (job queues, cache servers, search engines, etc.)
- - Before running Foreman:
-  ```brew services restart redis```
 
 Please feel free to use a different markup language if you do not plan to run
 <tt>rake doc:app</tt>.
