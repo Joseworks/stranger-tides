@@ -1,4 +1,4 @@
-##### Live version on http://www.stranger-tides.com/
+#### See the live version on http://www.stranger-tides.com/
 
 Note:  Specs, testing and development still in progress.
        This code/site/code has no affiliation whatsoever with NOAA, COOPS (Center for Operational Oceanographic Products and Services), NWLON (National Water Level Observation Network ) or any other government institutions.
