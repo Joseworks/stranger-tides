@@ -1,3 +1,5 @@
+##### Live version on http://www.stranger-tides.com/
+
 Note:  Specs, testing and development still in progress.
        This code/site/code has no affiliation whatsoever with NOAA, COOPS (Center for Operational Oceanographic Products and Services), NWLON (National Water Level Observation Network ) or any other government institutions.
 
@@ -28,7 +30,7 @@ The app is intended to display NOAA real time reporting tide stations in a map r
 
 In order to achieve that, a rake process will read all the current tide stations from a txt file ( station_list.txt). This is necessary because at the time the app is being written NOAA does not provide an online service or list that can be retrieved in any other way than 'scraping' the information of a website. I am considering to write an small JSON API to hold this data.
 
-# There are three rake tasks:
+### There are three rake tasks:
 
  - rake station_list:delete_station_list
   Delete all of the stations information from the database
