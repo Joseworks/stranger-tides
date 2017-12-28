@@ -1,3 +1,5 @@
+# Makes the API request and process all the information  in order to pass it to the ChartProcessor.
+
 include ActiveModel::Model
 module GraphProcessorService
   class GraphProcessor

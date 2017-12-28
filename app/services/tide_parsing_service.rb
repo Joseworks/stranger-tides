@@ -1,3 +1,5 @@
+# Retrieves the different products from the tide station. Currently retrieving only tide levels.
+
 include ActiveModel::Model
 require 'open-uri'
 
