@@ -60,6 +60,11 @@ rake stations_delete:delete_station_list          # Delete Station List
 rake stations_id_list:process_station_list        # Station List
 rake station_list:retrieve_all_stations_metadata  # Process metadata
 
+
+
+Note from NOAA: These raw data have not been subjected to the National Ocean Service's quality control or quality assurance procedures and do not meet the criteria and standards of official National Ocean Service data. They are released for limited public use as preliminary data to be used only with appropriate caution.
+Source: [NOAA Tides and Currents](https://tidesandcurrents.noaa.gov/waterlevels.html?id=8724580)
+
 * Passages Routing
 This Rails Engine adds the ability to search over different attributes of Ruby on Rails routes within an application.
 

@@ -1,3 +1,5 @@
+#Forms the API request.
+
 class StationConstructor
   def initialize(args)
     @station = args[:my_station]
