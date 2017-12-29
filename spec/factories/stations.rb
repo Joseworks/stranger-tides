@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :station do
     # skip_create
     my_station = 8723214

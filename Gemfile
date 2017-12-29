@@ -30,7 +30,7 @@ group :development, :test do
   gem 'rails-pry'
   gem 'pry-rescue'
   gem 'rspec-rails', '~> 3.0'
-  gem "factory_girl_rails", "~> 4.0"
+  gem "factory_bot_rails"
   gem 'simplecov', :require => false
   gem 'rubocop', require: false
   gem 'rubocop-rspec'
