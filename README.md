@@ -81,3 +81,4 @@ username=username
 password=password
 
 
+Copyright (c) 2015 Jose C Fernandez released under the MIT license
