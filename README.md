@@ -81,4 +81,4 @@ username=username
 password=password
 
 
-Copyright (c) 2015 (Jose C Fernandez)[http://www.joseworks.org/] released under the MIT license
+Copyright (c) 2015 [Jose C Fernandez](http://www.joseworks.org/) released under the MIT license
