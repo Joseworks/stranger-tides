@@ -20,6 +20,6 @@ notifications:
 env:
   global:
     - STRANGER_TIDES_EMBED_MAPS_API_KEY=XXXXX
-    - CC_TEST_REPORTER_ID=b8d0e4403d0fc8c56910ce7c12f24375a935be9f
+    - CC_TEST_REPORTER_ID=194a52e2bc2373cf94a7f29ebaf5ec16692df66d6c6d282480cf06030ea52805
 after_script:
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
