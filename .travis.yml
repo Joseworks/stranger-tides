@@ -1,0 +1,24 @@
+sudo: required
+cache: bundler
+dist: trusty
+language: ruby
+rvm:
+  - 2.2.2
+addons:
+  postgresql: "9.6"
+  code_climate:
+    repo_token: 194a52e2bc2373cf94a7f29ebaf5ec16692df66d6c6d282480cf06030ea52805
+bundler_args: "--without production"
+before_script:
+  - "bundle exec rake db:create db:schema:load"
+  - "bundle exec rake station_list:delete_station_list"
+  - "bundle exec rake station_list:process_station_list"
+  - "bundle exec rake station_list:retrieve_all_stations_metadata"
+script:
+  - "bundle exec rspec"
+
+notifications:
+env:
+  global:
+    - STRANGER_TIDES_EMBED_MAPS_API_KEY=XXXXX
+
