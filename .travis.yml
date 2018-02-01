@@ -11,6 +11,7 @@ addons:
 bundler_args: "--without production"
 before_script:
   - "bundle exec rake db:create db:schema:load"
+  - "bundle exec rake stations_delete:delete_station_list"
   - "bundle exec rake stations_id_list:process_station_list"
   - "bundle exec rake station_list:retrieve_all_stations_metadata"
 script:
