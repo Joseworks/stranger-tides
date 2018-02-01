@@ -82,4 +82,16 @@ RSpec.describe StationsController, type: :controller do
       expect(assigns(:station)).to eq(station)
     end
   end
+
+  describe "GET #show_graph" do
+
+    let(:params) {{content:1617433,
+                 controller: "stations",
+                 action: "show_graph"
+                 }}
+
+    it "displays the graph" do
+      expect(post(:show_graph, params: params, format: :js)).to have_http_status(:ok)
+    end
+  end
 end

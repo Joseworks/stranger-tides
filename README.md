@@ -18,7 +18,7 @@ Note:  Specs, testing and development still in progress.
  - Lazy high charts
  - gon
  - Rspec
-
+ - Travis CI for continuous integration testing.
 
 * Database
  - PostgreSQL

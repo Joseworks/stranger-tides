@@ -18,4 +18,3 @@ notifications:
 env:
   global:
     - STRANGER_TIDES_EMBED_MAPS_API_KEY=XXXXX
-
