@@ -1,8 +1,7 @@
 source 'https://rubygems.org'
 ruby '2.7.2'
 
-gem 'rails', '4.2.11.3'
-# gem 'pg'
+gem 'rails', '5.2.0'
 gem 'pg', '~> 0.21'
 gem 'passages'
 gem 'bigdecimal', '1.3.5'
@@ -11,8 +10,6 @@ gem 'sass-rails', '~> 5.0'
 gem 'uglifier', '>= 1.3.0'
 gem 'jquery-rails'
 gem 'turbolinks'
-# bundle exec rake doc:rails generates the API under doc/api.
-# gem 'sdoc', '~> 0.4.0', group: :doc
 gem 'lazy_high_charts'
 gem 'gon'
 gem 'js_assets'
@@ -20,10 +17,7 @@ gem 'sidekiq'
 gem 'redis'
 gem 'unicorn'
 
-
 group :development, :test do
-  # Call 'byebug' anywhere in the code to stop execution and get a debugger console
-  # gem 'byebug'
   gem 'pry'
   gem 'pry-byebug'
   gem 'rspec-rails', '~> 3.0'
@@ -44,4 +38,3 @@ end
 group :production do
   gem  'rails_12factor'
 end
-
