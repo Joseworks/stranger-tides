@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 ruby '2.7.2'
 
-gem 'rails', '4.2.10'
+gem 'rails', '4.2.11.3'
 gem 'pg'
 gem 'passages'
 gem 'bigdecimal', '1.3.5'
