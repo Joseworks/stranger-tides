@@ -42,7 +42,7 @@ GEM
     bullet (5.7.0)
       activesupport (>= 3.0.0)
       uniform_notifier (~> 1.10.0)
-    byebug (9.1.0)
+    byebug (11.1.3)
     coderay (1.1.2)
     concurrent-ruby (1.1.8)
     connection_pool (2.2.1)
@@ -66,7 +66,6 @@ GEM
     hash-deep-merge (0.1.1)
     i18n (0.9.5)
       concurrent-ruby (~> 1.0)
-    interception (0.5)
     jquery-rails (4.3.1)
       rails-dom-testing (>= 1, < 3)
       railties (>= 4.2.0)
@@ -103,9 +102,9 @@ GEM
     pry (0.11.3)
       coderay (~> 1.1.0)
       method_source (~> 0.9.0)
-    pry-rescue (1.4.5)
-      interception (>= 0.5)
-      pry
+    pry-byebug (3.8.0)
+      byebug (~> 11.0)
+      pry (~> 0.10)
     racc (1.5.2)
     rack (1.6.13)
     rack-protection (2.0.0)
@@ -131,7 +130,6 @@ GEM
       rails-deprecated_sanitizer (>= 1.0.1)
     rails-html-sanitizer (1.3.0)
       loofah (~> 2.3)
-    rails-pry (0.0.1)
     rails_12factor (0.0.3)
       rails_serve_static_assets
       rails_stdout_logging
@@ -230,7 +228,6 @@ PLATFORMS
 DEPENDENCIES
   bigdecimal (= 1.3.5)
   bullet
-  byebug
   factory_bot_rails
   gon
   jquery-rails
@@ -238,9 +235,9 @@ DEPENDENCIES
   lazy_high_charts
   passages
   pg (~> 0.21)
-  pry-rescue
+  pry
+  pry-byebug
   rails (= 4.2.11.3)
-  rails-pry
   rails_12factor
   redis
   rspec-rails (~> 3.0)

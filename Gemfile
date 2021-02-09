@@ -23,9 +23,9 @@ gem 'unicorn'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
-  gem 'byebug'
-  gem 'rails-pry'
-  gem 'pry-rescue'
+  # gem 'byebug'
+  gem 'pry'
+  gem 'pry-byebug'
   gem 'rspec-rails', '~> 3.0'
   gem "factory_bot_rails"
   gem 'simplecov', :require => false
