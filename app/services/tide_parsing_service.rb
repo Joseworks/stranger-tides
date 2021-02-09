@@ -6,7 +6,7 @@ require 'open-uri'
 module TideParsingService
   class TideProcessor
     def self.url_validator(url)
-      open(url)
+      URI.open(url)
     rescue Errno::ECONNREFUSED => e
       errors.add :station, "We can not connect to this url #{e.inspect}"
     rescue Errno::ENOENT => e
@@ -23,7 +23,7 @@ module TideParsingService
     end
 
     def self.metadata_parser!(url)
-      open(url) do |f|
+      URI.open(url) do |f|
         json_string = f.read
         parse_json = JSON.parse(json_string)['metadata']
         parse_json&.deep_symbolize_keys
@@ -60,7 +60,7 @@ module TideParsingService
     end
 
     def self.tide_level_parser!(url)
-      open(url) do |f|
+      URI.open(url) do |f|
         json_string = f.read
         parse_json = JSON.parse(json_string).deep_symbolize_keys
         parse_json.except(:metadata)[:data]
