@@ -2,7 +2,8 @@ source 'https://rubygems.org'
 ruby '2.7.2'
 
 gem 'rails', '4.2.11.3'
-gem 'pg'
+# gem 'pg'
+gem 'pg', '~> 0.21'
 gem 'passages'
 gem 'bigdecimal', '1.3.5'
 gem 'sass-rails', '~> 5.0'
@@ -37,8 +38,6 @@ group  :test do
 end
 
 group :development do
-  # Access an IRB console on exception pages or by using <%= console %> in views
-  # gem 'web-console', '~> 2.0'
   gem 'bullet'
 end
 

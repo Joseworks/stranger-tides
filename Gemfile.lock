@@ -237,7 +237,7 @@ DEPENDENCIES
   js_assets
   lazy_high_charts
   passages
-  pg
+  pg (~> 0.21)
   pry-rescue
   rails (= 4.2.11.3)
   rails-pry
