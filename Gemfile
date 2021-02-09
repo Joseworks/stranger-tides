@@ -10,8 +10,6 @@ gem 'bigdecimal', '1.3.5'
 gem 'sass-rails', '~> 5.0'
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier', '>= 1.3.0'
-# Use CoffeeScript for .coffee assets and views
-gem 'coffee-rails', '~> 4.1.0'
 gem 'jquery-rails'
 gem 'turbolinks'
 
@@ -24,7 +22,6 @@ gem 'js_assets'
 gem 'sidekiq'
 gem 'redis'
 gem 'unicorn'
-
 
 
 group :development, :test do
