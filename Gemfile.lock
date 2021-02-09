@@ -80,7 +80,7 @@ GEM
     js_assets (0.1.2)
       rails
       sprockets (>= 3.0)
-    json (1.8.6)
+    json (2.5.1)
     kgio (2.11.1)
     lazy_high_charts (1.5.8)
       hash-deep-merge
