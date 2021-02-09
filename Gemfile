@@ -1,9 +1,11 @@
 source 'https://rubygems.org'
-ruby '2.4.2'
+ruby '2.7.2'
 
 gem 'rails', '4.2.10'
 gem 'pg'
 gem 'passages'
+gem 'bigdecimal', '1.3.5'
+
 
 gem 'sass-rails', '~> 5.0'
 # Use Uglifier as compressor for JavaScript assets
