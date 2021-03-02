@@ -79,5 +79,7 @@ Once the local server is up, append `'passages` to the url, when asked about aut
 username=username
 password=password
 
+#### Update HighCharts
+rake highcharts:update
 
 Copyright (c) 2015 [Jose C Fernandez](http://www.joseworks.org/) released under the MIT license
