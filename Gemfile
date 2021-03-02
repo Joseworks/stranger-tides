@@ -20,7 +20,7 @@ gem 'unicorn'
 group :development, :test do
   gem 'pry'
   gem 'pry-byebug'
-  gem 'rspec-rails', '~> 3.0'
+  gem 'rspec-rails'
   gem "factory_bot_rails"
   gem 'simplecov', :require => false
   gem 'rails-controller-testing'
