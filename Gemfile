@@ -1,8 +1,8 @@
 source 'https://rubygems.org'
 ruby '2.7.2'
 
-gem 'rails', '5.2.4.4'
-gem 'pg', '~> 0.21'
+gem 'rails'
+gem 'pg'
 gem 'passages'
 gem 'bigdecimal', '1.3.5'
 gem 'sass-rails', '~> 5.0'
@@ -27,15 +27,10 @@ group :development, :test do
   gem 'rubocop-rails', require: false
   gem 'rubocop-rspec'
 end
-
 group  :test do
   gem 'shoulda-matchers', '~> 3.0'
 end
 
 group :development do
   gem 'bullet'
-end
-
-group :production do
-  gem  'rails_12factor'
 end
