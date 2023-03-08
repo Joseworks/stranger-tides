@@ -1,0 +1,20 @@
+/*
+*= require bootstrap.min
+*/
+
+.vertical-spacer {
+  height: 20px;
+}
+
+.no-results {
+  display: none;
+  color: red;
+}
+
+.matching-term {
+  display: none;
+}
+
+.highlighted {
+  font-weight: bold;
+}
