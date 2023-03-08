@@ -12,7 +12,7 @@ Note:  Specs, testing and development still in progress.
 
 * System dependencies
 
- - Unicorn as a web server
+ - Puma as a web server
  - Foreman as a manager for Procfile-based applications
  - Lazy high charts
  - gon

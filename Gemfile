@@ -1,12 +1,12 @@
 source 'https://rubygems.org'
-ruby '2.7.2'
+ruby '3.1.3'
 
-gem 'rails', '5.2.4.4'
+gem 'rails', '~> 6.1.7'
 gem 'pg', '~> 0.21'
 gem 'passages'
-gem 'bigdecimal', '1.3.5'
-gem 'sass-rails', '~> 5.0'
-# Use Uglifier as compressor for JavaScript assets
+gem 'bigdecimal'#, '1.3.5'
+gem 'sassc'
+gem 'sassc-rails', '>= 2.1.0'
 gem 'uglifier', '>= 1.3.0'
 gem 'jquery-rails'
 gem 'turbolinks'
@@ -15,9 +15,10 @@ gem 'gon'
 gem 'js_assets'
 gem 'sidekiq'
 gem 'redis'
-gem 'unicorn'
+gem 'puma'
 
 group :development, :test do
+  gem 'bundler-audit', '~> 0.9.1', require: false
   gem 'pry'
   gem 'pry-byebug'
   gem 'rspec-rails', '~> 3.0'
@@ -34,8 +35,4 @@ end
 
 group :development do
   gem 'bullet'
-end
-
-group :production do
-  gem  'rails_12factor'
 end
