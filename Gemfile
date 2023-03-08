@@ -1,34 +1,38 @@
-source 'https://rubygems.org'
-ruby '2.7.2'
+# frozen_string_literal: true
 
-gem 'rails'
-gem 'pg'
-gem 'passages'
-gem 'bigdecimal', '1.3.5'
-gem 'sass-rails', '~> 5.0'
-# Use Uglifier as compressor for JavaScript assets
-gem 'uglifier', '>= 1.3.0'
-gem 'jquery-rails'
-gem 'turbolinks'
-gem 'lazy_high_charts'
+source 'https://rubygems.org'
+ruby '2.7.6'
+
+gem 'bigdecimal'
+gem 'faraday'
 gem 'gon'
+gem 'jquery-rails'
 gem 'js_assets'
-gem 'sidekiq'
+gem 'lazy_high_charts'
+gem 'passages'
+gem 'pg'
+gem 'puma'
+gem 'rails', '~> 6.1.7'
 gem 'redis'
-gem 'unicorn'
+gem 'sassc-rails', '>= 2.1.0'
+gem 'sidekiq', '< 7.0'
+gem 'sprockets', '~> 3.7.2'
+gem 'turbolinks'
+gem 'uglifier'
 
 group :development, :test do
+  gem 'factory_bot_rails'
   gem 'pry'
   gem 'pry-byebug'
-  gem 'rspec-rails'
-  gem "factory_bot_rails"
-  gem 'simplecov', :require => false
   gem 'rails-controller-testing'
+  gem 'rspec-rails'
   gem 'rubocop-rails', require: false
   gem 'rubocop-rspec'
+  gem 'simplecov', require: false
 end
-group  :test do
-  gem 'shoulda-matchers', '~> 3.0'
+
+group :test do
+  gem 'shoulda-matchers'
 end
 
 group :development do
