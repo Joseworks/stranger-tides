@@ -1,3 +1,0 @@
-guard :shell do
-	watch(%r{^app/assets/.*}) { `rm -rf tmp/cache` }
-end
