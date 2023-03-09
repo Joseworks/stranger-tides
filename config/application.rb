@@ -8,7 +8,7 @@ Bundler.require(*Rails.groups)
 
 module RubyTides
   class Application < Rails::Application
-    # OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
+    OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
 
     # config.autoload_paths += %W(#{config.root}/lib)
 
