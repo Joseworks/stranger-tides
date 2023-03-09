@@ -25,6 +25,6 @@ deploy:
 	heroku maintenance:off --app=stranger-tides
 local-rake:
 	rake db:migrate
-	rake stations_delete:delete_station_list
-	rake station_list:process_station_list
-	rake station_list:process_all_stations
+	rake station_list:retrieve_all_stations_metadata  # Process metadata
+	rake stations_delete:delete_station_list          # Delete Station List
+	rake stations_id_list:process_station_list        # Station List
