@@ -18,7 +18,7 @@ class StationConstructor
   end
 
   def url_constructor
-    URI::HTTPS.build(host: 'www.tidesandcurrents.noaa.gov',
+    URI::HTTPS.build(host: 'api.tidesandcurrents.noaa.gov',
                      query: { begin_date: begin_date,
                               end_date: end_date,
                               station: station,
