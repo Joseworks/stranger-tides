@@ -37,4 +37,5 @@ end
 
 group :development do
   gem 'bullet'
+  gem 'bundle-audit'
 end
