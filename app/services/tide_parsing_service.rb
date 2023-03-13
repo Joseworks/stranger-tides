@@ -1,38 +1,61 @@
-# Retrieves the different products from the tide station. Currently retrieving only tide levels.
+# frozen_string_literal: true
 
-include ActiveModel::Model
+# Retrieves the different products from the tide station.
+# Currently retrieving only tide levels.
+
 require 'open-uri'
 
 module TideParsingService
   class TideProcessor
+    include ActiveModel::Model
     def self.url_validator(url)
-      URI.open(url)
-    rescue Errno::ECONNREFUSED => e
-      errors.add :station, "We can not connect to this url #{e.inspect}"
-    rescue Errno::ENOENT => e
-      errors.add :station, "No such file or directory - does/not/exist #{e.inspect}"
-    rescue Net::OpenTimeout => e
-      errors.add :station, "Net::OpenTimeout: execution expired #{e.inspect}"
-    rescue OpenURI::HTTPError => e
-      if e.message == "The service appears to be offline at #{Time.zone.now}404 Not Found"
+      puts "--- URL ----- #{url}"
+      response = Faraday.get(url)
+      return unless response.status == 400 || response.status == 403|| response.status == 500
+
+      errors.add :station, "We can not connect to this url #{errors.inspect}"
+      rescue Errno::ECONNREFUSED => e
+        errors.add :station, "We can not connect to this url #{e.inspect}"
+      rescue Errno::ENOENT => e
+        errors.add :station,
+                   "No such file or directory - does/not/exist #{e.inspect}"
+      rescue Net::OpenTimeout => e
+        errors.add :station,
+      "Net::OpenTimeout: execution expired #{e.inspect}"
+      rescue OpenURI::HTTPError => e
+      er ="The service appears to be offline at #{Time.zone.now}404 Not Found"
+        unless e.message == er
+          pp "ERROR ------ #{e.inspect}"
+        end
+
         # TODO: handle 404 error
-        Rails.logger.warn(e.message.inspect)
-      else
-        raise e
-      end
+      Rails.logger.warn(e.message.inspect)
     end
 
     def self.metadata_parser!(url)
-      URI.open(url) do |f|
-        json_string = f.read
-        parse_json = JSON.parse(json_string)['metadata']
-        parse_json&.deep_symbolize_keys
-      end
+      conn = Faraday::Connection.new
+      json_string = conn.get url, accept: 'application/json'
+
+      parse_json = JSON.parse(json_string.body)['metadata']
+
+      parse_json&.deep_symbolize_keys
+    end
+
+    def self.datum_retrieval(station)
+      datums = []
+      url = "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/#{station}/datums.json"
+
+      conn = Faraday::Connection.new
+      json_string = conn.get url, accept: 'application/json'
+      parse_json = JSON.parse(json_string.body)['datums']
+      parse_json&.select { |f| datums << f['name'] }
+      datums
     end
 
     def self.metadata_retrieval(_my_station, _current_product, url_to_parse)
       url_validator(url_to_parse)
-      parsed_tide = TideParsingService::TideProcessor.metadata_parser!(url_to_parse)
+      parsed_tide =
+        TideParsingService::TideProcessor.metadata_parser!(url_to_parse)
       print '.' unless parsed_tide.nil?
       # meta
       Metadata.new(parsed_tide) unless parsed_tide.nil?
@@ -40,31 +63,35 @@ module TideParsingService
 
     def self.tide_level_retrieval(_my_station, _current_product, url_to_parse)
       url_validator(url_to_parse)
-      parsed_tide_info = TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)
+      parsed_tide_info =
+        TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)
       # tide_height
       TideParsingService::TideProcessor.param_v_parser(parsed_tide_info)
     end
 
     def self.tide_s_retrieval(_my_station, _current_product, url_to_parse)
       url_validator(url_to_parse)
-      parsed_tide_info = TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)
+      parsed_tide_info =
+        TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)
       # tide_s
       TideParsingService::TideProcessor.param_s_parser(parsed_tide_info)
     end
 
     def self.time_stamp_retrieval(_my_station, _current_product, url_to_parse)
       url_validator(url_to_parse)
-      parsed_tide_info = TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)
+      parsed_tide_info =
+        TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)
       # tide_time
       TideParsingService::TideProcessor.time_parser(parsed_tide_info)
     end
 
     def self.tide_level_parser!(url)
-      URI.open(url) do |f|
-        json_string = f.read
-        parse_json = JSON.parse(json_string).deep_symbolize_keys
-        parse_json.except(:metadata)[:data]
-      end
+      conn = Faraday::Connection.new
+      json_string = conn.get url, accept: 'application/json'
+
+      parse_json = JSON.parse(json_string.body).deep_symbolize_keys
+
+      parse_json.except(:metadata)[:data]
     end
 
     def self.time_parser(info)
@@ -105,6 +132,7 @@ module TideParsingService
 
   class Metadata
     attr_accessor :station_id, :station_name, :latitude, :longitude
+
     def initialize(args)
       @station_id = args[:id]
       @station_name = args[:name]

@@ -12,15 +12,53 @@ namespace :station_list do
     @all_charts = []
     @all_station_metadata = []
 
+    # p "@all_reporting_stations.inspect --- #{@all_reporting_stations.inspect}"
+
     @all_reporting_stations.each do |station_id|
+      puts
+      puts
+      puts
       puts "Now processing #{station_id} \n"
-      current_station = StationDataRangeConstructor.new(station_id)
+      puts
+      puts
+      puts
+
+      datum ||= TideParsingService::TideProcessor.datum_retrieval(station_id)
+
+      if datum.size == 1
+        datum = datum.first
+
+        if datum == 'GL_LWD'
+          datum = 'IGLD'
+        elsif datum == 'MLLW'
+          datum
+        end
+
+      elsif datum.include?('GL_LWD')
+        datum = 'IGLD'
+      elsif datum.include?('MLLW')
+        datum = 'MLLW'
+      elsif datum.include?('MSL')
+        datum = 'MSL'
+      end
+
+      datum = 'IGLD' if datum.nil? || datum.empty?
+
+      current_station ||= StationDataRangeConstructor.new(station_id, datum)
+      puts "current_station --- #{current_station.inspect}"
       constructed_station_params = current_station.range_constructor
-      current_product = constructed_station_params[:product]
+      current_product = constructed_station_params[:product] # "water_level"
+      puts "current_product --- #{current_product.inspect}"
       @constructed_station = StationConstructor.new(constructed_station_params)
+
+      puts "@constructed_station --- #{@constructed_station.inspect}"
+
       @path_build = @constructed_station.url_constructor
-      url = @path_build
-      @metadata = TideParsingService::TideProcessor.metadata_retrieval(station_id, current_product, url)
+
+      puts "@path_build --- #{@path_build}"
+
+      @metadata = TideParsingService::TideProcessor.metadata_retrieval(station_id, current_product, @path_build)
+
       @all_station_metadata << @metadata unless @metadata.nil?
     end
 

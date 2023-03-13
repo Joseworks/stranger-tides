@@ -17,14 +17,14 @@ deploy:
 	heroku maintenance:on --app=stranger-tides
 	git tag production_release_`date +"%Y%m%d-%H%M%S"`
 	git push --tags
-	git push heroku master
+	git push production master
 	heroku run rake db:migrate --app=stranger-tides
-	heroku run rake stations_delete:delete_station_list
-	heroku run rake station_list:process_station_list
-	heroku run rake station_list:process_all_stations
+	heroku run rake stations_delete:delete_station_list --app=stranger-tides
+	heroku run rake stations_id_list:process_station_list --app=stranger-tides
+	heroku run rake station_list:retrieve_all_stations_metadata --app=stranger-tides
 	heroku maintenance:off --app=stranger-tides
 local-rake:
 	rake db:migrate
-	rake stations_delete:delete_station_list
-	rake station_list:process_station_list
-	rake station_list:process_all_stations
+	rake station_list:retrieve_all_stations_metadata  # Process metadata
+	rake stations_delete:delete_station_list          # Delete Station List
+	rake stations_id_list:process_station_list        # Station List

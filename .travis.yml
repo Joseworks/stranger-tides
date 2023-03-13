@@ -3,7 +3,7 @@ cache: bundler
 dist: trusty
 language: ruby
 rvm:
-  - 2.7.2
+  - 2.7.6
 addons:
   postgresql: "9.6"
   code_climate:

@@ -18,4 +18,4 @@ dump.rdb
 *.dump
 .env
 /public
-
+.env

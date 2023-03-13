@@ -2,7 +2,7 @@
 
 [![Test Coverage](https://api.codeclimate.com/v1/badges/29184c02a0f52a69800c/test_coverage)](https://codeclimate.com/github/Joseworks/stranger-tides/test_coverage)
 
-* ### See the live version on [stranger-tides.com](http://www.stranger-tides.com/)
+* ### See the live version on [stranger-tides.com](https://www.stranger-tides.com/)
 
 Note:  Specs, testing and development still in progress.
        This code/site/code has no affiliation whatsoever with NOAA, COOPS (Center for Operational Oceanographic Products and Services), NWLON (National Water Level Observation Network ) or any other government institutions.
@@ -12,7 +12,7 @@ Note:  Specs, testing and development still in progress.
 
 * System dependencies
 
- - Unicorn as a web server
+ - Puma as a web server
  - Foreman as a manager for Procfile-based applications
  - Lazy high charts
  - gon

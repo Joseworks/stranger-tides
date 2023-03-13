@@ -1,4 +1,6 @@
-#Forms the API request.
+# frozen_string_literal: true
+
+# Forms the API request.
 
 class StationConstructor
   def initialize(args)
@@ -16,7 +18,7 @@ class StationConstructor
   end
 
   def url_constructor
-    URI::HTTPS.build(host: "www.tidesandcurrents.noaa.gov",
+    URI::HTTPS.build(host: 'api.tidesandcurrents.noaa.gov',
                      query: { begin_date: begin_date,
                               end_date: end_date,
                               station: station,
@@ -26,7 +28,7 @@ class StationConstructor
                               time_zone: time_zone,
                               application: application,
                               format: format }.to_query,
-                     path: "/api/datagetter")
+                     path: '/api/prod/datagetter')
   end
 
   attr_accessor :station,
