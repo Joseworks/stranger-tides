@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Creates the graph through a HighChart instance.
 
 include ActionView::Helpers::DateHelper
@@ -14,7 +16,7 @@ module GraphingService
         f.title(text: "Station name: #{station}, Time range #{distance}")
         f.subtitle(text: 'Source: NOAA CO-OPS API')
 
-        f.xAxis(name: "Time",
+        f.xAxis(name: 'Time',
                 type: 'datetime',
                 categories: this_tide,
                 tickInterval: time_scale * 30,
@@ -26,20 +28,12 @@ module GraphingService
                   y: 0
                 })
 
-        f.series(name: "Height",
-                 yAxis: 0,
-                 data: tide_information)
+        f.series(name: 'Height', yAxis: 0, data: tide_information)
 
-        f.yAxis [
-          { title: { text: "Height in feet",
-                     margin: 70 } }
-        ]
+        f.yAxis [{ title: { text: 'Height in feet', margin: 70 } }]
 
-        f.legend(align: 'right',
-                 verticalAlign: 'top',
-                 y: 75, x: -50,
-                 layout: 'vertical')
-        f.chart(defaultSeriesType: "line")
+        f.legend(align: 'right', verticalAlign: 'top', y: 75, x: -50, layout: 'vertical')
+        f.chart(defaultSeriesType: 'line')
       end
     end
 
@@ -47,10 +41,10 @@ module GraphingService
       converted_date = []
 
       local_date.each_with_index do |d, index|
-        converted_date << if index == 0 || index == local_date.length - 1
-                            d.split(" ").first
+        converted_date << if index.zero? || index == local_date.length - 1
+                            d.split.first
                           else
-                            d.split(" ").last + " hrs"
+                            "#{d.split.last} hrs"
                           end
       end
 

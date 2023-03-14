@@ -16,7 +16,7 @@ gem 'redis'
 gem 'sassc-rails', '>= 2.1.0'
 gem 'sidekiq', '< 7.0'
 # gem 'sprockets', '~> 3.7.2'
-gem "sprockets-rails"
+gem 'sprockets-rails'
 gem 'turbolinks'
 gem 'uglifier'
 
@@ -26,10 +26,10 @@ group :development, :test do
   gem 'pry-byebug'
   gem 'rails-controller-testing'
   gem 'rspec-rails'
-  gem 'rubocop-rails', require: false
-  gem 'rubocop-rspec', require: false
   gem 'rubocop-performance', require: false
+  gem 'rubocop-rails', require: false
   gem 'rubocop-rake', require: false
+  gem 'rubocop-rspec', require: false
   gem 'simplecov', require: false
 end
 

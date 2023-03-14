@@ -7,7 +7,6 @@ RSpec.describe StationDataRangeConstructor do
     station_id = 1_234_567
     datum = 'MLLW'
 
-
     current_station = described_class.new(station_id, datum)
     subject { current_station.range_constructor }
 

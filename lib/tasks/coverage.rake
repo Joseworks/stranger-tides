@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 namespace :spec do
-  desc "Create rspec coverage"
+  desc 'Create rspec coverage'
   task :coverage do
     ENV['COVERAGE'] = 'true'
-    Rake::Task["spec"].execute
+    Rake::Task['spec'].execute
   end
 end

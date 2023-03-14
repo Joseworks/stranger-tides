@@ -2,7 +2,6 @@
 
 # Makes the API request and process all the information  in order to pass it to the ChartProcessor.
 
-
 module GraphProcessorService
   class GraphProcessor
     def self.graph_constructor(station_id)
@@ -43,10 +42,8 @@ module GraphProcessorService
         station_id, current_product, url
       )
       # tide_s_info
-      TideParsingService::TideProcessor.tide_s_retrieval(station_id,
-                                                         current_product, url)
-      GraphingService::ChartProcessor.grapher(@metadata.station_name,
-                                              tide_info, time_stamp_info)
+      TideParsingService::TideProcessor.tide_s_retrieval(station_id, current_product, url)
+      GraphingService::ChartProcessor.grapher(@metadata.station_name, tide_info, time_stamp_info)
     end
   end
 end

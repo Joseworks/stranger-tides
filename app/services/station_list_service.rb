@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 module StationListService
   class TideStation
@@ -11,7 +12,7 @@ module StationListService
         end
       end
       all_lines.each do |line|
-        station_id_list << line.split(' ').first.to_i
+        station_id_list << line.split.first.to_i
       end
       station_id_list
     end
