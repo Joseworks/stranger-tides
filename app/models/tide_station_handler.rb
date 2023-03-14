@@ -7,10 +7,10 @@ class TideStationHandler
     # if Rails.env.production?
     @station_list =
       File.join(Rails.root, 'data', 'station_list.txt')
-    # else
-    #   @station_list =
-    #     File.join(Rails.root, 'spec', '/fixtures/station_list_fixture.txt')
-    # end
+     if Rails.env.test?
+      @station_list =
+        File.join(Rails.root, 'spec', '/fixtures/station_list_fixture.txt')
+    end
   end
 
   def parse_stations_id

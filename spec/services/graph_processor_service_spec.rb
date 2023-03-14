@@ -2,7 +2,7 @@ require 'rails_helper'
 
 
 RSpec.describe GraphProcessorService, type: :service do
-  let(:station_id) { 8419317 }
+  let(:station_id) { 9461380 }
 
   context 'with a valid station metadata' do
     it 'returns the graph object' do

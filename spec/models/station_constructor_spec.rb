@@ -3,7 +3,8 @@ require 'rails_helper'
 RSpec.describe StationConstructor, type: :model do
   describe StationConstructor do
     station_id = 8454000
-    current_station_data_range = StationDataRangeConstructor.new(station_id).range_constructor
+    datum = 'MLLW'
+    current_station_data_range = StationDataRangeConstructor.new(station_id, datum).range_constructor
     constructed_station = StationConstructor.new(current_station_data_range)
 
     # it { is_expected.to include('metadata') }

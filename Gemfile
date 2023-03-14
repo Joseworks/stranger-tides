@@ -27,7 +27,9 @@ group :development, :test do
   gem 'rails-controller-testing'
   gem 'rspec-rails'
   gem 'rubocop-rails', require: false
-  gem 'rubocop-rspec'
+  gem 'rubocop-rspec', require: false
+  gem 'rubocop-performance', require: false
+  gem 'rubocop-rake', require: false
   gem 'simplecov', require: false
 end
 
