@@ -1,5 +1,5 @@
 require 'rails_helper'
-require 'open-uri'
+
 
 RSpec.describe GraphProcessorService, type: :service do
   let(:station_id) { 8419317 }

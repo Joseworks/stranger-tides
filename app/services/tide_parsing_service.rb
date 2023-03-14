@@ -3,11 +3,11 @@
 # Retrieves the different products from the tide station.
 # Currently retrieving only tide levels.
 
-require 'open-uri'
+
 
 module TideParsingService
   class TideProcessor
-    include ActiveModel::Model
+
     def self.url_validator(url)
       response = Faraday.get(url)
       return unless response.status == 400 || response.status == 403|| response.status == 500

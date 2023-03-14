@@ -7,8 +7,8 @@
 Note:  Specs, testing and development still in progress.
        This code/site/code has no affiliation whatsoever with NOAA, COOPS (Center for Operational Oceanographic Products and Services), NWLON (National Water Level Observation Network ) or any other government institutions.
 
-* Ruby version 2.2.3
-* Rails version 4.2.4
+* Ruby version 3.2.1 
+* Rails version 7.0.4.3
 
 * System dependencies
 
@@ -68,16 +68,6 @@ rake station_list:retrieve_all_stations_metadata  # Process metadata
 
 Note from NOAA: These raw data have not been subjected to the National Ocean Service's quality control or quality assurance procedures and do not meet the criteria and standards of official National Ocean Service data. They are released for limited public use as preliminary data to be used only with appropriate caution.
 Source: [NOAA Tides and Currents](https://tidesandcurrents.noaa.gov/waterlevels.html?id=8724580)
-
-* Passages Routing
-This Rails Engine adds the ability to search over different attributes of Ruby on Rails routes within an application.
-
-For example, an internal (or very permissive external) API can now expose a single page that will answer simple questions like: "What was the HTTP verb for the /users/clear_password route?" or "Does a v2 or v3 version for this route exist?".
-
-Once the local server is up, append `'passages` to the url, when asked about authentication use:
-
-username=username
-password=password
 
 #### Update HighCharts
 rake highcharts:update

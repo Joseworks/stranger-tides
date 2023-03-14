@@ -1,5 +1,4 @@
 namespace :station_list do
-  require 'open-uri'
 
   desc "Process metadata"
   task retrieve_all_stations_metadata: :environment do

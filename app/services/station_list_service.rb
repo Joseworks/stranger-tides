@@ -1,4 +1,4 @@
-include ActiveModel::Model
+
 module StationListService
   class TideStation
     def self.parse_stations_id

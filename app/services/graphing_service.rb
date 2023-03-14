@@ -1,5 +1,5 @@
 # Creates the graph through a HighChart instance.
-include ActiveModel::Model
+
 include ActionView::Helpers::DateHelper
 
 module GraphingService

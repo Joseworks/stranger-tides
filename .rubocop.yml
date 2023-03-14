@@ -1,9 +1,11 @@
-require: rubocop-rails
-require: rubocop-rspec
 inherit_from: .rubocop_todo.yml
 
+require:
+  - rubocop-rails
+  - rubocop-rspec
+
 AllCops:
-  TargetRubyVersion: 2.7
+  TargetRubyVersion: 3.2
   DisplayCopNames: true
   Include:
     - Rakefile
