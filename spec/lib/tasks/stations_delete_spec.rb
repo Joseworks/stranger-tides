@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
-require 'spec_helper'
 require 'rake'
+require 'spec_helper'
 
 describe 'stations_delete namespace rake delete_station_list' do
   describe 'delete_station_list' do
@@ -9,10 +11,10 @@ describe 'stations_delete namespace rake delete_station_list' do
       Rake::Task.define_task(:environment)
     end
 
-    it "deletes a station" do
+    it 'deletes a station' do
       Station.create
       expect do
-        Rake::Task["stations_delete:delete_station_list"].invoke
+        Rake::Task['stations_delete:delete_station_list'].invoke
       end.to change(Station, :count).by(-1)
     end
   end

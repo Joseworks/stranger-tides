@@ -1,6 +1,8 @@
-require 'spec_helper'
-require 'rake'
+# frozen_string_literal: true
+
 require 'rails_helper'
+require 'rake'
+require 'spec_helper'
 
 describe 'station_list' do
   before do
@@ -10,14 +12,24 @@ describe 'station_list' do
   end
 
   describe 'station_list:retrieve_all_stations_metadata' do
-    it "retrieves all the stations metadata to a station" do
-      Rake::Task["station_list:retrieve_all_stations_metadata"].invoke
+    it 'retrieves all the stations metadata to a station' do
+      Rake::Task['station_list:retrieve_all_stations_metadata'].invoke
 
-      expect(Station.last.metadata).to include("station_id" => "9461380",
-                                               "station_name" => "Adak Island",
-                                               "latitude" => "51.8633",
-                                               "longitude" => "-176.6320")
-      expect(Station.last.metadata).to be_kind_of(Array)
+      expect(Station.last.metadata).to include(
+        {
+          'station_id' => '9461710',
+          'station_name' => 'Atka',
+          'latitude' => '52.2319',
+          'longitude' => '-174.1725'
+        },
+        {
+          'station_id' => '9461380',
+          'station_name' => 'Adak Island',
+          'latitude' => '51.8606',
+          'longitude' => '-176.6376'
+        }
+      )
+      expect(Station.last.metadata.is_a?(Array)).to be(true)
     end
   end
 end
