@@ -14,6 +14,7 @@ gem 'puma'
 gem 'rails', '~> 7.0.1'
 gem 'redis'
 gem 'sassc-rails', '>= 2.1.0'
+
 gem 'sidekiq', '< 7.0'
 # gem 'sprockets', '~> 3.7.2'
 gem 'sprockets-rails'
