@@ -1,8 +1,8 @@
-# frozen_string_literal: true
-
 # Forms the API request.
 
 class StationConstructor
+  include ActiveModel::Validations
+
   def initialize(args)
     @station = args[:my_station]
     @product = args[:product]
@@ -19,15 +19,15 @@ class StationConstructor
 
   def url_constructor
     URI::HTTPS.build(host: 'api.tidesandcurrents.noaa.gov',
-                     query: { begin_date: begin_date,
-                              end_date: end_date,
-                              station: station,
-                              product: product,
-                              datum: datum,
-                              units: units,
-                              time_zone: time_zone,
-                              application: application,
-                              format: format }.to_query,
+                     query: { begin_date:,
+                              end_date:,
+                              station:,
+                              product:,
+                              datum:,
+                              units:,
+                              time_zone:,
+                              application:,
+                              format: }.to_query,
                      path: '/api/prod/datagetter')
   end
 
