@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 class StationsController < ApplicationController
-  before_action :set_station, only: [:show_stations, :show_graph]
+  before_action :set_station, only: %i[show_stations show_graph]
 
   def show_stations
     gon.all_station_metadata = @all_station_metadata
@@ -8,6 +10,7 @@ class StationsController < ApplicationController
   def show_graph
     gon.all_station_metadata = @all_station_metadata
     return unless request.xhr?
+
     respond_to do |format|
       @chart = GraphProcessorService::GraphProcessor.graph_constructor(params[:content])
       format.js

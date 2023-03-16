@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-# In the future this StationDataRangeConstructor will receive a custom date range to form requests. Right now it just acts similarly to a Value Object.
+# class StationDataRangeConstructor < ApplicationRecord
+# In the future this StationDataRangeConstructor will receive a custom
+# date range to form requests. Right now it just acts similarly to a Value Object.
 
 class StationDataRangeConstructor
   include ActiveModel::Model

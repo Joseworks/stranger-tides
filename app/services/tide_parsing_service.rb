@@ -3,31 +3,24 @@
 # Retrieves the different products from the tide station.
 # Currently retrieving only tide levels.
 
-require 'open-uri'
-
 module TideParsingService
   class TideProcessor
-    include ActiveModel::Model
     def self.url_validator(url)
       response = Faraday.get(url)
-      return unless response.status == 400 || response.status == 403|| response.status == 500
+      return unless response.status == 400 || response.status == 403 || response.status == 500
 
       errors.add :station, "We can not connect to this url #{errors.inspect}"
-      rescue Errno::ECONNREFUSED => e
-        errors.add :station, "We can not connect to this url #{e.inspect}"
-      rescue Errno::ENOENT => e
-        errors.add :station,
-                   "No such file or directory - does/not/exist #{e.inspect}"
-      rescue Net::OpenTimeout => e
-        errors.add :station,
-      "Net::OpenTimeout: execution expired #{e.inspect}"
-      rescue OpenURI::HTTPError => e
-      er ="The service appears to be offline at #{Time.zone.now}404 Not Found"
-        unless e.message == er
-          pp "ERROR ------ #{e.inspect}"
-        end
+    rescue Errno::ECONNREFUSED => e
+      e.add :station, "We can not connect to this url #{e}"
+    rescue Errno::ENOENT => e
+      e.add :station, "No such file or directory - does/not/exist #{e}"
+    rescue Net::OpenTimeout => e
+      e.add :station, "Net::OpenTimeout: execution expired #{e}"
+    rescue OpenURI::HTTPError => e
+      er = "The service appears to be offline at #{Time.zone.now}404 Not Found"
+      Rails.logger.debug { "ERROR ------ #{e}" } unless e.message == er
 
-        # TODO: handle 404 error
+      # TODO: handle 404 error
       Rails.logger.warn(e.message.inspect)
     end
 
@@ -53,33 +46,29 @@ module TideParsingService
 
     def self.metadata_retrieval(_my_station, _current_product, url_to_parse)
       url_validator(url_to_parse)
-      parsed_tide =
-        TideParsingService::TideProcessor.metadata_parser!(url_to_parse)
-      print '.' unless parsed_tide.nil?
+      parsed_tide = TideParsingService::TideProcessor.metadata_parser!(url_to_parse)
+      Rails.logger.debug '.' unless parsed_tide.nil?
       # meta
       Metadata.new(parsed_tide) unless parsed_tide.nil?
     end
 
     def self.tide_level_retrieval(_my_station, _current_product, url_to_parse)
       url_validator(url_to_parse)
-      parsed_tide_info =
-        TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)
+      parsed_tide_info = TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)
       # tide_height
       TideParsingService::TideProcessor.param_v_parser(parsed_tide_info)
     end
 
     def self.tide_s_retrieval(_my_station, _current_product, url_to_parse)
       url_validator(url_to_parse)
-      parsed_tide_info =
-        TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)
+      parsed_tide_info = TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)
       # tide_s
       TideParsingService::TideProcessor.param_s_parser(parsed_tide_info)
     end
 
     def self.time_stamp_retrieval(_my_station, _current_product, url_to_parse)
       url_validator(url_to_parse)
-      parsed_tide_info =
-        TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)
+      parsed_tide_info = TideParsingService::TideProcessor.tide_level_parser!(url_to_parse)
       # tide_time
       TideParsingService::TideProcessor.time_parser(parsed_tide_info)
     end
