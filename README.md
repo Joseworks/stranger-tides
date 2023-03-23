@@ -1,3 +1,5 @@
+[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://stand-with-ukraine.pp.ua)
+
 [![Maintainability](https://api.codeclimate.com/v1/badges/29184c02a0f52a69800c/maintainability)](https://codeclimate.com/github/Joseworks/stranger-tides/maintainability)
 
 [![Test Coverage](https://api.codeclimate.com/v1/badges/29184c02a0f52a69800c/test_coverage)](https://codeclimate.com/github/Joseworks/stranger-tides/test_coverage)
