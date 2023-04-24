@@ -16,7 +16,7 @@ gem 'lazy_high_charts'
 gem 'pg'
 gem 'puma'
 gem 'sassc-rails'
-gem 'sidekiq', '< 7.0'
+gem 'sidekiq', '< 8.0'
 gem 'sprockets', '~> 4.0'
 gem 'turbolinks'
 
