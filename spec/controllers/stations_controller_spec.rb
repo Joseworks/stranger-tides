@@ -78,10 +78,20 @@ RSpec.describe StationsController do
   end
 
   describe 'GET #show_stations' do
-    it 'assigns the last station as @station' do
-      station = Station.create! valid_attributes
-      get :show_stations, params: { id: station.to_param }
-      expect(assigns(:station)).to eq(station)
+    context 'with valid_attributes' do
+      it 'assigns the last station as @station' do
+        station = Station.create! valid_attributes
+        get :show_stations, params: { id: station.to_param }, xhr: true
+        expect(assigns(:station)).to eq(station)
+      end
+    end
+
+    context 'with invalid_attributes' do
+      it 'does not assigns the last station as @station' do
+        invalid_station = Station.create! invalid_attributes
+        get :show_stations, params: { id: invalid_station.to_param }, xhr: true
+        expect(assigns(:invalid_station)).to be_nil
+      end
     end
   end
 
@@ -92,9 +102,18 @@ RSpec.describe StationsController do
         action: 'show_graph' }
     end
 
-    it 'displays the graph' do
-      post(:show_graph, params: params, format: :js)
-      expect(response).to have_http_status(:success)
+    context 'with an AJAX request' do
+      it 'displays the graph' do
+        post(:show_graph, params: params, format: :js, xhr: true)
+        expect(response).to have_http_status(:success)
+      end
+    end
+
+    context 'with a non AJAX request' do
+      it 'displays the graph' do
+        post(:show_graph, params: params, format: :js)
+        expect(response).to have_http_status(:success)
+      end
     end
   end
 end

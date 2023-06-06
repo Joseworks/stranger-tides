@@ -12,7 +12,7 @@ class StationsController < ApplicationController
     return unless request.xhr?
 
     respond_to do |format|
-      @chart = GraphProcessorService::GraphProcessor.graph_constructor(params[:content])
+      @chart = GraphProcessorService::GraphProcessor.new(params[:content]).call
       format.js
     end
   end
@@ -25,12 +25,6 @@ class StationsController < ApplicationController
   end
 
   def station_params
-    params.require(:station).permit(:station_id,
-                                    :station_name,
-                                    :latitude,
-                                    :longitude,
-                                    :tide_info,
-                                    :metadata,
-                                    :range_constructor)
+    params.require(:content)
   end
 end
