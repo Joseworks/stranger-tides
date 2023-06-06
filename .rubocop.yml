@@ -16,6 +16,7 @@ AllCops:
     - 'db/**/*'
     - 'vendor/**/*'
     - 'public/**/*'
+    - 'stranger_tides_notes_do_not_commit.rb'
 
   TargetRubyVersion: 2.6
   DisplayCopNames: true
@@ -129,6 +130,10 @@ Naming/InclusiveLanguage:
     - lib/rubocop/cop/naming/inclusive_language.rb
     - lib/rubocop/cop/mixin/auto_corrector.rb
     - spec/rubocop/cop/naming/inclusive_language_spec.rb
+
+
+  NumericLiterals:
+    Enabled: false
 
 RSpec:
   Language:

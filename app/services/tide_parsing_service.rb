@@ -9,7 +9,7 @@ module TideParsingService
       response = Faraday.get(url)
       return unless response.status == 400 || response.status == 403 || response.status == 500
 
-      errors.add :station, "We can not connect to this url #{errors.inspect}"
+      er.add :station, "We can not connect to this url #{er.inspect}"
     rescue Errno::ECONNREFUSED => e
       e.add :station, "We can not connect to this url #{e}"
     rescue Errno::ENOENT => e
@@ -17,7 +17,7 @@ module TideParsingService
     rescue Net::OpenTimeout => e
       e.add :station, "Net::OpenTimeout: execution expired #{e}"
     rescue OpenURI::HTTPError => e
-      er = "The service appears to be offline at #{Time.zone.now}404 Not Found"
+      er = "The service appears to be offline at #{Time.zone.now} 404 Not Found"
       Rails.logger.debug { "ERROR ------ #{e}" } unless e.message == er
 
       # TODO: handle 404 error
@@ -102,7 +102,7 @@ module TideParsingService
       param_v.each_slice(n).map(&:last)
     end
 
-    # not is use right now,
+    # not in use currently,
     # displays a different set of parameters read from the tide station.
     def self.param_s_parser(info)
       param_s = []
@@ -110,7 +110,6 @@ module TideParsingService
         info.each do |element|
           param_s << element[:s].to_f
         end
-
         n = 8
         param_s.each_slice(n).map(&:last)
       end
