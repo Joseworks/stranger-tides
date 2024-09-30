@@ -79,4 +79,4 @@ rake highcharts:update
 Copyright (c) 2015 [Jose C Fernandez](https://www.joseworks.org/) released under the MIT license
 
 ## Stargazers over time
- 
+[![Stargazers over time](https://starchart.cc/Joseworks/stranger-tides.svg?variant=adaptive)](https://starchart.cc/Joseworks/stranger-tides) 
