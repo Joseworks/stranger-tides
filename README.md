@@ -27,7 +27,7 @@ Note:  Specs, testing, and development are still in progress.
  - PostgreSQL
 
 * How to run the test suite
- - rspec spec
+ - rspec
 
 Please feel free to use a different markup language if you do not plan to run
 <tt>rake doc:app</tt>.
@@ -38,7 +38,7 @@ The app is intended to display NOAA real-time reporting tide stations in a map r
 
 To achieve that, a rake process will read all the current tide stations from a txt file ( station_list.txt). This is necessary because when the app is being written NOAA does not provide an online service or list that can be retrieved in any other way than 'scraping' the information of a website. I am considering writing a small JSON API to hold this data.
 
-### There are three rake tasks:
+### There are three rake tasks required to run the app:
 
  - rake station_list:delete_station_list
   Delete all of the stations information from the database
@@ -75,6 +75,8 @@ Source: [NOAA Tides and Currents](https://tidesandcurrents.noaa.gov/waterlevels.
 
 #### Update HighCharts
 rake highcharts:update
+
+References: https://tidesandcurrents.noaa.gov/datum_options.html#:~:text=A%20fixed%20base%20elevation%20at,is%20ever%20expected%20to%20reach.
 
 Copyright (c) 2015 [Jose C Fernandez](https://www.joseworks.org/) released under the MIT license
 
