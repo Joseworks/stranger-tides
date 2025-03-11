@@ -57,12 +57,18 @@ group :development, :test do
   gem 'pry-byebug'
   gem 'rails-controller-testing'
   gem 'rspec-rails'
+  gem 'rubocop', '~> 1.73', require: false
+  gem 'rubocop-factory_bot', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-rails', require: false
   gem 'rubocop-rake', require: false
   gem 'rubocop-rspec', require: false
+  gem 'rubocop-rspec_rails', require: false
   gem 'simplecov', require: false
 end
+
+# Logger fix for Rails 7 https://github.com/facebook/react-native/commit/198adb47af3676c85b35adb308c110c1d87120c8
+gem 'concurrent-ruby', '< 1.3.4'
 
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
