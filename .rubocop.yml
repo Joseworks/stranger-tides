@@ -1,5 +1,13 @@
 # This is the configuration used to check the rubocop source code.
 
+plugins:
+  - rubocop-rspec
+  - rubocop-rspec_rails
+  - rubocop-performance
+  - rubocop-rails
+  - rubocop-rake
+  - rubocop-factory_bot
+
 inherit_from: .rubocop_todo.yml
 require:
   - rubocop/cop/internal_affairs
