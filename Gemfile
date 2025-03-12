@@ -57,7 +57,7 @@ group :development, :test do
   gem 'pry-byebug'
   gem 'rails-controller-testing'
   gem 'rspec-rails'
-  gem 'rubocop', '~> 1.73', require: false
+  gem 'rubocop', require: false
   gem 'rubocop-factory_bot', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-rails', require: false
