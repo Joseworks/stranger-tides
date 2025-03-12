@@ -123,7 +123,7 @@ GEM
     js_assets (0.1.2)
       rails
       sprockets (>= 3.0)
-    json (2.10.1)
+    json (2.10.2)
     language_server-protocol (3.17.0.4)
     lazy_high_charts (1.6.1)
       hash-deep-merge
@@ -140,7 +140,7 @@ GEM
     marcel (1.0.4)
     method_source (1.1.0)
     mini_mime (1.1.5)
-    minitest (5.25.4)
+    minitest (5.25.5)
     multi_json (1.15.0)
     net-http (0.6.0)
       uri
@@ -348,7 +348,7 @@ DEPENDENCIES
   rails (~> 7.0.4, >= 7.0.4.3)
   rails-controller-testing
   rspec-rails
-  rubocop (~> 1.73)
+  rubocop
   rubocop-factory_bot
   rubocop-performance
   rubocop-rails
