@@ -7,14 +7,9 @@ plugins:
   - rubocop-rails
   - rubocop-rake
   - rubocop-factory_bot
+  - rubocop-internal_affairs
 
 inherit_from: .rubocop_todo.yml
-require:
-  - rubocop/cop/internal_affairs
-  - rubocop-performance
-  - rubocop-rspec
-  - rubocop-rake
-  - rubocop-rails
 
 AllCops:
   NewCops: enable
@@ -139,10 +134,6 @@ Naming/InclusiveLanguage:
     - lib/rubocop/cop/mixin/auto_corrector.rb
     - spec/rubocop/cop/naming/inclusive_language_spec.rb
 
-
-  NumericLiterals:
-    Enabled: false
-
 RSpec:
   Language:
     Expectations:
@@ -154,7 +145,7 @@ RSpec:
       - expect_no_offenses
       - expect_offense
 
-RSpec/FilePath:
+Rails/FilePath:
   Exclude:
     - spec/rubocop/cop/internal_affairs/redundant_let_rubocop_config_new_spec.rb
     - spec/rubocop/formatter/junit_formatter_spec.rb
@@ -214,5 +205,5 @@ Gemspec/DependencyVersion:
 Style/RequireOrder:
   Enabled: true
 
-Documentation:
+Style/Documentation:
   Enabled: false
