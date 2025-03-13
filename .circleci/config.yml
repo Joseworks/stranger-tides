@@ -1,0 +1,43 @@
+version: 2.1
+
+orbs:
+  ruby: circleci/ruby@1.4
+
+jobs:
+  setup_circle_ci:
+    docker:
+      - image: cimg/ruby:3.3.7
+    steps:
+      - checkout
+      - ruby/install-deps
+      - run:
+          name: Setup environment
+          command: |
+            bundle install
+            bundle exec rake db:create db:schema:load
+      - run:
+          name: Run RuboCop
+          command: bundle exec rubocop
+      - run:
+          name: Run Tests
+          command: bundle exec rspec
+
+  build-and-test:
+    docker:
+      - image: cimg/ruby:3.3.7
+    steps:
+      - checkout
+      - ruby/install-deps
+      - run:
+          name: Run tests
+          command: bundle exec rspec
+      - run:
+          name: Run RuboCop
+          command: bundle exec rubocop
+
+workflows:
+  version: 2
+  build-test:
+    jobs:
+      - setup_circle_ci
+      - build-and-test
