@@ -11,7 +11,7 @@
 Note:  Specs, testing, and development are still in progress.
        This code/site/code has no affiliation whatsoever with NOAA, COOPS (Center for Operational Oceanographic Products and Services), NWLON (National Water Level Observation Network ) or any other government institutions.
 
-* Ruby version 3.2.1 
+* Ruby version 3.3.7 
 * Rails version 7.0.4.3
 
 * System dependencies
