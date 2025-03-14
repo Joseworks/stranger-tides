@@ -7,9 +7,22 @@ jobs:
   setup_circle_ci:
     docker:
       - image: cimg/ruby:3.3.7
+        environment:
+          PGHOST: localhost
+          PGUSER: postgres
+          RAILS_ENV: test
+          DATABASE_URL: postgresql://postgres@localhost/stranger_tides_test
+      - image: cimg/postgres:14
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: stranger_tides_test
+          POSTGRES_PASSWORD: ""
     steps:
       - checkout
       - ruby/install-deps
+      - run:
+          name: Wait for DB
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
       - run:
           name: Setup environment
           command: |
@@ -25,9 +38,22 @@ jobs:
   build-and-test:
     docker:
       - image: cimg/ruby:3.3.7
+        environment:
+          PGHOST: localhost
+          PGUSER: postgres
+          RAILS_ENV: test
+          DATABASE_URL: postgresql://postgres@localhost/stranger_tides_test
+      - image: cimg/postgres:14
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: stranger_tides_test
+          POSTGRES_PASSWORD: ""
     steps:
       - checkout
       - ruby/install-deps
+      - run:
+          name: Wait for DB
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
       - run:
           name: Run tests
           command: bundle exec rspec
