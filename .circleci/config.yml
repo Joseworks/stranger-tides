@@ -24,11 +24,7 @@ jobs:
       - run:
           name: Fix JavaScript Dependencies
           command: |
-            bundle add sprockets-rails --version "~> 3.4.2"
-            bundle install
-      - run:
-          name: Fix Sprockets version
-          command: |
+            bundle remove js_assets || true
             bundle add sprockets-rails --version "~> 3.4.2"
             bundle install
       - run:
@@ -51,7 +47,9 @@ jobs:
           command: bundle exec rubocop --parallel
       - run:
           name: Run Tests
-          command: bundle exec rspec
+          command: |
+            RAILS_ENV=test bundle exec rails assets:precompile
+            bundle exec rspec
 
   build-and-test:
     docker:
@@ -73,11 +71,7 @@ jobs:
       - run:
           name: Fix JavaScript Dependencies
           command: |
-            bundle add sprockets-rails --version "~> 3.4.2"
-            bundle install
-      - run:
-          name: Fix Sprockets version
-          command: |
+            bundle remove js_assets || true
             bundle add sprockets-rails --version "~> 3.4.2"
             bundle install
       - run:
@@ -85,7 +79,9 @@ jobs:
           command: dockerize -wait tcp://localhost:5432 -timeout 1m
       - run:
           name: Run tests
-          command: bundle exec rspec
+          command: |
+            RAILS_ENV=test bundle exec rails assets:precompile
+            bundle exec rspec
       - run:
           name: Run RuboCop
           command: bundle exec rubocop
