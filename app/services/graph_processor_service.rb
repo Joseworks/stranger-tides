@@ -54,8 +54,6 @@ module GraphProcessorService
     end
 
     def datum_processor
-
-
       @datum = TideParsingService::TideProcessor.datum_retrieval(station_id)
 
       if @datum.size == 1

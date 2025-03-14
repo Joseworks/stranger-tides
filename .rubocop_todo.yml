@@ -38,13 +38,15 @@ Metrics/MethodLength:
 Metrics/PerceivedComplexity:
   Max: 12
 
-# Offense count: 3
+# Offense count: 5
 # Configuration parameters: IgnoredMetadata.
 RSpec/DescribeClass:
   Exclude:
     - 'spec/lib/tasks/stations_delete_spec.rb'
     - 'spec/lib/tasks/stations_id_list_spec.rb'
     - 'spec/lib/tasks/stations_metadata_list_spec.rb'
+    - 'spec/views/stations/show_station.html.erb_spec.rb'
+    - 'spec/views/stations/show_stations.erb_spec.rb'
 
 # Offense count: 1
 Style/MixinUsage:

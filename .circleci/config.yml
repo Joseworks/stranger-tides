@@ -1,0 +1,94 @@
+version: 2.1
+
+orbs:
+  ruby: circleci/ruby@1.4
+
+jobs:
+  setup_circle_ci:
+    docker:
+      - image: cimg/ruby:3.3.7
+        environment:
+          PGHOST: localhost
+          PGUSER: postgres
+          RAILS_ENV: test
+          DATABASE_URL: postgresql://postgres@localhost/stranger_tides_test
+      - image: postgres:14
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: stranger_tides_test
+          POSTGRES_PASSWORD: "postgres"
+          POSTGRES_HOST_AUTH_METHOD: trust
+    steps:
+      - checkout
+      - ruby/install-deps
+      - run:
+          name: Fix JavaScript Dependencies
+          command: |
+            bundle remove js_assets || true
+            bundle add sprockets-rails --version "~> 3.4.2"
+            bundle install
+      - run:
+          name: Wait for DB
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+      - run:
+          name: Setup environment
+          command: |
+            bundle install
+            bundle exec rake db:create db:schema:load
+      - run:
+          name: Update RuboCop configuration
+          command: |
+            if grep -q "TargetRubyVersion: 2.6" .rubocop.yml; then
+              sed -i 's/TargetRubyVersion: 2.6/TargetRubyVersion: 3.3/' .rubocop.yml
+              echo "Updated RuboCop target Ruby version to 3.3"
+            fi
+      - run:
+          name: Run RuboCop
+          command: bundle exec rubocop --parallel
+      - run:
+          name: Run Tests
+          command: |
+            RAILS_ENV=test bundle exec rails assets:precompile
+            bundle exec rspec
+
+  build-and-test:
+    docker:
+      - image: cimg/ruby:3.3.7
+        environment:
+          PGHOST: localhost
+          PGUSER: postgres
+          RAILS_ENV: test
+          DATABASE_URL: postgresql://postgres@localhost/stranger_tides_test
+      - image: postgres:14
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: stranger_tides_test
+          POSTGRES_PASSWORD: "postgres"
+          POSTGRES_HOST_AUTH_METHOD: trust
+    steps:
+      - checkout
+      - ruby/install-deps
+      - run:
+          name: Fix JavaScript Dependencies
+          command: |
+            bundle remove js_assets || true
+            bundle add sprockets-rails --version "~> 3.4.2"
+            bundle install
+      - run:
+          name: Wait for DB
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+      - run:
+          name: Run tests
+          command: |
+            RAILS_ENV=test bundle exec rails assets:precompile
+            bundle exec rspec
+      - run:
+          name: Run RuboCop
+          command: bundle exec rubocop
+
+workflows:
+  version: 2
+  build-test:
+    jobs:
+      - setup_circle_ci
+      - build-and-test

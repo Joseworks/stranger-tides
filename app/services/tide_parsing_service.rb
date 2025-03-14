@@ -7,7 +7,7 @@ module TideParsingService
   class TideProcessor
     def self.url_validator(url)
       response = Faraday.get(url)
-      return unless response.status == 400 || response.status == 403 || response.status == 500
+      return unless [400, 403, 500].include?(response.status)
 
       er.add :station, "We can not connect to this url #{er.inspect}"
     rescue Errno::ECONNREFUSED => e
