@@ -127,6 +127,10 @@ GEM
     hash-deep-merge (0.1.1)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
+    importmap-rails (2.1.0)
+      actionpack (>= 6.0.0)
+      activesupport (>= 6.0.0)
+      railties (>= 6.0.0)
     io-console (0.8.0)
     irb (1.15.1)
       pp (>= 0.6.0)
@@ -332,9 +336,9 @@ GEM
     sprockets (4.2.1)
       concurrent-ruby (~> 1.0)
       rack (>= 2.2.4, < 4)
-    sprockets-rails (3.5.2)
-      actionpack (>= 6.1)
-      activesupport (>= 6.1)
+    sprockets-rails (3.4.2)
+      actionpack (>= 5.2)
+      activesupport (>= 5.2)
       sprockets (>= 3.0.0)
     stringio (3.1.5)
     thor (1.3.2)
@@ -384,6 +388,7 @@ DEPENDENCIES
   factory_bot_rails
   faraday
   gon
+  importmap-rails
   jquery-rails
   js_assets
   lazy_high_charts
@@ -406,6 +411,7 @@ DEPENDENCIES
   sidekiq (< 7.0)
   simplecov
   sprockets (~> 4.0)
+  sprockets-rails (~> 3.4.2)
   turbolinks
   tzinfo-data
   web-console

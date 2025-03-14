@@ -22,6 +22,10 @@ gem 'sidekiq', '< 7.0'
 gem 'sprockets', '~> 4.0'
 gem 'turbolinks'
 
+# JavaScript handling
+gem 'importmap-rails'
+gem 'sprockets-rails', '~> 3.4.2'
+
 # Use Redis adapter to run Action Cable in production
 # gem 'redis'
 

@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>RubyTides</title>
-   <meta name="author" content="http://www.joseworks.org/">
-    <link rel="author" href="http://www.joseworks.org/"/>
-    <%= favicon_link_tag 'favicon_jw.ico' %>
-    <title>Ruby Tide</title>
+  <head>
+    <title>Stranger Tides</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
     <meta content="NOAA NOS National Ocean Observing System Operational Oceanograpic Products Center for Operational Oceanographic Products and Services Active Stations  Ruby on Rails Demo Interactive Map  Water Levels Station Selection  JoseWorks Technologies LLC www.joseworks.org  " name="description">
-  <%= include_gon %>
-  <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
-  <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
-  <%= csrf_meta_tags %>
-  <%= render partial: "layouts/ganalytics"  %>
-</head>
-<body>
-  <%= yield %>
-</body>
+    <%= include_gon %>
+    <%= stylesheet_link_tag    'application', media: 'all', 'dataturbolinks-track' => true %>
+    <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
+    <%= stylesheet_link_tag "application" %>
+    <%= javascript_include_tag "application" %>
+  </head>
+
+  <body>
+    <%= yield %>
+  </body>
 </html>
