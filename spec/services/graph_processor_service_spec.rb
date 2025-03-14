@@ -54,8 +54,8 @@ RSpec.describe GraphProcessorService, type: :service do
           .with(station_id)
           .and_return(['MLLW'])
 
-        allow(TideParsingService::TideProcessor).to receive(:url_validator).and_return(nil)
-        allow(TideParsingService::TideProcessor).to receive(:tide_s_retrieval).and_return(tide_levels)
+        allow(TideParsingService::TideProcessor).to receive_messages(url_validator: nil,
+                                                                     tide_s_retrieval: tide_levels)
       end
 
       it 'returns the graph object' do
@@ -76,8 +76,8 @@ RSpec.describe GraphProcessorService, type: :service do
           .with(station_id)
           .and_return(%w[MSL DLQ])
 
-        allow(TideParsingService::TideProcessor).to receive(:url_validator).and_return(nil)
-        allow(TideParsingService::TideProcessor).to receive(:tide_s_retrieval).and_return(tide_levels)
+        allow(TideParsingService::TideProcessor).to receive_messages(url_validator: nil,
+                                                                     tide_s_retrieval: tide_levels)
       end
 
       it 'returns the graph object' do
@@ -98,8 +98,8 @@ RSpec.describe GraphProcessorService, type: :service do
           .with(station_id)
           .and_return(%w[MLLW MHW])
 
-        allow(TideParsingService::TideProcessor).to receive(:url_validator).and_return(nil)
-        allow(TideParsingService::TideProcessor).to receive(:tide_s_retrieval).and_return(tide_levels)
+        allow(TideParsingService::TideProcessor).to receive_messages(url_validator: nil,
+                                                                     tide_s_retrieval: tide_levels)
       end
 
       it 'returns the graph object' do

@@ -30,8 +30,15 @@ jobs:
             bundle install
             bundle exec rake db:create db:schema:load
       - run:
+          name: Update RuboCop configuration
+          command: |
+            if grep -q "TargetRubyVersion: 2.6" .rubocop.yml; then
+              sed -i 's/TargetRubyVersion: 2.6/TargetRubyVersion: 3.3/' .rubocop.yml
+              echo "Updated RuboCop target Ruby version to 3.3"
+            fi
+      - run:
           name: Run RuboCop
-          command: bundle exec rubocop
+          command: bundle exec rubocop --parallel
       - run:
           name: Run Tests
           command: bundle exec rspec

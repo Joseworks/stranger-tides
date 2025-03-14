@@ -30,7 +30,6 @@ gem 'turbolinks'
 # #securepassword]
 # gem "bcrypt", "~> 3.1.7"
 
-
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
 # gem 'importmap-rails'
 
