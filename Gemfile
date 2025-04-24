@@ -4,7 +4,7 @@ source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 ruby '3.3.7'
-gem 'rails', '~> 7.0.4', '>= 7.0.4.3'
+gem 'rails', '~> 8.0.2'
 
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem 'bigdecimal'
@@ -16,7 +16,7 @@ gem 'lazy_high_charts'
 gem 'pg'
 gem 'puma'
 gem 'sassc-rails'
-gem 'sidekiq', '< 7.0'
+gem 'sidekiq', '< 9.0'
 gem 'sprockets', '~> 4.0'
 gem 'turbolinks'
 
