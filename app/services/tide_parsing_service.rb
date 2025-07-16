@@ -9,7 +9,7 @@ module TideParsingService
       response = Faraday.get(url)
       return unless [400, 403, 500].include?(response.status)
 
-      er.add :station, "We can not connect to this url #{er.inspect}"
+      e.add :station, "We can not connect to this url #{e.inspect}"
     rescue Errno::ECONNREFUSED => e
       e.add :station, "We can not connect to this url #{e}"
     rescue Errno::ENOENT => e
