@@ -67,7 +67,7 @@ jobs:
           name: Security Audit
           command: |
             set -e
-            bundle exec bundle-audit check --update
+            bundle exec bundler-audit check --update
       
       - run:
           name: Run Brakeman Security Scan
