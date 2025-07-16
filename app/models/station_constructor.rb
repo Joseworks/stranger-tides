@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Forms the API request.
 
 class StationConstructor

@@ -1,0 +1,94 @@
+version: 2.1
+
+orbs:
+  ruby: circleci/ruby@1.4
+
+jobs:
+  test:
+    docker:
+      - image: cimg/ruby:3.3.7
+        environment:
+          PGHOST: localhost
+          PGUSER: postgres
+          RAILS_ENV: test
+          DATABASE_URL: postgresql://postgres@localhost/stranger_tides_test
+      - image: postgres:14
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: stranger_tides_test
+          POSTGRES_PASSWORD: "postgres"
+          POSTGRES_HOST_AUTH_METHOD: trust
+    steps:
+      - checkout
+      
+      # Cache gems for faster builds
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "Gemfile.lock" }}
+            - v1-dependencies-
+      
+      - ruby/install-deps:
+          app-dir: ./
+      
+      # Cache gems after installation
+      - save_cache:
+          paths:
+            - vendor/bundle
+          key: v1-dependencies-{{ checksum "Gemfile.lock" }}
+      
+      - run:
+          name: Wait for Database
+          command: |
+            set -e
+            dockerize -wait tcp://localhost:5432 -timeout 1m
+      
+      - run:
+          name: Setup Database
+          command: |
+            set -e
+            bundle exec rake db:create db:schema:load
+      
+      - run:
+          name: Update RuboCop Configuration
+          command: |
+            set -e
+            if grep -q "TargetRubyVersion: 2.6" .rubocop.yml; then
+              sed -i 's/TargetRubyVersion: 2.6/TargetRubyVersion: 3.3/' .rubocop.yml
+              echo "Updated RuboCop target Ruby version to 3.3"
+            fi
+      
+      - run:
+          name: Run RuboCop
+          command: |
+            set -e
+            bundle exec rubocop --parallel
+      
+      - run:
+          name: Security Audit
+          command: |
+            set -e
+            bundle exec bundler-audit check --update
+      
+      - run:
+          name: Run Brakeman Security Scan
+          command: |
+            set -e
+            bundle exec brakeman --no-exit-on-warn
+      
+      - run:
+          name: Precompile Assets
+          command: |
+            set -e
+            RAILS_ENV=test bundle exec rails assets:precompile
+      
+      - run:
+          name: Run Tests
+          command: |
+            set -e
+            bundle exec rspec
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test

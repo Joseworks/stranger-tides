@@ -31,4 +31,4 @@
 /config/master.key
 /coverage/*
 .ENV
-stranger_tides_notes_do_not_commit.rb
+/stranger_tides_notes_do_not_commit.*

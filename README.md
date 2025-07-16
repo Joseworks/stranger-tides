@@ -1,82 +1,125 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/29184c02a0f52a69800c/maintainability)](https://codeclimate.com/github/Joseworks/stranger-tides/maintainability)
-
 [![Test Coverage](https://api.codeclimate.com/v1/badges/29184c02a0f52a69800c/test_coverage)](https://codeclimate.com/github/Joseworks/stranger-tides/test_coverage)
-
 [![Ruby Style Guide](https://img.shields.io/badge/code_style-rubocop-brightgreen.svg)](https://github.com/rubocop/rubocop)
-
 [![Ruby Style Guide](https://img.shields.io/badge/code_style-community-brightgreen.svg)](https://rubystyle.guide)
 
-* ### See the live version on [stranger-tides.com](https://www.stranger-tides.com/)
+See the live version: [stranger-tides.com](https://www.stranger-tides.com/)
 
-Note:  Specs, testing, and development are still in progress.
-       This code/site/code has no affiliation whatsoever with NOAA, COOPS (Center for Operational Oceanographic Products and Services), NWLON (National Water Level Observation Network ) or any other government institutions.
+> **Note:** This project is not affiliated with NOAA, COOPS, NWLON, or any government institution. Data is for demonstration only.
 
-* Ruby version 3.3.7 
-* Rails version 7.0.4.3
+---
 
-* System dependencies
+## Table of Contents
+- [About](#about)
+- [Quick Start](#quick-start)
+- [System Dependencies](#system-dependencies)
+- [Database](#database)
+- [Usage](#usage)
+- [Rake Tasks](#rake-tasks)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [License](#license)
 
- - Puma as a web server
- - Foreman as a manager for Procfile-based applications
- - Lazy high charts
- - gon
- - Rspec
- - Travis CI for continuous integration testing.
+---
 
-* Database
- - PostgreSQL
+## About
+This app displays NOAA real-time tide stations on a Google Map. Clicking a station shows the last 24 hours of tide data. Station data is loaded from a text file (see `data/station_list.txt`) and metadata is parsed and stored in the database.
 
-* How to run the test suite
- - rspec spec
+---
 
-Please feel free to use a different markup language if you do not plan to run
-<tt>rake doc:app</tt>.
+## Quick Start
 
+```sh
+# Clone the repo
+ git clone https://github.com/Joseworks/stranger-tides.git
+ cd stranger-tides
 
-* Scope:
-The app is intended to display NOAA real-time reporting tide stations in a map rendered by Google Maps Javascript API. Once clicked on the map, it should render the last 24 hrs for tide level information retrieved., including the current level.
+# Install dependencies
+ bundle install
 
-To achieve that, a rake process will read all the current tide stations from a txt file ( station_list.txt). This is necessary because when the app is being written NOAA does not provide an online service or list that can be retrieved in any other way than 'scraping' the information of a website. I am considering writing a small JSON API to hold this data.
+# Set up the database
+ rails db:create db:migrate
 
-### There are three rake tasks:
+# (Optional) Seed or process station data
+ rake stations_id_list:process_station_list
+ rake station_list:retrieve_all_stations_metadata
 
- - rake station_list:delete_station_list
-  Delete all of the stations information from the database
+# Start the server
+ rails server
+```
 
- - rake station_list:process_station_list
-  Reads the list of all stations from station_list.txt, and saves a single row in the database with a tide_info array of text containing all of the reporting stations id's:
+---
 
-  SELECT  "stations".* FROM "stations"  ORDER BY "stations"."id" DESC LIMIT 1
- => ["9461380", "9461710",...]
+## System Dependencies
+- Ruby 3.3.7
+- Rails 7.0.4.3
+- PostgreSQL
+- Node.js (for JS assets)
+- [Puma](https://github.com/puma/puma) (web server)
+- [Foreman](https://github.com/ddollar/foreman) (Procfile manager)
+- [gon](https://github.com/gazay/gon) (JS data sharing)
+- [Rspec](https://rspec.info/) (testing)
+- [CircleCI](https://circleci.com/) (CI/CD)
 
+---
 
-- rake station_list:retrieve_all_stations_metadata # Run Process
+## Database
+- Uses PostgreSQL
+- Station metadata is stored as a `jsonb` column for efficient querying
 
-Reads the list of all stations from station_list.txt, and appends to the record saved by the above process another single row with a JSON field (metadata) that stores all of the station's metadata, eg:
+---
 
-  {"station_id"=>"9461380",
-   "station_name"=>"Adak Island",
-   "latitude"=>"51.8633",
-    "longitude"=>"-176.6320"}
+## Usage
+- Visit the app in your browser (default: http://localhost:3000)
+- Click a station on the map to view tide data
 
-This rake task uses the TideParsingService, and prevents inconsistent data if a station in particular is not reporting tide levels. It also parses the parameters 's' and the timestamps for these readings.
+---
 
+## Rake Tasks
+- `rake stations_delete:delete_station_list` — Delete all station info
+- `rake stations_id_list:process_station_list` — Load station list from file
+- `rake station_list:retrieve_all_stations_metadata` — Fetch and store station metadata
+- `rake highcharts:update` — Update HighCharts assets
 
+---
 
-* Deployment instructions
-rake stations_delete:delete_station_list          # Delete Station List
-rake stations_id_list:process_station_list        # Station List
-rake station_list:retrieve_all_stations_metadata  # Process metadata
+## Testing
+- Run all tests:
+  ```sh
+  bundle exec rspec
+  ```
+- Code style:
+  ```sh
+  rubocop
+  ```
+- Security:
+  ```sh
+  bundle audit
+  bundle exec brakeman
+  ```
 
+---
 
+## Deployment
+- Use the provided Rake tasks to prepare data
+- Deploy to your preferred platform (Heroku, Render, etc.)
+- Ensure environment variables and DB are configured
 
-Note from NOAA: These raw data have not been subjected to the National Ocean Service's quality control or quality assurance procedures and do not meet the criteria and standards of official National Ocean Service data. They are released for limited public use as preliminary data to be used only with appropriate caution.
-Source: [NOAA Tides and Currents](https://tidesandcurrents.noaa.gov/waterlevels.html?id=8724580)
+---
 
-#### Update HighCharts
-rake highcharts:update
+## Contributing
+1. Fork the repo and create your branch from `main`
+2. Run tests and Rubocop before submitting PRs
+3. Open an issue for major changes
+4. All contributions welcome!
 
-Copyright (c) 2015 [Jose C Fernandez](https://www.joseworks.org/) released under the MIT license
+---
+
+## License
+Copyright (c) 2015 [Jose C Fernandez](https://www.joseworks.org/) — MIT License
+
+---
 
 ## Stargazers over time
 [![Stargazers over time](https://starchart.cc/Joseworks/stranger-tides.svg?variant=adaptive)](https://starchart.cc/Joseworks/stranger-tides) 

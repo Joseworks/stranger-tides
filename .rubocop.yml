@@ -7,14 +7,9 @@ plugins:
   - rubocop-rails
   - rubocop-rake
   - rubocop-factory_bot
+  - rubocop-internal_affairs
 
 inherit_from: .rubocop_todo.yml
-require:
-  - rubocop/cop/internal_affairs
-  - rubocop-performance
-  - rubocop-rspec
-  - rubocop-rake
-  - rubocop-rails
 
 AllCops:
   NewCops: enable
@@ -26,10 +21,10 @@ AllCops:
     - 'public/**/*'
     - 'stranger_tides_notes_do_not_commit.rb'
 
-  TargetRubyVersion: 2.6
+  TargetRubyVersion: 3.3
   DisplayCopNames: true
 
-Naming/PredicateName:
+Naming/PredicatePrefix:
   # Method define macros for dynamically generated method.
   MethodDefinitionMacros:
     - define_method
@@ -139,10 +134,6 @@ Naming/InclusiveLanguage:
     - lib/rubocop/cop/mixin/auto_corrector.rb
     - spec/rubocop/cop/naming/inclusive_language_spec.rb
 
-
-  NumericLiterals:
-    Enabled: false
-
 RSpec:
   Language:
     Expectations:
@@ -153,11 +144,6 @@ RSpec:
       - expect_feature_loader
       - expect_no_offenses
       - expect_offense
-
-RSpec/FilePath:
-  Exclude:
-    - spec/rubocop/cop/internal_affairs/redundant_let_rubocop_config_new_spec.rb
-    - spec/rubocop/formatter/junit_formatter_spec.rb
 
 RSpec/PredicateMatcher:
   Enabled: false
@@ -214,5 +200,5 @@ Gemspec/DependencyVersion:
 Style/RequireOrder:
   Enabled: true
 
-Documentation:
+Style/Documentation:
   Enabled: false

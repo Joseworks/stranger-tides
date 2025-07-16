@@ -4,21 +4,34 @@ source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 ruby '3.3.7'
-gem 'rails', '~> 7.0.4', '>= 7.0.4.3'
+gem 'rails', '~> 7.1.0'
 
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem 'bigdecimal'
+gem 'drb'
 gem 'faraday'
 gem 'gon'
 gem 'jquery-rails'
-gem 'js_assets'
 gem 'lazy_high_charts'
+gem 'mutex_m' # Mutex_m is a simple mutex class for Ruby, resolve warning in Rails 7
 gem 'pg'
 gem 'puma'
 gem 'sassc-rails'
 gem 'sidekiq', '< 7.0'
 gem 'sprockets', '~> 4.0'
 gem 'turbolinks'
+
+# JavaScript handling
+gem 'importmap-rails'
+gem 'sprockets-rails', '~> 3.4.2'
+
+# Use Redis adapter to run Action Cable in production
+# gem 'redis'
+
+# Use Active Model has_secure_password
+# [https://guides.rubyonrails.org/active_model_basics.html
+# #securepassword]
+# gem "bcrypt", "~> 3.1.7"
 
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
 # gem 'importmap-rails'
@@ -38,7 +51,9 @@ gem 'turbolinks'
 # Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
 # gem "kredis"
 
-# Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
+# Use Active Model has_secure_password
+# [https://guides.rubyonrails.org/active_model_basics.html
+# #securepassword]
 # gem "bcrypt", "~> 3.1.7"
 
 gem 'tzinfo-data', platforms: %i[mingw mswin x64_mingw jruby]
@@ -46,7 +61,9 @@ gem 'tzinfo-data', platforms: %i[mingw mswin x64_mingw jruby]
 # # Use Sass to process CSS
 # gem 'sassc-rails'
 
-# Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
+# Use Active Storage variants
+# [https://guides.rubyonrails.org/active_storage_overview.html
+# #transforming-images]
 # gem "image_processing", "~> 1.2"
 
 group :development, :test do
@@ -57,6 +74,14 @@ group :development, :test do
   gem 'pry-byebug'
   gem 'rails-controller-testing'
   gem 'rspec-rails'
+  # Code quality
+  gem 'brakeman', require: false
+  gem 'bullet', require: false
+  gem 'bundler-audit', require: false
+  gem 'debride', require: false
+  # gem 'flay', require: false
+  # gem 'flog', require: false
+  # gem 'reek', require: false
   gem 'rubocop', require: false
   gem 'rubocop-factory_bot', require: false
   gem 'rubocop-performance', require: false
@@ -72,7 +97,6 @@ gem 'concurrent-ruby', '< 1.3.4'
 
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
-  gem 'bundle-audit'
   gem 'web-console'
 
   # Add speed badges [https://github.com/MiniProfiler/rack-mini-profiler]

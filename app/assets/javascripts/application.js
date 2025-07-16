@@ -17,4 +17,3 @@
 
 //= require highcharts/highcharts
 //= require highcharts/highcharts-more
-//= require app_assets
