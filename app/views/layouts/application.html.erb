@@ -8,7 +8,7 @@
     <meta content="NOAA NOS National Ocean Observing System Operational Oceanograpic Products Center for Operational Oceanographic Products and Services Active Stations  Ruby on Rails Demo Interactive Map  Water Levels Station Selection  JoseWorks Technologies LLC www.joseworks.org  " name="description">
     <%= include_gon if defined?(Gon) %>
     <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track' => true %>
-    <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
+    <%= javascript_importmap_tags %>
   </head>
 
   <body>
