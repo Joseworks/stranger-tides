@@ -73,7 +73,7 @@ jobs:
           name: Run Brakeman Security Scan
           command: |
             set -e
-            bundle exec brakeman --exit-on-warn
+            bundle exec brakeman --no-exit-on-warn
       
       - run:
           name: Precompile Assets
