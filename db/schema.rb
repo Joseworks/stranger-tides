@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_03_14_190912) do
+ActiveRecord::Schema[7.0].define(version: 2024_06_07_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -19,7 +19,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_14_190912) do
     t.text "tide_info", default: [], array: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.json "metadata", default: {}, null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.index ["metadata"], name: "index_stations_on_metadata", using: :gin
+    t.index ["station_name"], name: "index_stations_on_station_name"
   end
 
 end
