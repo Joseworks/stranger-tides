@@ -12,7 +12,6 @@ gem 'drb'
 gem 'faraday'
 gem 'gon'
 gem 'jquery-rails'
-# gem 'js_assets'  # Removing this gem as it's incompatible with Sprockets 4
 gem 'lazy_high_charts'
 gem 'mutex_m' # Mutex_m is a simple mutex class for Ruby, resolve warning in Rails 7
 gem 'pg'
