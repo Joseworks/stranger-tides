@@ -24,7 +24,7 @@ AllCops:
   TargetRubyVersion: 3.3
   DisplayCopNames: true
 
-Naming/PredicateName:
+Naming/PredicatePrefix:
   # Method define macros for dynamically generated method.
   MethodDefinitionMacros:
     - define_method
