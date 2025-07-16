@@ -37,14 +37,6 @@ jobs:
           key: v1-dependencies-{{ checksum "Gemfile.lock" }}
       
       - run:
-          name: Fix JavaScript Dependencies
-          command: |
-            set -e
-            bundle remove js_assets || true
-            bundle add sprockets-rails --version "~> 3.4.2"
-            bundle install
-      
-      - run:
           name: Wait for Database
           command: |
             set -e
