@@ -145,7 +145,7 @@ RSpec:
       - expect_no_offenses
       - expect_offense
 
-Rails/FilePath:
+RSpec/FilePath:
   Exclude:
     - spec/rubocop/cop/internal_affairs/redundant_let_rubocop_config_new_spec.rb
     - spec/rubocop/formatter/junit_formatter_spec.rb
