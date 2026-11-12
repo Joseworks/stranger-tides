@@ -4,7 +4,7 @@ source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 ruby '3.3.7'
-gem 'rails', '~> 7.2.0'
+gem 'rails', '~> 8.0.0'
 
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem 'bigdecimal'
@@ -17,13 +17,13 @@ gem 'mutex_m' # Mutex_m is a simple mutex class for Ruby, resolve warning in Rai
 gem 'pg'
 gem 'puma'
 gem 'sassc-rails'
-gem 'sidekiq', '< 7.0'
+gem 'redis', '~> 5.0' # Action Cable; the application has no Sidekiq workers
 gem 'sprockets', '~> 4.0'
 gem 'turbolinks'
 
 # JavaScript handling
 gem 'importmap-rails'
-gem 'sprockets-rails', '~> 3.4.2'
+gem 'sprockets-rails', '~> 3.5'
 
 # Use Redis adapter to run Action Cable in production
 # gem 'redis'
@@ -92,8 +92,7 @@ group :development, :test do
   gem 'simplecov', require: false
 end
 
-# Logger fix for Rails 7 https://github.com/facebook/react-native/commit/198adb47af3676c85b35adb308c110c1d87120c8
-gem 'concurrent-ruby', '< 1.3.4'
+gem 'logger'
 
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
