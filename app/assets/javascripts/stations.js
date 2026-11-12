@@ -171,7 +171,7 @@ function _newGoogleMapsMarker(param) {
   var r = new google.maps.Marker({
     map: param._map,
     position: new google.maps.LatLng(param._lat, param._lng),
-    icon: asset_path('orange_marker.png'),
+    icon: document.getElementById(map_div).dataset.markerIcon,
     title: param._data
   });
   if (param._data) {
@@ -201,10 +201,11 @@ function ajaxToController(station_sent) {
   $.ajax({
     url: "./show_graph",
     type: "POST",
+    dataType: "script",
     data: {
       content: station_sent
     }
-  }).success(function(data) {});
+  });
 };
 
 
