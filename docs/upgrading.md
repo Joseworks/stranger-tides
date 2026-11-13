@@ -2,7 +2,7 @@
 
 Work is on `codex/dependency-modernization`. Never merge this branch merely to test staging: both apps currently auto-deploy `main`.
 
-## Deployment inventory (read-only inspection, 2026-11-12)
+## Initial deployment inventory (before upgrade, 2026-11-12)
 
 | Setting | Production | Staging |
 | --- | --- | --- |
@@ -25,13 +25,13 @@ Ruby **4.0.9**, Rails **8.1.4.1**, Bundler **4.0.24**, Puma **8.0.2**, Rack **3.
 
 The upgrade was tested through Rails 7.2, 8.0, and 8.1 checkpoints. All 38 current specs pass with Ruby 4.0.9 against both the repo schema and an isolated database matching production's integer primary key, JSON metadata column, and absent station indexes. Local PostgreSQL is 14.17; production is 15.18, and GitHub Actions tests PostgreSQL 15 and 18, and CircleCI uses PostgreSQL 15. The new GitHub workflow pins action revisions, has read-only repository permissions, and does not deploy. RuboCop reports zero offenses, Brakeman 8.1.0 reports zero security warnings, and bundler-audit reports no known vulnerabilities against advisory database commit `4d71b123428e33f694e805ce15351ee3d8d62ef7` (2026-11-11). Eager loading and production asset compilation pass. `bundle outdated --strict` reports the bundle is up to date.
 
-A real NOAA request for San Francisco returns a chart. A production-mode local browser test renders that live chart with Highcharts 13.1.1 and verifies its close button. The Google Maps key correctly rejects localhost with `RefererNotAllowedMapError`; no key restrictions were relaxed. Full map/marker verification still requires the staging domain.
+A real NOAA request for San Francisco returns a chart. A production-mode local browser test renders that live chart with Highcharts 13.1.1 and verifies its close button. The Google Maps key correctly rejects localhost with `RefererNotAllowedMapError`; no key restrictions were relaxed. The staging domain now renders the full map and its fingerprinted marker icons. Selecting West Sacramento (`9416131`) and Duluth (`9099064`) renders live two-day tide/water-level graphs with Highcharts 13.1.1. Closing the chart restores the full-size map. Browser console error checks were empty, and staging logs confirm HTTP 200 for the page, CSS, JavaScript, marker icon, and graph request.
 
 SassC was removed by compiling the existing stylesheet to equivalent plain CSS. Assets use a new cache directory to avoid restored Heroku cache entries referencing the removed SassC processors; asset version 2.0 also invalidates old fingerprints. The obsolete `bin/bundle` launcher was removed following the buildpack compatibility warning. jQuery 3 and explicit JavaScript graph responses replace the old jQuery 1 path. The map marker URL now comes from Rails' fingerprinted asset helper in the HTML rather than the removed `js_assets` global helper. Framework defaults remain at 7.0 to limit behavioral changes; the cache format is set to 7.1 because Rails 8 removes the older format. This app does not use image variants, so their processor is disabled rather than adding an unused image library.
 
 The application has no Sidekiq workers or worker dyno. Sidekiq's obsolete Rack constraint was removed; Redis remains explicitly available for Action Cable. Turbolinks, LazyHighCharts, and Sprockets are retained to preserve the existing UI; their latest compatible releases are locked. Historical, inactive Highcharts modules are not loaded by the asset manifest.
 
-Staging database provisioning was approved at $5/month, but Heroku rejected it because the authenticated `jfernandez700@gmail.com` account is a collaborator. Only the owner `josefernandez@joseworks.org` can provision the paid add-on. Production configuration, dynos, releases, data, and automatic deployment settings have not been changed.
+The owner browser session provisioned the approved $5/month Essential-0 database `postgresql-triangular-09009` on staging (PostgreSQL 18.4). Its host and credentials differ from production. Before schema loading, the database was verified to contain only the two PostgreSQL statistics views and no application tables. Schema loading and seeding were guarded by the staging database hostname and checks for absent tables/an empty dataset. A single public NOAA metadata request populated 303 water-level stations, without copying production data. Staging maintenance mode is now off, and its existing Eco web dyno is running. Adding the database created staging release v129 with the same tested application slug. Production remains on v264: its configuration, dynos, releases, database, and automatic deployment settings have not been changed.
 
 ## Local validation
 
