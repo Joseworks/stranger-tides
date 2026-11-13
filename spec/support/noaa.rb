@@ -8,7 +8,7 @@ RSpec.configure do |config|
 
     stub_request(:get, %r{https://api\.tidesandcurrents\.noaa\.gov/api/prod/datagetter})
       .to_return do |request|
-      station_id = CGI.parse(request.uri.query).fetch('station').first
+      station_id = URI.decode_www_form(request.uri.query).to_h.fetch('station')
       name, latitude, longitude = {
         '9461710' => ['Atka', '52.2319', '-174.1725'],
         '9461380' => ['Adak Island', '51.8606', '-176.6376']

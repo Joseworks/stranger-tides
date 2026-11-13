@@ -1,94 +1,58 @@
 version: 2.1
 
-orbs:
-  ruby: circleci/ruby@1.4
-
 jobs:
   test:
     docker:
-      - image: cimg/ruby:3.3.7
+      - image: cimg/ruby:4.0.9
         environment:
-          PGHOST: localhost
-          PGUSER: postgres
           RAILS_ENV: test
-          DATABASE_URL: postgresql://postgres@localhost/stranger_tides_test
-      - image: postgres:14
+          DATABASE_URL: postgresql://postgres:postgres@localhost/stranger_tides_test
+          BUNDLE_PATH: vendor/bundle
+      - image: postgres:15
         environment:
           POSTGRES_USER: postgres
           POSTGRES_DB: stranger_tides_test
-          POSTGRES_PASSWORD: "postgres"
-          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_PASSWORD: postgres
     steps:
       - checkout
-      
-      # Cache gems for faster builds
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "Gemfile.lock" }}
-            - v1-dependencies-
-      
-      - ruby/install-deps:
-          app-dir: ./
-      
-      # Cache gems after installation
+            - v2-ruby-4.0.9-{{ arch }}-{{ checksum "Gemfile.lock" }}
+      - run:
+          name: Install locked dependencies
+          command: |
+            gem install bundler -v 4.0.24 --no-document
+            BUNDLE_FROZEN=true bundle install --jobs 4
       - save_cache:
           paths:
             - vendor/bundle
-          key: v1-dependencies-{{ checksum "Gemfile.lock" }}
-      
+          key: v2-ruby-4.0.9-{{ arch }}-{{ checksum "Gemfile.lock" }}
       - run:
-          name: Wait for Database
-          command: |
-            set -e
-            dockerize -wait tcp://localhost:5432 -timeout 1m
-      
+          name: Wait for PostgreSQL
+          command: dockerize -wait tcp://localhost:5432 -timeout 60s
       - run:
-          name: Setup Database
-          command: |
-            set -e
-            bundle exec rake db:create db:schema:load
-      
+          name: Load disposable test database schema
+          command: bundle exec rails db:schema:load
       - run:
-          name: Update RuboCop Configuration
-          command: |
-            set -e
-            if grep -q "TargetRubyVersion: 2.6" .rubocop.yml; then
-              sed -i 's/TargetRubyVersion: 2.6/TargetRubyVersion: 3.3/' .rubocop.yml
-              echo "Updated RuboCop target Ruby version to 3.3"
-            fi
-      
+          name: Verify eager loading
+          command: bundle exec rails zeitwerk:check
+      - run:
+          name: Run regression tests (NOAA HTTP is stubbed)
+          command: bundle exec rspec
       - run:
           name: Run RuboCop
-          command: |
-            set -e
-            bundle exec rubocop --parallel
-      
+          command: bundle exec rubocop
       - run:
-          name: Security Audit
-          command: |
-            set -e
-            bundle exec bundler-audit check --update
-      
+          name: Audit dependency vulnerabilities
+          command: bundle exec bundler-audit check --update
       - run:
-          name: Run Brakeman Security Scan
-          command: |
-            set -e
-            bundle exec brakeman --no-exit-on-warn
-      
+          name: Scan application security (warnings fail CI)
+          command: bundle exec brakeman --no-pager
       - run:
-          name: Precompile Assets
-          command: |
-            set -e
-            RAILS_ENV=test bundle exec rails assets:precompile
-      
-      - run:
-          name: Run Tests
-          command: |
-            set -e
-            bundle exec rspec
+          name: Compile production assets
+          command: SECRET_KEY_BASE_DUMMY=1 RAILS_ENV=production bundle exec rails assets:precompile
 
 workflows:
-  version: 2
   test:
     jobs:
       - test

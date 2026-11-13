@@ -22,4 +22,24 @@ RSpec.describe 'ShowStations' do
       expect(response).to render_template 'stations/show_stations'
     end
   end
+
+  describe 'POST /show_graph' do
+    before do
+      post '/show_graph', params: { content: '1617433' },
+                          headers: { 'X-Requested-With' => 'XMLHttpRequest',
+                                     'Accept' => 'text/javascript' }
+    end
+
+    it 'responds successfully' do
+      expect(response).to have_http_status(:success)
+    end
+
+    it 'responds with JavaScript' do
+      expect(response.media_type).to eq('text/javascript')
+    end
+
+    it 'renders the selected station chart' do
+      expect(response.body).to include('Highcharts', 'Kawaihae', 'tide-graph')
+    end
+  end
 end

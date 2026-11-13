@@ -3,17 +3,11 @@
 require 'rails_helper'
 
 RSpec.describe StationConstructor do
-  describe StationConstructor do
-    station_id = 8_454_000
-    datum = 'MLLW'
-    current_station_data_range = StationDataRangeConstructor.new(station_id,
-                                                                 datum).range_constructor
-    constructed_station = described_class.new(current_station_data_range)
+  subject(:response_body) { Net::HTTP.get(constructed_station.url_constructor) }
 
-    subject { Net::HTTP.get(constructed_station.url_constructor) }
+  let(:station_params) { StationDataRangeConstructor.new(8_454_000, 'MLLW').range_constructor }
+  let(:constructed_station) { described_class.new(station_params) }
 
-    it { is_expected.to be_an_instance_of(String) }
-
-    it { is_expected.to include('8454000') }
-  end
+  it { is_expected.to be_an_instance_of(String) }
+  it { is_expected.to include('8454000') }
 end

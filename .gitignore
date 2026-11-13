@@ -32,3 +32,11 @@
 /coverage/*
 .ENV
 /stranger_tides_notes_do_not_commit.*
+
+# Local credentials and developer environments
+.env
+.env.*
+!.env.example
+/.venv/
+/.ruby-lsp/
+/node_modules/

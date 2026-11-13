@@ -4,11 +4,7 @@ require 'rails_helper'
 
 RSpec.describe StationDataRangeConstructor do
   context 'with valid station_id' do
-    station_id = 1_234_567
-    datum = 'MLLW'
-
-    current_station = described_class.new(station_id, datum)
-    subject { current_station.range_constructor }
+    subject { described_class.new(1_234_567, 'MLLW').range_constructor }
 
     it { is_expected.to have_key(:my_station) }
     it { is_expected.to have_key(:product) }
@@ -27,10 +23,7 @@ RSpec.describe StationDataRangeConstructor do
   end
 
   context 'with invalid station_id' do
-    station_id = nil
-    datum = 'MLLW'
-    current_station = described_class.new(station_id, datum)
-    subject { current_station.range_constructor }
+    subject { described_class.new(nil, 'MLLW').range_constructor }
 
     it { is_expected.not_to include(my_station: 1_234_567) }
   end
