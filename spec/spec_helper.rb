@@ -11,6 +11,7 @@ SimpleCov.formatters =
 
 SimpleCov.start 'rails' do
   enable_coverage :branch
+  minimum_coverage line: 90, branch: 70
 
   skip %r{^/app/channels/}
   skip %r{^/db/schema/}

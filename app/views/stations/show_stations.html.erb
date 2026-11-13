@@ -1,13 +1,48 @@
-<p id="notice"><%= notice %></p>
-  <div id='header'>
-    NOAA/NOS/Operational Oceanographic Products Active Stations
-    <div class="blocktext">A Ruby on Rails Demo Interactive Map   by JoseWorks Technologies LLC</div>
-  </div>
-
-<div id="map-container-full">
-  <div id="full_map" data-marker-icon="<%= asset_path('orange_marker.png') %>"></div>
-</div>
-
-<script async defer
-  src="https://maps.googleapis.com/maps/api/js?key=<%= ENV['STRANGER_TIDES_EMBED_MAPS_API_KEY'] %>&callback=initMap">
-</script>
+<header id="header">
+  <a href="/" class="brand">Stranger Tides</a>
+  <p>NOAA water levels, tide predictions &amp; station conditions</p>
+</header>
+<main id="station-explorer">
+  <section class="discovery" aria-label="Find stations">
+    <label for="station-search">Find a station</label>
+    <input id="station-search" type="search" placeholder="Name, station ID, or state" autocomplete="off">
+    <label for="station-layer">Show stations</label>
+    <select id="station-layer">
+      <option value="waterlevels">Active water-level stations</option>
+      <option value="tidepredictions">Tide prediction locations</option>
+      <option value="waterlevelsandmet">Water-level &amp; weather stations</option>
+      <option value="all">All locations</option>
+    </select>
+    <p id="catalog-status" class="muted" role="status">Loading station catalog…</p>
+    <button id="locate" type="button">Find stations near me</button>
+    <p id="location-status" class="muted" role="status"></p>
+    <p id="result-count" aria-live="polite"></p>
+    <ul id="station-results" aria-label="Station results"></ul>
+    <button id="more-stations" type="button" hidden>Show more stations</button>
+  </section>
+  <section class="map-section" aria-label="Station map">
+    <p id="map-status" class="muted" role="status">Loading map. You can also use the station list.</p>
+    <div id="full_map" data-marker-icon="<%= asset_path('orange_marker.png') %>"
+         data-maps-key="<%= ENV['STRANGER_TIDES_EMBED_MAPS_API_KEY'] %>"
+         data-map-id="<%= ENV['STRANGER_TIDES_MAP_ID'] %>"></div>
+  </section>
+  <section id="station-panel" aria-labelledby="station-heading" hidden>
+    <div class="panel-heading">
+      <h1 id="station-heading" tabindex="-1">Station details</h1>
+      <button id="close-station" type="button" aria-label="Close station details">Close</button>
+    </div>
+    <div class="chart-controls">
+      <label>History <select id="history-hours" aria-label="History"><option value="24">24 hours</option><option value="48" selected>48 hours</option><option value="72">72 hours</option></select></label>
+      <label>Units <select id="height-units" aria-label="Units"><option value="english">Feet</option><option value="metric">Meters</option></select></label>
+      <label>Time <select id="display-zone" aria-label="Time"><option value="local">Your local time</option><option value="utc">UTC</option></select></label>
+    </div>
+    <p id="report-status" role="status" aria-live="polite"></p>
+    <button id="retry-report" type="button" hidden>Retry station data</button>
+    <div id="station-summary"></div>
+    <div id="graph-partial" aria-label="Water-level chart"></div>
+    <details id="observations-table"><summary>View measurements as a table</summary><div class="table-scroll"><table><caption>Observed water levels</caption><thead><tr><th scope="col">Time</th><th scope="col">Height</th><th scope="col">Quality</th></tr></thead><tbody id="measurement-rows"></tbody></table></div></details>
+    <p><a id="noaa-station-link" target="_blank" rel="noopener noreferrer">View this station at NOAA</a> · <button id="share-station" type="button">Copy station link</button></p>
+    <p class="muted">Source: NOAA CO-OPS. Demonstration only; not for navigation. Predictions and observations are different products.</p>
+  </section>
+  <noscript>JavaScript is needed for the interactive explorer. <a href="https://tidesandcurrents.noaa.gov/map/">Browse NOAA's station map.</a></noscript>
+</main>

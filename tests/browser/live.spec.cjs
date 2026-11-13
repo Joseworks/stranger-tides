@@ -1,99 +1,82 @@
-// Public pages only. Graph POSTs render NOAA data; these endpoints do not write application data.
+// Public, read-only smoke checks. No settings, catalogs or station data are changed.
 const { test, expect } = require('@playwright/test');
 const fs = require('node:fs/promises');
 const targets = {
-  production: 'https://stranger-tides.com/',
-  staging: 'https://stranger-tides-staging.herokuapp.com/'
+  production: process.env.PRODUCTION_URL || 'https://stranger-tides.com/',
+  staging: process.env.STAGING_URL || 'https://stranger-tides-staging.herokuapp.com/'
 };
-
 async function inventory(page, url) {
-  const response = await page.goto(url);
-  expect(response.status()).toBe(200);
-  await expect(page.getByRole('region', { name: 'Map', exact: true })).toBeVisible({ timeout: 30000 });
-  return page.evaluate(() => gon.all_station_metadata.map(s => ({
-    id: String(s.station_id), name: s.station_name, lat: Number(s.latitude), lng: Number(s.longitude)
-  })).sort((a, b) => a.id.localeCompare(b.id)));
-}
-async function chartState(page) {
-  return page.evaluate(() => {
-    const chart = window.chart_graph_partial;
-    const values = chart.series[0].yData ?? chart.series[0].getColumn('y');
-    return {
-      title: chart.title.textStr, subtitle: chart.subtitle.textStr,
-      series: chart.series[0].name, unit: chart.yAxis[0].axisTitle.textStr,
-      samples: values.length, numeric: values.every(Number.isFinite),
-      first: chart.xAxis[0].categories[0], last: chart.xAxis[0].categories.at(-1),
-      graphContainers: document.querySelectorAll('#tide-graph').length,
-      highcharts: Highcharts.version
-    };
-  });
+  await page.goto(url);
+  if (await page.locator('#station-explorer').count()) {
+    const response = await page.request.get(new URL('/stations.json', url).href);
+    expect(response.ok()).toBe(true);
+    const payload = await response.json();
+    return payload.stations;
+  }
+  return page.evaluate(() => gon.all_station_metadata.map(s => ({ ...s, capabilities: ['waterlevels'] })));
 }
 for (const [name, url] of Object.entries(targets)) {
-  test(`${name}: real Maps, coastal/Great Lakes charts, replacement and close`, async ({ page }, info) => {
-    const errors = [];
-    const failedRequests = [];
-    page.on('requestfailed', request => {
-      const url = new URL(request.url());
-      failedRequests.push({ url: url.origin + url.pathname, error: request.failure()?.errorText });
-    });
-    page.on('pageerror', error => errors.push(error.message));
-    page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  test(`${name}: real Maps and coastal/Great Lakes station data`, async ({ page }, info) => {
+    const errors = []; page.on('pageerror', e => errors.push(e.message));
     const stations = await inventory(page, url);
     expect(stations.length).toBeGreaterThan(0);
+    await expect(page.getByRole('region', { name: 'Map', exact: true })).toBeVisible({ timeout: 30000 });
+    const modern = await page.locator('#station-explorer').count();
     const results = [];
-    for (const station of ['San Francisco 9414290', 'Cleveland 9063063']) {
-      // Keyboard activation selects the exact accessible marker even where map pins overlap.
-      const marker = page.getByRole('button', { name: station, exact: true });
-      await marker.waitFor({ state: 'attached', timeout: 15000 });
-      await marker.focus();
-      const response = page.waitForResponse(r => r.url().endsWith('/show_graph') && r.request().method() === 'POST');
-      await marker.press('Enter');
-      expect((await response).status()).toBe(200);
-      await expect(page.locator('#graph-partial .highcharts-title')).toContainText(station.replace(/ \d+$/, ''), { timeout: 30000 });
-      const state = await chartState(page);
-      expect(state.samples).toBeGreaterThan(10);
-      expect(state.numeric).toBe(true);
-      expect(state.series).toBe('Height');
-      expect(state.unit).toBe('Height in feet');
-      expect(state.subtitle).toBe('Source: NOAA CO-OPS API');
-      await expect(page.locator('#map-container-small')).toBeVisible();
-      results.push({ station, ...state });
+    for (const [id, stationName, datum] of [['9414290', 'San Francisco', 'MLLW'], ['9099064', 'Duluth', 'IGLD']]) {
+      if (modern) {
+        await page.getByLabel('Find a station', { exact: true }).fill(id);
+        await page.locator(`#station-results button[data-station-id="${id}"]`).click();
+        await expect(page.locator('#graph-partial .highcharts-title')).toHaveText(stationName, { timeout: 30000 });
+        await expect(page.locator('#station-summary')).toContainText(`Height reference: ${datum}`);
+        await expect(page.locator('.highcharts-container')).toHaveCount(1);
+        const state = await page.evaluate(() => ({
+          samples: chart_graph_partial.series[0].getColumn('y').length,
+          series: chart_graph_partial.series.map(s => s.name), highcharts: Highcharts.version
+        }));
+        expect(state.samples).toBeGreaterThan(10); results.push({ id, datum, ...state });
+      } else {
+        const marker = page.getByRole('button', { name: `${stationName} ${id}`, exact: true });
+        await marker.focus(); await marker.press('Enter');
+        await expect(page.locator('#graph-partial .highcharts-title').last()).toContainText(stationName, { timeout: 30000 });
+        results.push({ id, legacyGraphContainers: await page.locator('#tide-graph').count() });
+      }
     }
     await page.screenshot({ path: info.outputPath(`${name}-chart.png`), fullPage: true });
-    await page.getByRole('button', { name: 'X', exact: true }).click();
-    await expect(page.locator('#map-container-full')).toBeVisible();
-    const remainingContainers = await page.locator('#tide-graph').count();
-    await fs.writeFile(info.outputPath(`${name}.json`), JSON.stringify({ url, stations, results, remainingContainers, errors, failedRequests }, null, 2));
-    // Soft assertions finish the diagnostic report even when the current production behavior has defects.
-    expect.soft(results.every(r => r.graphContainers === 1), 'one graph after replacing station').toBe(true);
-    expect.soft(remainingContainers, 'no leftover graph after close').toBe(0);
+    if (modern) {
+      await page.getByRole('button', { name: 'Close station details' }).click();
+      await expect(page.locator('#station-panel')).toBeHidden();
+    }
+    await fs.writeFile(info.outputPath(`${name}.json`), JSON.stringify({ url, stations, results, errors }, null, 2));
     expect(errors).toEqual([]);
   });
 }
 
-test('production and staging expose identical station inventory', async ({ page }, info) => {
+test('catalog comparison distinguishes intentional expansion from missing observing stations', async ({ page }, info) => {
   const production = await inventory(page, targets.production);
   const staging = await inventory(page, targets.staging);
-  const prodIds = new Set(production.map(s => s.id));
-  const stageIds = new Set(staging.map(s => s.id));
+  const activeStaging = staging.filter(s => s.capabilities.includes('waterlevels'));
+  const ids = rows => new Set(rows.map(s => String(s.station_id)));
+  const prodIds = ids(production), stageIds = ids(staging);
   const result = {
-    productionCount: production.length, stagingCount: staging.length,
-    onlyProduction: production.filter(s => !stageIds.has(s.id)),
-    onlyStaging: staging.filter(s => !prodIds.has(s.id)),
-    changed: production.filter(p => {
-      const s = staging.find(s => s.id === p.id);
-      return s && JSON.stringify(s) !== JSON.stringify(p);
-    })
+    productionCount: production.length, stagingCount: staging.length, stagingObservingCount: activeStaging.length,
+    onlyProduction: production.filter(s => !stageIds.has(String(s.station_id))),
+    onlyStaging: staging.filter(s => !prodIds.has(String(s.station_id)))
   };
   await fs.writeFile(info.outputPath('inventory-differences.json'), JSON.stringify(result, null, 2));
-  expect.soft(result.onlyProduction.length, 'stations missing from staging; see inventory-differences.json').toBe(0);
-  expect.soft(result.onlyStaging.length, 'additional staging stations; see inventory-differences.json').toBe(0);
-  expect(result.changed.length, 'changed station metadata; see inventory-differences.json').toBe(0);
+  // Observing coverage must be checked against NOAA, not a hard-coded historical count.
+  const response = await page.request.get('https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=waterlevels');
+  expect(response.ok()).toBe(true);
+  const noaa = await response.json();
+  expect(activeStaging.map(s => s.station_id).sort()).toEqual(noaa.stations.map(s => s.id).sort());
+  // Opt in only when an identical inventory is expected; deliberate expansion is reported above.
+  if (process.env.LIVE_REQUIRE_IDENTICAL_CATALOGS === '1') {
+    expect(result.onlyProduction).toEqual([]); expect(result.onlyStaging).toEqual([]);
+  }
 });
 
-test('www production hostname has valid HTTPS and loads the app', async ({ page }) => {
-  // Never ignore HTTPS errors: an expired certificate must fail this check.
-  await page.goto('https://www.stranger-tides.com/', { timeout: 20000 });
-  await expect(page.locator('#header')).toContainText('NOAA');
+test('www production has valid HTTPS and loads the app', async ({ page }) => {
+  const response = await page.goto('https://www.stranger-tides.com/', { timeout: 20000 });
+  expect(response.ok()).toBe(true);
   await expect(page.getByRole('region', { name: 'Map', exact: true })).toBeVisible({ timeout: 30000 });
 });

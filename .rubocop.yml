@@ -202,3 +202,10 @@ Style/RequireOrder:
 
 Style/Documentation:
   Enabled: false
+
+# Contract tests check the related parts of a single response together.
+RSpec/MultipleExpectations:
+  Max: 6
+
+RSpec/ExampleLength:
+  Max: 16
