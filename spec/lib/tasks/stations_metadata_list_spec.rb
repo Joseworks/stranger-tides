@@ -9,6 +9,9 @@ describe 'station_list' do
     load Rails.root.join('lib/tasks/stations_metadata_list.rake')
     load Rails.root.join('lib/tasks/stations_id_list.rake')
     Rake::Task.define_task(:environment)
+    allow(TideStationHandler).to receive(:new).and_return(
+      instance_double(TideStationHandler, parse_stations_id: %w[9461710 9461380])
+    )
   end
 
   describe 'station_list:retrieve_all_stations_metadata' do

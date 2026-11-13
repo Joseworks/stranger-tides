@@ -52,10 +52,10 @@ This app displays NOAA real-time tide stations on a Google Map. Clicking a stati
 ---
 
 ## System Dependencies
-- Ruby 3.3.7
-- Rails 7.0.4.3
+- Ruby 4.0.9
+- Rails 8.1.4.1
 - PostgreSQL
-- Node.js (for JS assets)
+- Bundler 4.0.24 (JavaScript assets use Sprockets; Node.js is not required)
 - [Puma](https://github.com/puma/puma) (web server)
 - [Foreman](https://github.com/ddollar/foreman) (Procfile manager)
 - [gon](https://github.com/gazay/gon) (JS data sharing)
@@ -95,16 +95,16 @@ This app displays NOAA real-time tide stations on a Google Map. Clicking a stati
   ```
 - Security:
   ```sh
-  bundle audit
+  bundle exec bundler-audit check --update
   bundle exec brakeman
   ```
 
 ---
 
 ## Deployment
-- Use the provided Rake tasks to prepare data
-- Deploy to your preferred platform (Heroku, Render, etc.)
-- Ensure environment variables and DB are configured
+Follow [the upgrade and Heroku rollout procedure](docs/upgrading.md). Both Heroku apps auto-deploy `main`; test the upgrade branch on staging before any merge. The old production deployment task is disabled.
+
+Do not run migrations or station deletion/reseeding tasks against the live database during this dependency upgrade.
 
 ---
 

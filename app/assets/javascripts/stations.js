@@ -171,8 +171,9 @@ function _newGoogleMapsMarker(param) {
   var r = new google.maps.Marker({
     map: param._map,
     position: new google.maps.LatLng(param._lat, param._lng),
-    icon: asset_path('orange_marker.png'),
-    title: param._data
+    icon: document.getElementById(map_div).dataset.markerIcon,
+    title: param._data,
+    optimized: false
   });
   if (param._data) {
     google.maps.event.addListener(r, 'click', function() {
@@ -201,10 +202,11 @@ function ajaxToController(station_sent) {
   $.ajax({
     url: "./show_graph",
     type: "POST",
+    dataType: "script",
     data: {
       content: station_sent
     }
-  }).success(function(data) {});
+  });
 };
 
 
@@ -249,6 +251,10 @@ function animateCircle(line) {
 
 
 function removeGraph() {
+  if (window.chart_graph_partial) {
+    window.chart_graph_partial.destroy();
+    window.chart_graph_partial = null;
+  }
   var elem_1 = document.getElementById('tide-graph-container');
   var elem_2 = document.getElementById('tide-graph');
   
