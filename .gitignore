@@ -40,3 +40,5 @@
 /.venv/
 /.ruby-lsp/
 /node_modules/
+/playwright-report/
+/test-results/

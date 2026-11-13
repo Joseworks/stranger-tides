@@ -1,0 +1,10 @@
+{
+  "name": "stranger-tides-browser-tests",
+  "private": true,
+  "scripts": {
+    "test:browser": "playwright test",
+    "test:live": "playwright test --config=playwright.live.config.cjs"
+  },
+  "engines": { "node": ">=22" },
+  "devDependencies": { "@playwright/test": "1.65.0" }
+}

@@ -68,3 +68,11 @@ Before changing production, verify `heroku releases:info v264 --app stranger-tid
 - [Heroku Ruby support](https://devcenter.heroku.com/articles/ruby-support-reference)
 - [Rails upgrade guide](https://guides.rubyonrails.org/upgrading_ruby_on_rails.html)
 - [Ruby downloads](https://www.ruby-lang.org/en/downloads/)
+
+## Automated frontend checks (2026-11-12)
+
+Playwright 1.65.0 is pinned with its npm lockfile. `npm run test:browser` runs deterministic Rails-to-browser regression checks for desktop Chromium, Android viewport Chromium, and iPhone viewport WebKit. It uses a local-only fixture database and NOAA stubs plus a test-only Maps adapter. GitHub Actions runs this suite on Ubuntu with PostgreSQL 15 and publishes its report/trace artifacts. Local macOS 13 cannot install the latest bundled engines; installed Chrome runs the desktop/Android checks, with WebKit verified in CI. See `tests/browser/README.md` for setup and limitations.
+
+`npm run test:live` separately tests the real hosted Maps SDK, San Francisco and Cleveland NOAA charts, chart replacement/close, full station inventory equality, and valid HTTPS on `www`. Hosted checks are manual to avoid unnecessary production/NOAA traffic and do not mutate hosted data/config. The browser suite exposed duplicate chart containers on both deployments and absent keyboard marker semantics for staging's optimized custom icons. The upgrade branch fixes chart cleanup and uses Google's documented `optimized: false` marker setting.
+
+Exact parity is currently blocked: production has 119 stations and staging 303, including two production-only stations, 186 staging-only stations and 82 shared stations with changed names/coordinates. Staging was populated from current NOAA public data, rather than a production snapshot. The hosted comparison reports these differences as failures. Production `www` also fails HTTPS: its certificate expired 2026-03-13 and Heroku reports incorrect DNS settings; the authoritative DNS servers return a forwarding IP for its A lookup. The apex site works. Repair registrar DNS and validate certificate renewal separately from the application upgrade; do not bypass TLS validation or promote the staging build as an outage fix.
