@@ -21,6 +21,17 @@
     chart = null; window.chart_graph_partial = null;
     byId('graph-partial').replaceChildren();
   }
+  function observedPoints(values) {
+    const points = [];
+    values.forEach((point, index) => {
+      const previous = values[index - 1];
+      if (previous && point.timestamp - previous.timestamp > 6 * 60000) {
+        points.push([previous.timestamp + 6 * 60000, null]);
+      }
+      points.push([point.timestamp, point.value]);
+    });
+    return points;
+  }
   function updateUrl() {
     const url = new URL(window.location.href);
     for (const [key, value] of Object.entries({ station: selected?.station_id, hours: byId('history-hours').value,
@@ -87,6 +98,7 @@
   function selectStation(station) {
     savedFocus = document.activeElement; selected = station; report = null;
     byId('station-panel').hidden = false; text('station-heading', `${stationLabel(station)} ${station.station_id}`);
+    byId('noaa-station-link').href = `https://tidesandcurrents.noaa.gov/stationhome.html?id=${encodeURIComponent(station.station_id)}`;
     if (window.matchMedia('(max-width: 760px)').matches) byId('station-panel').scrollIntoView({ block: 'start' });
     if (map) {
       const position = { lat: Number(station.latitude), lng: Number(station.longitude) };
@@ -143,12 +155,11 @@
     (report.sensors || []).filter(sensor => !sensor.enabled).forEach(sensor => {
       summary.append(element('p', `${sensor.name}: sensor disabled${sensor.message ? ` · ${sensor.message}` : ''}`, 'muted'));
     });
-    byId('noaa-station-link').href = report.source_url;
     const series = [ ['Observed water level', report.observations], ['Predicted water level', report.predictions] ]
       .filter(([, values]) => values.some(point => point.value !== null))
       .map(([name, values]) => ({ name: name === 'Predicted water level' && selected.prediction_type === 'S' ? 'Predicted high/low events' : name,
         type: name === 'Predicted water level' && selected.prediction_type === 'S' ? 'scatter' : 'line',
-        data: values.map(point => [point.timestamp, point.value]), connectNulls: false }));
+        data: name === 'Observed water level' ? observedPoints(values) : values.map(point => [point.timestamp, point.value]), connectNulls: false }));
     if (series.length) {
       chart = Highcharts.chart('graph-partial', {
         chart: { type: 'line', animation: false }, title: { text: stationLabel(selected) },

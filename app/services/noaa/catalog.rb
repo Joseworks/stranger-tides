@@ -39,9 +39,11 @@ module Noaa
     end
 
     def refresh(apply: false, allow_removals: false)
+      expected_snapshot_id = self.class.new.snapshot&.id
       retrieved_at = Time.current.iso8601(6)
       rows = CatalogLoader.new(@client).call
-      result = CatalogPublisher.new(rows, retrieved_at:).call(apply:, allow_removals:)
+      result = CatalogPublisher.new(rows, retrieved_at:, expected_snapshot_id:)
+                               .call(apply:, allow_removals:)
       remove_instance_variable(:@snapshot) if defined?(@snapshot)
       result
     end

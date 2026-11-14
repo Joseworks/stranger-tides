@@ -58,6 +58,40 @@ test('Great Lakes chart uses IGLD and closes with focus restored', async ({ page
   await expect(station(page, '9099064')).toBeFocused();
 });
 
+test('omitted observation rows break the line across a six-hour outage', async ({ page }) => {
+  let firstTimestamp;
+  await page.route('**/stations/9414290/report?*', async route => {
+    const response = await route.fetch(); const payload = await response.json();
+    const last = payload.observations.at(-1);
+    firstTimestamp = last.timestamp - 6 * 60 * 60000;
+    payload.observations = [{ ...payload.observations[0], timestamp: firstTimestamp,
+      time: new Date(firstTimestamp).toISOString() }, last];
+    await route.fulfill({ response, json: payload });
+  });
+  await page.goto('/'); await station(page, '9414290').click();
+  await expect(chart(page)).toHaveText('San Francisco, CA');
+  expect(await page.evaluate(() => chart_graph_partial.series[0].getColumn('y'))).toEqual([0.12, null, 0.18]);
+  expect(await page.evaluate(() => chart_graph_partial.series[0].getColumn('x')))
+    .toEqual([firstTimestamp, firstTimestamp + 6 * 60000, firstTimestamp + 6 * 60 * 60000]);
+  expect(await page.evaluate(() => chart_graph_partial.series[0].options.connectNulls)).toBe(false);
+});
+
+test('NOAA link follows selection immediately and survives the new station failing', async ({ page }) => {
+  let release; const barrier = new Promise(resolve => { release = resolve; });
+  await page.route('**/stations/9099064/report?*', async route => {
+    await barrier; await route.fulfill({ status: 503, json: { error: 'Station unavailable' } });
+  });
+  await page.goto('/'); await station(page, '9414290').click();
+  await expect(chart(page)).toHaveText('San Francisco, CA');
+  await expect(page.locator('#noaa-station-link')).toHaveAttribute('href', /id=9414290$/);
+  await station(page, '9099064').click();
+  await expect(page.locator('#report-status')).toContainText('Loading NOAA');
+  await expect(page.locator('#noaa-station-link')).toHaveAttribute('href', /id=9099064$/);
+  release();
+  await expect(page.locator('#report-status')).toContainText('Station unavailable');
+  await expect(page.locator('#noaa-station-link')).toHaveAttribute('href', /id=9099064$/);
+});
+
 test('replacing a station leaves one current chart and shareable URL', async ({ page }) => {
   await page.goto('/'); await station(page, '9414290').click(); await expect(chart(page)).toHaveText('San Francisco, CA');
   await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
@@ -92,6 +126,7 @@ test('NOAA outage offers a usable retry', async ({ page }) => {
   await page.route('**/stations/9414290/report?*', route => fail ? route.fulfill({ status: 503, json: { error: 'NOAA is temporarily unavailable.' } }) : route.continue());
   await page.goto('/'); await station(page, '9414290').click();
   await expect(page.locator('#report-status')).toContainText('temporarily unavailable');
+  await expect(page.locator('#noaa-station-link')).toHaveAttribute('href', /id=9414290$/);
   fail = false; await page.getByRole('button', { name: 'Retry station data' }).click();
   await expect(chart(page)).toHaveText('San Francisco, CA');
 });

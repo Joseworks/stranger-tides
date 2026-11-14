@@ -10,9 +10,8 @@ namespace :stations do
 
   desc 'Restore a previous catalog snapshot without deleting history; SNAPSHOT_ID is required'
   task rollback: :environment do
-    record = Station.find_by!(id: ENV.fetch('SNAPSHOT_ID'), station_name: Noaa::Catalog::SNAPSHOT_NAME)
-    Station.create!(station_name: record.station_name, metadata: record.metadata,
-                    tide_info: record.tide_info)
-    puts "Restored catalog snapshot #{record.id}."
+    snapshot_id = ENV.fetch('SNAPSHOT_ID')
+    restored = Noaa::CatalogPublisher.restore(snapshot_id:)
+    puts "Restored catalog snapshot #{snapshot_id} as publication #{restored.id}."
   end
 end

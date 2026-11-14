@@ -2,14 +2,31 @@
 
 module Noaa
   class CatalogPublisher
-    def initialize(rows, retrieved_at:)
+    def self.with_publication_lock
+      Station.transaction do
+        raise InvalidCatalog, 'Another catalog publication is running.' unless
+          Station.connection.select_value('SELECT pg_try_advisory_xact_lock(60804221)')
+
+        yield
+      end
+    end
+
+    def self.restore(snapshot_id:)
+      with_publication_lock do
+        record = Station.find_by!(id: snapshot_id, station_name: Catalog::SNAPSHOT_NAME)
+        Station.create!(station_name: record.station_name, metadata: record.metadata.deep_dup,
+                        tide_info: record.tide_info)
+      end
+    end
+
+    def initialize(rows, retrieved_at:, expected_snapshot_id:)
       @rows = rows
       @retrieved_at = retrieved_at
+      @expected_snapshot_id = expected_snapshot_id
     end
 
     def call(apply:, allow_removals:)
-      Station.transaction do
-        lock!
+      self.class.with_publication_lock do
         catalog = Catalog.new
         previous = catalog.stations
         report = differences(previous)
@@ -26,15 +43,17 @@ module Noaa
 
     private
 
-    def lock!
-      return if Station.connection.select_value('SELECT pg_try_advisory_xact_lock(60804221)')
-
-      raise InvalidCatalog, 'Another catalog refresh is running.'
+    def validate_publication!(snapshot)
+      # Snapshot IDs are publication generations, independent of NOAA data freshness.
+      # A rollback creates a new ID even when it restores an older retrieved_at.
+      raise InvalidCatalog, 'The catalog changed during discovery; retry the refresh.' if
+        snapshot&.id != @expected_snapshot_id
+      raise InvalidCatalog, 'A newer catalog was published while this refresh was running.' if
+        snapshot && snapshot.metadata.fetch('retrieved_at') > @retrieved_at
     end
 
     def validate!(snapshot, previous, report, apply:, allow_removals:)
-      raise InvalidCatalog, 'A newer catalog was published while this refresh was running.' if
-        snapshot && snapshot.metadata.fetch('retrieved_at') > @retrieved_at
+      validate_publication!(snapshot)
       raise InvalidCatalog, 'Review removed stations; retry with ALLOW_REMOVALS=1.' if
         apply && report[:removed].any? && !allow_removals
 

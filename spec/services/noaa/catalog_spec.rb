@@ -105,4 +105,53 @@ RSpec.describe Noaa::Catalog do
     expect { catalog.refresh(apply: true) }.to raise_error(Noaa::InvalidCatalog, /newer catalog/)
     expect(Station.count).to eq(1)
   end
+
+  it 'restores historical data as a new publication without changing its freshness or history' do
+    catalog.refresh(apply: true)
+    original = catalog.snapshot
+    original.update!(metadata: original.metadata.merge('retrieved_at' => 1.day.ago.iso8601(6)))
+    catalog.refresh(apply: true)
+    current = catalog.snapshot
+
+    restored = Noaa::CatalogPublisher.restore(snapshot_id: original.id)
+
+    expect(restored.id).to be > current.id
+    expect(restored.metadata).to eq(original.reload.metadata)
+    expect(restored.metadata['retrieved_at']).to eq(original.metadata['retrieved_at'])
+    expect(described_class.new.snapshot.id).to eq(restored.id)
+    expect(Station.count).to eq(3)
+  end
+
+  it 'rejects an in-flight refresh after a rollback, even though the restored data is older' do
+    catalog.refresh(apply: true)
+    original = catalog.snapshot
+    original.update!(metadata: original.metadata.merge('retrieved_at' => 1.day.ago.iso8601(6)))
+    catalog.refresh(apply: true)
+    rows = catalog.stations
+    loader = instance_double(Noaa::CatalogLoader)
+    allow(Noaa::CatalogLoader).to receive(:new).and_return(loader)
+    restored = nil
+    allow(loader).to receive(:call) do
+      restored = Noaa::CatalogPublisher.restore(snapshot_id: original.id)
+      rows
+    end
+
+    expect { catalog.refresh(apply: true) }.to raise_error(Noaa::InvalidCatalog, /catalog changed/)
+    expect(described_class.new.snapshot.id).to eq(restored.id)
+    expect(Station.count).to eq(3)
+  end
+
+  it 'refuses rollback while another publication holds the advisory lock' do
+    catalog.refresh(apply: true)
+    original = catalog.snapshot
+    connection = Station.connection
+    allow(connection).to receive(:select_value).and_call_original
+    allow(connection).to receive(:select_value)
+      .with('SELECT pg_try_advisory_xact_lock(60804221)').and_return(false)
+
+    expect do
+      Noaa::CatalogPublisher.restore(snapshot_id: original.id)
+    end.to raise_error(Noaa::InvalidCatalog, /Another catalog publication/)
+    expect(Station.count).to eq(1)
+  end
 end
