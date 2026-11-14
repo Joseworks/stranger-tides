@@ -18,17 +18,8 @@ module Noaa
       @now = Time.current.utc.change(sec: 0)
       datum = reference
       observed = capable?('waterlevels') ? optional_data('water_level', datum:) : []
-      prediction_interval = @station['prediction_type'] == 'S' ? 'hilo' : nil
-      predicted = if capable?('tidepredictions')
-                    optional_data('predictions', datum:, interval: prediction_interval)
-                  else
-                    []
-                  end
-      events = if capable?('tidepredictions')
-                 optional_data('predictions', datum:, interval: 'hilo', future: true)
-               else
-                 []
-               end
+      predicted = predictions(datum)
+      events = predictions(datum, future: true)
       latest = observed.rfind { |point| point[:value] }
       weather_series = weather
       verify_data_response!
@@ -36,6 +27,7 @@ module Noaa
         observations: observed, predictions: predicted, events: events,
         latest:, stale: latest.nil? || Time.iso8601(latest[:time]) < @now - 18.minutes,
         weather: latest_weather(weather_series),
+        station_timezone: StationTimeZone.new(id, client: @client).call,
         weather_series:, sensors: @sensors || [], warnings: @warnings || [],
         source_url: "https://tidesandcurrents.noaa.gov/stationhome.html?id=#{id}" }
     end
@@ -45,6 +37,13 @@ module Noaa
     def id = @station.fetch('station_id')
 
     def capable?(type) = @station.fetch('capabilities', []).include?(type)
+
+    def predictions(datum, future: false)
+      return [] unless capable?('tidepredictions')
+
+      interval = future || @station['prediction_type'] == 'S' ? 'hilo' : nil
+      optional_data('predictions', datum:, interval:, future:)
+    end
 
     def reference
       return nil unless capable?('waterlevels') || capable?('tidepredictions')

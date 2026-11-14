@@ -22,6 +22,9 @@ RSpec.describe Noaa::StationReport do
     stub_request(:get, 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/9414290/datums.json')
       .to_return(body: { datums: [{ name: 'MLLW' }] }.to_json)
     stub_request(:get, /sensors.json/).to_return(body: { sensors: [] }.to_json)
+    stub_request(:get, %r{/stations/[A-Za-z0-9]+\.json})
+      .to_return(body: { stations: [{ id: '9414290', timezonecorr: -8,
+                                      observedst: true }] }.to_json)
   end
 
   def water_request(datum: 'MLLW', body: { data: rows })
@@ -52,7 +55,7 @@ RSpec.describe Noaa::StationReport do
       timestamp: Time.utc(2026, 11, 13, 18, 48).to_i * 1000, quality: 'v', flags: '0,0,0,0'
     )
     expect(result[:latest][:value]).to eq(0.0)
-    expect(result[:stale]).to be(false)
+    expect(result).to include(stale: false, station_timezone: 'America/Los_Angeles')
     expect(request).to have_been_requested.once
     expect(WebMock).to have_requested(:get, /datums.json/).once
   end

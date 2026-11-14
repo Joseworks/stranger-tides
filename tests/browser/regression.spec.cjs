@@ -262,6 +262,39 @@ test('history, units, and time update existing charts without navigation or scro
   expect(navigations).toBe(initialNavigations); expect(reports).toBe(previousReports);
 });
 
+test('station local time updates all charts and shared links without fetching or scrolling', async ({ page }) => {
+  let reports = 0;
+  page.on('request', request => { if (request.url().includes('/report?')) reports++; });
+  await page.goto('/?station=9414290&zone=station');
+  await expect(chart(page)).toHaveText('San Francisco, CA');
+  await expect(page.locator('#station-summary')).toContainText('Times: America/Los_Angeles');
+  await page.getByLabel('Time', { exact: true }).scrollIntoViewIfNeeded();
+  const before = await page.evaluate(() => ({ y: scrollY, water: chart_graph_partial.index }));
+  const count = reports;
+  await page.getByLabel('Time', { exact: true }).selectOption('utc');
+  await page.getByLabel('Time', { exact: true }).selectOption('station');
+  expect(await page.evaluate(() => Highcharts.charts.filter(Boolean).map(c => c.options.time.timezone)))
+    .toEqual(Array(5).fill('America/Los_Angeles'));
+  expect(await page.evaluate(() => chart_graph_partial.index)).toBe(before.water);
+  expect(Math.abs(await page.evaluate(() => scrollY) - before.y)).toBeLessThan(2);
+  expect(reports).toBe(count); await expect(page).toHaveURL(/zone=station/);
+  await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
+  await expect(page.locator('#station-summary')).toContainText('Times: America/Chicago');
+});
+
+test('missing station time-zone metadata is explicit and does not break shared reports', async ({ page }) => {
+  await page.route('**/stations/9414290/report?*', async route => {
+    const response = await route.fetch(); const payload = await response.json();
+    payload.station_timezone = null; await route.fulfill({ response, json: payload });
+  });
+  await page.goto('/?station=9414290&zone=station'); await expect(chart(page)).toHaveText('San Francisco, CA');
+  await expect(page.locator('#display-zone option[value="station"]')).toBeDisabled();
+  await expect(page.locator('#display-zone option[value="station"]')).toHaveText('Station local time unavailable (UTC)');
+  await expect(page.locator('#station-summary')).toContainText('Times: UTC');
+  await page.getByLabel('Time', { exact: true }).selectOption('local');
+  await expect(page.locator('#weather-charts .highcharts-container')).toHaveCount(4);
+});
+
 test('a failed history refresh preserves the existing graphs and scroll position', async ({ page }) => {
   let fail = false;
   await page.route('**/stations/9414290/report?*', route => fail ?
