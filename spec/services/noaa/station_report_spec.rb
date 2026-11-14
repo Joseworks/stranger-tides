@@ -21,6 +21,7 @@ RSpec.describe Noaa::StationReport do
     travel_to(Time.utc(2026, 11, 13, 19))
     stub_request(:get, 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/9414290/datums.json')
       .to_return(body: { datums: [{ name: 'MLLW' }] }.to_json)
+    stub_request(:get, /sensors.json/).to_return(body: { sensors: [] }.to_json)
   end
 
   def water_request(datum: 'MLLW', body: { data: rows })
@@ -128,6 +129,25 @@ RSpec.describe Noaa::StationReport do
     expect(result[:latest][:value]).to eq(0.0)
     expect(result[:weather]).to eq({})
     expect(result[:warnings].pluck(:product)).to include('weather')
+  end
+
+  it 'returns full enabled sensor histories even without a catalog weather flag' do
+    water_request
+    weather_requests
+    request = stub_request(:get, /datagetter/)
+              .with(query: base.merge('product' => 'wind'))
+              .to_return(body: { data: [
+                { t: '2026-11-13 18:42', s: '0', g: '0' },
+                { t: '2026-11-13 18:48', s: '' },
+                { t: '2026-11-13 18:54', s: '12', g: '15' }
+              ] }.to_json)
+
+    result = described_class.new(station, client:).call
+    expect(result[:weather_series]['wind'].pluck(:value)).to eq([0.0, nil, 12.0])
+    expect(result[:weather]['wind']).to include(value: 12.0, gust: '15')
+    expect(result[:weather_series].keys).to contain_exactly('wind', 'air_pressure', 'humidity')
+    expect(result[:observations].first[:value]).to eq(0.0)
+    expect(request).to have_been_requested.once
   end
 
   it 'drops invalid timestamps and nonfinite numbers, sorts and deduplicates measurements' do

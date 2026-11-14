@@ -62,7 +62,8 @@ WebMock.stub_request(:get, data_url).to_return do |request|
   base = station['station_id'] == '9099064' ? 602.12 : 0.12
   rows = [18, 12, 6].map.with_index do |minutes, index|
     { t: (now - minutes.minutes).strftime('%Y-%m-%d %H:%M'),
-      v: index == 1 ? '' : (base + (index * 0.03)) * scale, q: 'p', f: '0,0,0,0', s: '10' }
+      v: index == 1 ? '' : (base + (index * 0.03)) * scale, q: 'p', f: '0,0,0,0',
+      s: index == 1 ? '' : '10', g: index == 1 ? '' : '14', d: index == 1 ? '' : '180' }
   end
   if params['interval'] == 'hilo'
     rows = [{ t: (now + 2.hours).strftime('%Y-%m-%d %H:%M'), v: 2 * scale, type: 'H' },

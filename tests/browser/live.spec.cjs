@@ -29,10 +29,11 @@ for (const [name, url] of Object.entries(targets)) {
         await page.locator(`#station-results button[data-station-id="${id}"]`).click();
         await expect(page.locator('#graph-partial .highcharts-title')).toHaveText(`${stationName}, ${stations.find(s => s.station_id === id).state}`, { timeout: 30000 });
         await expect(page.locator('#station-summary')).toContainText(`Height reference: ${datum}`);
-        await expect(page.locator('.highcharts-container')).toHaveCount(1);
+        await expect(page.locator('#graph-partial .highcharts-container')).toHaveCount(1);
         const state = await page.evaluate(() => ({
           samples: chart_graph_partial.series[0].getColumn('y').length,
-          series: chart_graph_partial.series.map(s => s.name), highcharts: Highcharts.version
+          series: chart_graph_partial.series.map(s => s.name), highcharts: Highcharts.version,
+          weatherCharts: document.querySelectorAll('#weather-charts .highcharts-container').length
         }));
         expect(state.samples).toBeGreaterThan(10); results.push({ id, datum, ...state });
       } else {

@@ -2,19 +2,20 @@
 (() => {
   class Map {
     constructor(element, options) {
+      this.listeners = {}; window.fixtureMap = this;
       this.element = element; this.setZoom(options.zoom); this.setCenter(options.center);
       element.setAttribute('role', 'region'); element.setAttribute('aria-label', 'Map');
     }
-    setZoom(value) { this.zoom = value; this.element.dataset.zoom = value; }
+    setZoom(value) { this.zoom = value; this.element.dataset.zoom = value; this.listeners.idle?.(); }
     getZoom() { return this.zoom; }
-    setCenter(value) { this.element.dataset.center = JSON.stringify(value); }
-    addListener() {}
+    setCenter(value) { this.element.dataset.center = JSON.stringify(value); this.listeners.idle?.(); }
+    addListener(name, callback) { this.listeners[name] = callback; }
   }
   class Marker {
     constructor(options) {
       Object.assign(this, options);
       this.button = document.createElement('button'); this.button.textContent = options.title;
-      if (options.icon) {
+      if (typeof options.icon === 'string') {
         const image = document.createElement('img'); image.src = options.icon; image.alt = '';
         this.button.prepend(image);
       }
@@ -32,6 +33,6 @@
       this.node.append(this.content); this.node.setAttribute('role', 'dialog'); map.element.append(this.node);
     }
   }
-  window.google = { maps: { Map, Marker, InfoWindow } };
+  window.google = { maps: { Map, Marker, InfoWindow, SymbolPath: { CIRCLE: 0 } } };
   window.initMap();
 })();

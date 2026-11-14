@@ -19,10 +19,14 @@ a { color: #00677c; }
 #station-results { list-style: none; padding: 0; margin: .5rem 0; max-height: 46vh; overflow: auto; }
 #station-results button { width: 100%; text-align: left; margin-bottom: .4rem; }
 #station-results small { display: block; color: #506976; }
-.map-section { padding: 0; overflow: hidden; }
+.map-section { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
 #map-status { padding: 0 1rem; }
-#full_map { min-height: 560px; height: 100%; }
+.map-legend { padding: .6rem 1rem; margin: 0; font-size: .85rem; }
+.cluster-swatch { display: inline-block; border-radius: 50%; background: #007b93; color: white; width: 1.6rem; text-align: center; font-weight: 700; }
+.station-swatch { display: inline-block; border-radius: 50%; border: 5px solid #ff6633; width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-left: .5rem; }
+#full_map { min-height: 560px; flex: 1; }
 .map-pin { border-radius: 50%; background: #007b93; color: white; font-weight: bold; min-width: 40px; }
+.map-pin.individual-pin { background: #ff6633; }
 #station-panel { grid-column: 1 / -1; }
 .panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 h1 { font-size: 1.4rem; margin: 0; }
@@ -35,6 +39,9 @@ h1 { font-size: 1.4rem; margin: 0; }
 .datum-explanation { grid-column: 1 / -1; padding: .75rem; background: #eaf4f7; border-left: 3px solid #007b93; }
 #graph-partial { min-height: 0; }
 #graph-partial:has(.highcharts-container) { min-height: 340px; }
+#weather-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 1rem; margin-top: 1rem; }
+.weather-chart { min-width: 0; height: 300px; border: 1px solid #d8e2e6; border-radius: 6px; overflow: hidden; }
+#station-charts[aria-busy="true"] { opacity: .65; }
 .table-scroll { max-height: 300px; overflow: auto; }
 table { border-collapse: collapse; width: 100%; margin-top: .5rem; text-align: left; }
 th, td { padding: .5rem; border-bottom: 1px solid #d8e2e6; }

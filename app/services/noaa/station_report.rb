@@ -30,10 +30,12 @@ module Noaa
                  []
                end
       latest = observed.rfind { |point| point[:value] }
+      weather_series = weather
       { station: @station, datum:, units: @units, hours: @hours, fetched_at: @now.iso8601,
         observations: observed, predictions: predicted, events: events,
         latest:, stale: latest.nil? || Time.iso8601(latest[:time]) < @now - 18.minutes,
-        weather: weather, sensors: @sensors || [], warnings: @warnings || [],
+        weather: latest_weather(weather_series),
+        weather_series:, sensors: @sensors || [], warnings: @warnings || [],
         source_url: "https://tidesandcurrents.noaa.gov/stationhome.html?id=#{id}" }
     end
 
@@ -96,15 +98,19 @@ module Noaa
     end
 
     def weather
-      return {} unless capable?('waterlevelsandmet')
+      return {} unless capable?('waterlevels') || capable?('waterlevelsandmet')
 
       @sensors = Sensors.new(id, client: @client).call
       @sensors.select { |sensor| sensor[:enabled] }.pluck(:product).index_with do |product|
-        optional_data(product).rfind { |point| point[:value] }
-      end.compact
+        optional_data(product)
+      end
     rescue NoData, Unavailable => e
       (@warnings ||= []) << { product: 'weather', message: e.message }
       {}
+    end
+
+    def latest_weather(series)
+      series.transform_values { |points| points.rfind { |point| point[:value] } }.compact
     end
   end
 end
