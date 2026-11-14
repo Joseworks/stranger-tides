@@ -9,8 +9,9 @@
   const text = (id, value) => { byId(id).textContent = value; };
   const capabilities = station => station.capabilities || ['waterlevels'];
   const stationLabel = station => station.state && !station.station_name.endsWith(`, ${station.state}`) ? `${station.station_name}, ${station.state}` : station.station_name;
-  const zone = () => byId('display-zone').value === 'utc' ? 'UTC' : Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const date = value => new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short', timeZone: zone() }).format(new Date(value));
+  const zone = () => byId('display-zone').value === 'station' ? report?.station_timezone || 'UTC' :
+    byId('display-zone').value === 'utc' ? 'UTC' : Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const date = (value, timeZone = zone()) => new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short', timeZone }).format(new Date(value));
   const quality = value => ({ p: 'Preliminary', v: 'Verified' }[value] || 'Quality not provided');
   const unit = () => (report?.units || byId('height-units').value) === 'metric' ? 'm' : 'ft';
   function element(tag, value, className) {
@@ -117,7 +118,7 @@
     infoWindow.setPosition?.(position); infoWindow.open(map);
   }
   function selectStation(station) {
-    savedFocus = document.activeElement; selected = station; report = null;
+    savedFocus = document.activeElement; selected = station; report = null; updateStationZone();
     byId('station-panel').hidden = false; text('station-heading', `${stationLabel(station)} ${station.station_id}`);
     byId('noaa-station-link').href = `https://tidesandcurrents.noaa.gov/stationhome.html?id=${encodeURIComponent(station.station_id)}`;
     positionSelectedStation();
@@ -244,7 +245,14 @@
       return row;
     }));
   }
+  function updateStationZone() {
+    const option = byId('display-zone').querySelector('option[value="station"]');
+    option.disabled = !report?.station_timezone;
+    option.textContent = report?.station_timezone ? `Station local time (${report.station_timezone})` :
+      report ? 'Station local time unavailable (UTC)' : 'Station local time';
+  }
   function renderReport() {
+    updateStationZone();
     updateUrl(); const summary = byId('station-summary'); summary.replaceChildren();
     const latest = report.latest;
     text('report-status', report.stale ? 'No recent observation. Check timestamps before using these data.' : 'Station data loaded.');
@@ -333,7 +341,7 @@
     try {
       const response = await fetch('/stations.json'); if (!response.ok) throw new Error('Catalog unavailable');
       const payload = await response.json(); stations = payload.stations;
-      text('catalog-status', payload.status.refreshed_at ? `Catalog refreshed ${date(payload.status.refreshed_at)}${payload.status.stale ? ' · Refresh overdue' : ''}` : 'Saved station inventory · Automatic refresh not yet initialized');
+      text('catalog-status', payload.status.refreshed_at ? `Catalog refreshed ${date(payload.status.refreshed_at, 'UTC')} UTC${payload.status.stale ? ' · Refresh overdue' : ''}` : 'Saved station inventory · Automatic refresh not yet initialized');
       renderResults();
       if (!stations.length) text('catalog-status', 'No stations are available. Please try again later.');
       const initial = stations.find(s => s.station_id === params.get('station'));

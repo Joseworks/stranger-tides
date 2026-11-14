@@ -42,6 +42,10 @@ Search and the station list remain available if Google Maps fails. Location is r
 
 The new interface uses JSON instead of executing server-generated AJAX JavaScript. Legacy `POST /show_graph` returns HTTP 410 with a reload instruction. Legacy source/tests remain for reference, but production manual import/delete tasks are disabled. Sprockets remains the active asset loader; the new explorer does not initialize Turbolinks or unused importmap scaffolding.
 
+The Time selector offers your browser's local time, station local time, and UTC. Station time uses NOAA's published standard offset and daylight-saving flag, cached for one day, mapped to IANA rules so historical readings respect daylight-saving transitions. Prediction locations may inherit the daylight-saving flag from a published reference station only when their standard offsets match. Missing or unsupported metadata disables the station-time option; a shared station-time link explicitly shows UTC as the fallback. Optional metadata failures do not discard successful measurements. Time changes update all graphs, timestamps, event labels, and open measurement tables locally and preserve the shareable `zone=station` preference.
+
+The catalog-refresh timestamp describes the shared inventory, so it always displays explicitly labelled UTC independently of the selected station or report time zone.
+
 ## Validation and rollout
 
 Run RSpec against an isolated database, then `npm run test:browser` with a separate local database ending `_browser_test`. Browser tests exercise real Rails, JSON, assets, Highcharts, coastal/Great Lakes references, missing data, prediction-only stations, retry, cancellation, search, permission handling and focus restoration. Maps and NOAA are offline fixtures; hosted checks separately cover the real services. CI runs desktop/Android Chromium and iPhone WebKit, publishes coverage/browser artifacts and enforces 90% Ruby line / 70% branch coverage. Local macOS 13 uses installed Chrome; WebKit is validated in CI.

@@ -33,6 +33,12 @@ else
     abort 'Browser fixture database contains unexpected data'
   end
 end
+station_metadata_url = %r{/mdapi/prod/webapi/stations/[A-Za-z0-9]+\.json}
+WebMock.stub_request(:get, station_metadata_url).to_return do |request|
+  id = request.uri.path.split('/').last.delete_suffix('.json')
+  offset = id == '9099064' ? -6 : -8
+  { body: { stations: [{ id:, timezonecorr: offset, observedst: true }] }.to_json }
+end
 WebMock.stub_request(:get, %r{/mdapi/prod/webapi/stations/\d+/datums.json}).to_return do |request|
   { body: { datums: [{ name: request.uri.path.include?('9099064') ? 'GL_LWD' : 'MLLW' }] }.to_json }
 end
