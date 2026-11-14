@@ -14,13 +14,15 @@ npm run test:browser
 
 Schema loading is destructive to tables in its target database. Never use a Heroku URL for this command. It is not part of the test runner or a deployment step. CI supplies a newly created PostgreSQL service.
 
-The suite covers desktop Chromium, Android Chrome emulation and iPhone WebKit emulation. It checks loaded marker images, denied location, granted location/recentering, station selection, numeric chart data, map resizing, replacement without duplicate charts, close, and reopening. These are viewport/browser-engine tests, not physical-device tests. CI keeps screenshots and traces on failures and the HTML report for seven days.
+The suite covers desktop Chromium, Android Chrome emulation, desktop Firefox, and iPhone WebKit emulation. It checks loaded marker images, denied location, granted location/recentering, station selection, numeric chart data, map resizing, replacement without duplicate charts, close, and reopening. Location checks verify the displayed host, no request before clicking, no duplicate pending request, standard API options, and usable controls after denial, timeout, unavailable position, or a missing API. These are viewport/browser-engine tests, not physical-device tests; they cannot certify native permission labels on a tablet. CI keeps screenshots and traces on failures and the HTML report for seven days.
 
 On macOS 13, current bundled browsers are unsupported. Use installed Chrome for local desktop/Android checks, then use the Ubuntu CI job for WebKit:
 
 ```sh
 PLAYWRIGHT_CHANNEL=chrome npm run test:browser -- --project=desktop-chromium --project=mobile-chromium
 ```
+
+To test an installed desktop Brave browser, set `PLAYWRIGHT_BRAVE_EXECUTABLE` to its executable path and select `--project=desktop-brave`. This optional project uses the installed browser without adding a production dependency. Native Brave Android permission text still needs a tablet check.
 
 ## Hosted comparison
 

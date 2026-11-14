@@ -8,7 +8,11 @@ module.exports = defineConfig({
   projects: [
     { name: 'desktop-chromium', use: { ...devices['Desktop Chrome'], channel: process.env.PLAYWRIGHT_CHANNEL } },
     { name: 'mobile-chromium', use: { ...devices['Pixel 5'], channel: process.env.PLAYWRIGHT_CHANNEL } },
-    { name: 'mobile-webkit', use: { ...devices['iPhone 13'] } }
+    { name: 'desktop-firefox', use: { ...devices['Desktop Firefox'] } },
+    { name: 'mobile-webkit', use: { ...devices['iPhone 13'] } },
+    ...(process.env.PLAYWRIGHT_BRAVE_EXECUTABLE ? [{ name: 'desktop-brave', use: {
+      ...devices['Desktop Chrome'], launchOptions: { executablePath: process.env.PLAYWRIGHT_BRAVE_EXECUTABLE }
+    } }] : [])
   ],
   webServer: {
     command: 'bundle exec ruby tests/browser/server.rb',

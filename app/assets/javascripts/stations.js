@@ -309,8 +309,30 @@
     byId('station-panel').hidden = true; updateUrl();
     if (savedFocus?.isConnected) savedFocus.focus(); else byId('station-search').focus();
   }
+  function locateStations() {
+    const button = byId('locate');
+    if (button.disabled) return;
+    if (!window.isSecureContext || !navigator.geolocation) {
+      text('location-status', 'Location is unavailable in this browser or connection. Search by name or state.'); return;
+    }
+    const finish = message => { button.disabled = false; text('location-status', message); };
+    button.disabled = true; text('location-status', `Requesting location for ${window.location.host}…`);
+    try {
+      navigator.geolocation.getCurrentPosition(position => {
+        const { latitude: lat, longitude: lng } = position.coords;
+        stations.sort((a, b) => distance(a, lat, lng) - distance(b, lat, lng)); renderResults();
+        map?.setCenter({ lat, lng }); map?.setZoom(8); finish('Stations sorted by distance from you.');
+      }, error => finish(({
+        1: `Location access for ${window.location.host} was declined. You can allow it in your browser's site settings.`,
+        2: 'Your location could not be determined. Try again or search by name or state.',
+        3: 'Finding your location timed out. Try again or search by name or state.'
+      })[error.code] || 'Location is unavailable. Try again or search by name or state.'),
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 });
+    } catch (_) { finish('Location is unavailable. Try again or search by name or state.'); }
+  }
   async function start() {
     if (!byId('station-explorer')) return;
+    text('location-origin', window.location.host);
     const params = new URL(window.location.href).searchParams;
     for (const [key, id] of [['hours', 'history-hours'], ['units', 'height-units'], ['zone', 'display-zone']]) {
       const value = params.get(key); if ([...byId(id).options].some(o => o.value === value)) byId(id).value = value;
@@ -329,15 +351,7 @@
       try { await navigator.clipboard.writeText(window.location.href); text('report-status', 'Station link copied.'); }
       catch (_) { text('report-status', 'Copy the station link from your address bar.'); }
     });
-    byId('locate').addEventListener('click', () => {
-      if (!navigator.geolocation) { text('location-status', 'Location is unavailable. Search by name or state.'); return; }
-      text('location-status', 'Finding your location…');
-      navigator.geolocation.getCurrentPosition(position => {
-        const { latitude: lat, longitude: lng } = position.coords;
-        stations.sort((a, b) => distance(a, lat, lng) - distance(b, lat, lng)); renderResults();
-        map?.setCenter({ lat, lng }); map?.setZoom(8); text('location-status', 'Stations sorted by distance from you.');
-      }, () => text('location-status', 'Location was unavailable or declined. Search by name or state.'), { timeout: 10000, maximumAge: 60000 });
-    });
+    byId('locate').addEventListener('click', locateStations);
     try {
       const response = await fetch('/stations.json'); if (!response.ok) throw new Error('Catalog unavailable');
       const payload = await response.json(); stations = payload.stations;

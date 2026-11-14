@@ -17,6 +17,27 @@ RSpec.describe 'Station explorer' do
     expect(response.parsed_body['error']).to include('reload')
   end
 
+  it 'publishes consistent browser identity metadata and a local favicon' do
+    get '/'
+    page = response.parsed_body
+    names = %w[application-name apple-mobile-web-app-title].map do |name|
+      page.at_css("meta[name='#{name}']")['content']
+    end
+    expect(names).to eq(['Stranger Tides', 'Stranger Tides'])
+    expect(page.at_css('html')['lang']).to eq('en')
+    expect(page.at_css('meta[charset]')['charset']).to eq('utf-8')
+    expect(page.at_css('link[rel~="icon"]')['href'])
+      .to match(%r{\A/[^/]+/favicon_jw-[a-f0-9]+\.ico\z})
+  end
+
+  it 'limits location requests to this origin without pregranting browser consent' do
+    ['/', '/stations.json'].each do |path|
+      get path
+      expect(response.headers['Permissions-Policy']).to eq('geolocation=(self)')
+      expect(response.headers['Feature-Policy']).to eq("geolocation 'self'")
+    end
+  end
+
   it 'returns an empty catalog without raising when no snapshot exists' do
     get '/stations.json'
     expect(response.parsed_body).to include('stations' => [],

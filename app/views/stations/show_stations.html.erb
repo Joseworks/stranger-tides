@@ -14,7 +14,8 @@
       <option value="all">All locations</option>
     </select>
     <p id="catalog-status" class="muted" role="status">Loading station catalog…</p>
-    <button id="locate" type="button">Find stations near me</button>
+    <button id="locate" type="button" aria-describedby="location-details">Find stations near me</button>
+    <p id="location-details" class="muted">Location request from <span id="location-origin"><%= request.host_with_port %></span> to find nearby stations and center the Google map.</p>
     <p id="location-status" class="muted" role="status"></p>
     <p id="result-count" aria-live="polite"></p>
     <ul id="station-results" aria-label="Station results"></ul>

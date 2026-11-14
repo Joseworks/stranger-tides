@@ -325,3 +325,48 @@ test('location sorting works only after a user requests it', async ({ context, p
   await expect(page.locator('#location-status')).toContainText('sorted by distance');
   await expect(page.locator('#station-results button').first()).toHaveAttribute('data-station-id', '9099064');
 });
+
+test('location requests identify this origin and wait for the existing browser permission flow', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.locationRequests = [];
+    Object.defineProperty(navigator, 'geolocation', { configurable: true, value: {
+      getCurrentPosition(success, error, options) {
+        window.locationRequests.push({ origin: location.origin, options }); window.locationFailure = error;
+      }
+    } });
+  });
+  await page.goto('/'); await expect(station(page, '9414290')).toBeVisible();
+  await expect(page.locator('#location-origin')).toHaveText('127.0.0.1:3467');
+  await expect(page.getByRole('button', { name: 'Find stations near me' })).toHaveAttribute('aria-describedby', 'location-details');
+  expect(await page.evaluate(() => window.locationRequests)).toEqual([]);
+  await page.getByRole('button', { name: 'Find stations near me' }).click();
+  await expect(page.locator('#location-status')).toContainText('Requesting location for 127.0.0.1:3467');
+  await expect(page.locator('#locate')).toBeDisabled();
+  await page.evaluate(() => document.querySelector('#locate').dispatchEvent(new MouseEvent('click')));
+  expect(await page.evaluate(() => window.locationRequests)).toEqual([{ origin: 'http://127.0.0.1:3467',
+    options: { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 } }]);
+  await page.evaluate(() => window.locationFailure({ code: 1 }));
+  await expect(page.locator('#location-status')).toContainText('Location access for 127.0.0.1:3467 was declined');
+  await expect(page.locator('#locate')).toBeEnabled();
+  await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
+});
+
+for (const [code, message] of [[2, 'could not be determined'], [3, 'timed out']]) {
+  test(`location failure ${code} allows retry and keeps station search usable`, async ({ page }) => {
+    await page.addInitScript(code => Object.defineProperty(navigator, 'geolocation', { value: {
+      getCurrentPosition(success, error) { error({ code }); }
+    } }), code);
+    await page.goto('/'); await page.getByRole('button', { name: 'Find stations near me' }).click();
+    await expect(page.locator('#location-status')).toContainText(message);
+    await expect(page.locator('#locate')).toBeEnabled();
+    await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
+  });
+}
+
+test('browsers without a location API retain search and explain the limitation', async ({ page }) => {
+  await page.addInitScript(() => Object.defineProperty(navigator, 'geolocation', { value: undefined }));
+  await page.goto('/'); await page.getByRole('button', { name: 'Find stations near me' }).click();
+  await expect(page.locator('#location-status')).toContainText('unavailable in this browser or connection');
+  await expect(page.locator('#locate')).toBeEnabled();
+  await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
+});

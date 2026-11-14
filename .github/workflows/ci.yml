@@ -78,7 +78,7 @@ jobs:
       - run: bundle exec brakeman --no-pager
 
   browser:
-    name: Browser regression (desktop, Android, iPhone)
+    name: Browser regression (Chromium, Firefox, WebKit)
     runs-on: ubuntu-24.04
     services:
       postgres:
@@ -110,7 +110,7 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: npx playwright install --with-deps chromium webkit
+      - run: npx playwright install --with-deps chromium firefox webkit
       - run: bundle exec rails db:schema:load
       - run: npm run test:browser
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
