@@ -268,6 +268,8 @@ test('station local time updates all charts and shared links without fetching or
   await page.goto('/?station=9414290&zone=station');
   await expect(chart(page)).toHaveText('San Francisco, CA');
   await expect(page.locator('#station-summary')).toContainText('Times: America/Los_Angeles');
+  await expect(page.locator('#catalog-status')).toContainText(' UTC');
+  const catalog = await page.locator('#catalog-status').innerText();
   await page.getByLabel('Time', { exact: true }).scrollIntoViewIfNeeded();
   const before = await page.evaluate(() => ({ y: scrollY, water: chart_graph_partial.index }));
   const count = reports;
@@ -280,6 +282,7 @@ test('station local time updates all charts and shared links without fetching or
   expect(reports).toBe(count); await expect(page).toHaveURL(/zone=station/);
   await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
   await expect(page.locator('#station-summary')).toContainText('Times: America/Chicago');
+  await expect(page.locator('#catalog-status')).toHaveText(catalog);
 });
 
 test('missing station time-zone metadata is explicit and does not break shared reports', async ({ page }) => {
