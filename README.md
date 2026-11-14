@@ -24,7 +24,7 @@ See the live version: [stranger-tides.com](https://www.stranger-tides.com/)
 ---
 
 ## About
-This app displays NOAA real-time tide stations on a Google Map. Clicking a station shows the last 24 hours of tide data. Station data is loaded from a text file (see `data/station_list.txt`) and metadata is parsed and stored in the database.
+Search NOAA water-level, tide-prediction, and weather locations on a map or accessible station list. View observed/predicted levels, freshness and quality, next predicted high/low events, available wind/temperature, unit/time controls, and shareable station links. The catalog comes from current NOAA APIs, replacing the historical manual text list. See [catalog operations and rollout](docs/station-catalog.md).
 
 ---
 
@@ -42,8 +42,8 @@ This app displays NOAA real-time tide stations on a Google Map. Clicking a stati
  rails db:create db:migrate
 
 # (Optional) Seed or process station data
- rake stations_id_list:process_station_list
- rake station_list:retrieve_all_stations_metadata
+ bin/rails stations:refresh # dry run
+ bin/rails stations:refresh APPLY=1 # publish validated snapshot
 
 # Start the server
  rails server
@@ -77,9 +77,9 @@ This app displays NOAA real-time tide stations on a Google Map. Clicking a stati
 ---
 
 ## Rake Tasks
-- `rake stations_delete:delete_station_list` — Delete all station info
-- `rake stations_id_list:process_station_list` — Load station list from file
-- `rake station_list:retrieve_all_stations_metadata` — Fetch and store station metadata
+- `bin/rails stations:refresh` — Validate current NOAA catalogs and print a dry-run diff
+- `bin/rails stations:refresh APPLY=1` — Publish a validated snapshot, preserving history
+- Legacy manual imports/deletion are disabled outside tests; see the [catalog runbook](docs/station-catalog.md).
 - `rake highcharts:update` — Update HighCharts assets
 
 ---

@@ -4,7 +4,7 @@ require 'rails_helper'
 require 'rake'
 require 'spec_helper'
 
-describe 'station_list' do
+describe 'station_list', :legacy_noaa do
   before do
     load Rails.root.join('lib/tasks/stations_metadata_list.rake')
     load Rails.root.join('lib/tasks/stations_id_list.rake')

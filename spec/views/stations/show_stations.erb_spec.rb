@@ -1,15 +1,9 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-
 RSpec.describe 'stations/show_stations' do
-  before do
-    assign(:stations, [Station.create!, Station.create!])
-  end
-
-  it 'renders a list of stations' do
-    expect(
-      render.include?('NOAA/NOS/Operational Oceanographic Products Active Station')
-    ).to be(true)
+  it 'offers station search and a non-JavaScript NOAA link' do
+    render
+    expect(rendered).to include('Find a station', 'Browse NOAA', 'station-search')
   end
 end
