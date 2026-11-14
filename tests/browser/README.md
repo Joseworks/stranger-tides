@@ -42,3 +42,11 @@ Live NOAA samples change with time, so numeric values and point counts are not t
 - The initial staging custom image markers were optimized into a canvas, removing keyboard/button semantics. The upgrade branch uses the legacy SDK's documented `optimized: false` option so users and automated tests can activate markers with the keyboard. This retains the existing Maps integration; migration to Advanced Markers is separate work.
 
 References: [Playwright API mocking](https://playwright.dev/docs/mock), [browser channels](https://playwright.dev/docs/browsers), [Google legacy marker accessibility](https://developers.google.com/maps/documentation/javascript/markers), [Heroku custom domains](https://devcenter.heroku.com/articles/custom-domains).
+
+## Station explorer changes
+
+The feature branch replaces the executable `/show_graph` response with the read-only JSON station-report API. Its deterministic suite now covers ten scenarios across three browser configurations (30 CI checks), including null gaps, prediction-only locations, IGLD, retries, delayed-response cancellation, deep links, unit/time changes, search and map failure. Existing Maps and NOAA credentials are never used by this offline suite.
+
+Hosted checks recognize both the old production interface and the new explorer. They publish the full catalog difference and require staging's observing IDs to match NOAA's current active inventory. Exact production/staging inventory equality is optional via `LIVE_REQUIRE_IDENTICAL_CATALOGS=1`, because adding current stations and prediction locations is the intended feature. The production baseline's duplicate graph wrappers remain visible in diagnostics; they are not claimed as fixed until the new interface is deployed there.
+
+See [catalog operations](../../docs/station-catalog.md) for staged refresh, rollback, monitoring, and deployment safeguards. Historical findings above describe the earlier upgrade baseline, including the subsequently repaired DNS/certificate incident.

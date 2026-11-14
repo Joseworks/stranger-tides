@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe GraphProcessorService, type: :service do
+RSpec.describe GraphProcessorService, :legacy_noaa, type: :service do
   let(:station_id) { '1617433' }
   let(:host) { 'api.tidesandcurrents.noaa.gov' }
   let(:path) { '/api/prod/datagetter' }

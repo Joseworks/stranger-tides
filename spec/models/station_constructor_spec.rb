@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe StationConstructor do
+RSpec.describe StationConstructor, :legacy_noaa do
   subject(:response_body) { Net::HTTP.get(constructed_station.url_constructor) }
 
   let(:station_params) { StationDataRangeConstructor.new(8_454_000, 'MLLW').range_constructor }

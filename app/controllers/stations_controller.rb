@@ -1,30 +1,35 @@
 # frozen_string_literal: true
 
 class StationsController < ApplicationController
-  before_action :set_station, only: %i[show_stations show_graph]
+  rescue_from Noaa::NoData, with: :no_data
+  rescue_from Noaa::Unavailable, with: :unavailable
 
-  def show_stations
-    gon.all_station_metadata = @all_station_metadata
+  def show_stations; end
+
+  # Old open browser tabs receive a clear refresh instruction instead of executing legacy JS.
+  def show_graph
+    render json: { error: 'Please reload the page to use the updated station explorer.' },
+           status: :gone
   end
 
-  def show_graph
-    gon.all_station_metadata = @all_station_metadata
-    return unless request.xhr?
+  def catalog
+    catalog = Noaa::Catalog.new
+    render json: { stations: catalog.stations, status: catalog.status }
+  end
 
-    respond_to do |format|
-      @chart = GraphProcessorService::GraphProcessor.new(params[:content]).call
-      format.js
-    end
+  def report
+    station = Noaa::Catalog.new.find(params.expect(:id))
+    render json: Noaa::StationReport.new(station, hours: params.fetch(:hours, 48),
+                                                  units: params.fetch(:units, 'english')).call
   end
 
   private
 
-  def set_station
-    @station = Station.last
-    @all_station_metadata = @station.metadata if @station
+  def no_data(error)
+    render json: { error: error.message }, status: :unprocessable_content
   end
 
-  def station_params
-    params.require(:content)
+  def unavailable(error)
+    render json: { error: error.message }, status: :service_unavailable
   end
 end

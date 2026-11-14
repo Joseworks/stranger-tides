@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.configure do |config|
-  config.before do
+  config.before(:each, :legacy_noaa) do
     stub_request(:get, %r{https://api\.tidesandcurrents\.noaa\.gov/mdapi/prod/webapi/stations/\d+/datums\.json})
       .to_return(headers: { 'Content-Type' => 'application/json' },
                  body: { datums: [{ name: 'MLLW' }] }.to_json)

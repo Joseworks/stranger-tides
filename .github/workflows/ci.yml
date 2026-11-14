@@ -52,6 +52,11 @@ jobs:
         run: bundle exec rails zeitwerk:check
       - name: Run regression tests
         run: bundle exec rspec
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        if: always()
+        with:
+          name: ruby-coverage-postgres-${{ matrix.postgres }}
+          path: coverage/
       - name: Compile production assets
         run: SECRET_KEY_BASE_DUMMY=1 RAILS_ENV=production bundle exec rails assets:precompile
 
