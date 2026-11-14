@@ -31,6 +31,7 @@ module Noaa
                end
       latest = observed.rfind { |point| point[:value] }
       weather_series = weather
+      verify_data_response!
       { station: @station, datum:, units: @units, hours: @hours, fetched_at: @now.iso8601,
         observations: observed, predictions: predicted, events: events,
         latest:, stale: latest.nil? || Time.iso8601(latest[:time]) < @now - 18.minutes,
@@ -41,13 +42,9 @@ module Noaa
 
     private
 
-    def id
-      @station.fetch('station_id')
-    end
+    def id = @station.fetch('station_id')
 
-    def capable?(type)
-      @station.fetch('capabilities', []).include?(type)
-    end
+    def capable?(type) = @station.fetch('capabilities', []).include?(type)
 
     def reference
       return nil unless capable?('waterlevels') || capable?('tidepredictions')
@@ -68,10 +65,12 @@ module Noaa
       rows = payload[product == 'predictions' ? 'predictions' : 'data']
       raise NoData, 'No recent observations are available.' unless rows.is_a?(Array)
 
+      @received_data = true
+
       rows.filter_map { |row| observation(row, product) }.uniq { |point| point[:timestamp] }
           .sort_by { |point| point[:timestamp] }
     rescue NoData, Unavailable => e
-      (@warnings ||= []) << { product:, message: e.message }
+      record_failure(product, e)
       []
     end
 
@@ -105,12 +104,21 @@ module Noaa
         optional_data(product)
       end
     rescue NoData, Unavailable => e
-      (@warnings ||= []) << { product: 'weather', message: e.message }
+      record_failure('weather', e)
       {}
     end
 
     def latest_weather(series)
       series.transform_values { |points| points.rfind { |point| point[:value] } }.compact
+    end
+
+    def record_failure(product, error)
+      @transport_error = error if error.is_a?(Unavailable)
+      (@warnings ||= []) << { product:, message: error.message }
+    end
+
+    def verify_data_response!
+      raise @transport_error if @transport_error && !@received_data
     end
   end
 end

@@ -121,7 +121,9 @@
     byId('station-panel').hidden = false; text('station-heading', `${stationLabel(station)} ${station.station_id}`);
     byId('noaa-station-link').href = `https://tidesandcurrents.noaa.gov/stationhome.html?id=${encodeURIComponent(station.station_id)}`;
     positionSelectedStation();
-    byId('station-heading').focus({ preventScroll: true }); updateUrl(); loadReport();
+    const heading = byId('station-heading'), bounds = heading.getBoundingClientRect();
+    if (bounds.top >= 0 && bounds.bottom <= window.innerHeight) heading.focus({ preventScroll: true });
+    updateUrl(); loadReport();
   }
   async function loadReport() {
     pending?.abort(); const token = ++generation; pending = new AbortController();
@@ -193,7 +195,21 @@
       }
     });
   }
+  function updateNextEvents() {
+    if (!report || !byId('next-events')) return;
+    const next = report.events.filter(point => point.value !== null && Date.parse(point.time) >= Date.now());
+    const nodes = ['H', 'L'].flatMap(type => {
+      const event = next.find(point => point.type === type);
+      return event ? [element('p', `Next predicted ${type === 'H' ? 'high' : 'low'}: ${date(event.time)} · ${event.value.toFixed(2)} ${unit()}`)] : [];
+    });
+    if (report.events.length && !nodes.length) {
+      nodes.push(element('p', 'Upcoming predictions have passed. Refresh station data for the next events.', 'muted'));
+      byId('retry-report').hidden = false;
+    }
+    byId('next-events').replaceChildren(...nodes);
+  }
   function updateFreshness() {
+    updateNextEvents();
     if (!report?.latest || !byId('reading-age')) return;
     const age = Math.max(0, Math.floor((Date.now() - Date.parse(report.latest.time)) / 60000));
     text('reading-age', `Observed ${date(report.latest.time)} · ${age} minutes ago`);
@@ -248,11 +264,7 @@
     }
     const heights = report.observations.map(p => p.value).filter(v => v !== null);
     if (heights.length) summary.append(element('p', `Observed ${report.hours}-hour range: ${Math.min(...heights).toFixed(2)}–${Math.max(...heights).toFixed(2)} ${unit()} · Variation ${(Math.max(...heights) - Math.min(...heights)).toFixed(2)} ${unit()}`));
-    const events = report.events.filter(e => e.value !== null && Date.parse(e.time) >= Date.now());
-    for (const type of ['H', 'L']) {
-      const event = events.find(e => e.type === type);
-      if (event) summary.append(element('p', `Next predicted ${type === 'H' ? 'high' : 'low'}: ${date(event.time)} · ${event.value.toFixed(2)} ${unit()}`));
-    }
+    const events = document.createElement('div'); events.id = 'next-events'; summary.append(events); updateNextEvents();
     Object.entries(report.weather).forEach(([product, reading]) => {
       const units = ({ wind: report.units === 'metric' ? 'm/s' : 'knots', air_pressure: 'mb', humidity: '%' })[product] || (report.units === 'metric' ? '°C' : '°F');
       const wind = product === 'wind' ? `${reading.direction ? ` · direction ${reading.direction}°` : ''}${reading.gust ? ` · gust ${reading.gust} ${units}` : ''}` : '';

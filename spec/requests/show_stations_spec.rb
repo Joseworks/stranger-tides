@@ -58,6 +58,17 @@ RSpec.describe 'Station explorer' do
     expect(response).to have_http_status(:service_unavailable)
     expect(response.parsed_body['error']).to include('temporarily unavailable')
   end
+
+  it 'returns 503 when datum metadata works but all data requests time out' do
+    Station.create!(station_name: 'All stations',
+                    metadata: [{ station_id: '9414290', station_name: 'San Francisco' }])
+    stub_request(:get, /datums.json/).to_return(body: { datums: [{ name: 'MLLW' }] }.to_json)
+    stub_request(:get, /sensors.json/).to_return(body: { sensors: [] }.to_json)
+    stub_request(:get, /datagetter/).to_timeout
+    get '/stations/9414290/report'
+    expect(response).to have_http_status(:service_unavailable)
+    expect(response.parsed_body['error']).to include('temporarily unavailable')
+  end
 end
 
 # rubocop:enable RSpec/DescribeClass

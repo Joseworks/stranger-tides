@@ -59,7 +59,21 @@ test('reading age and stale warning advance without replacing charts', async ({ 
   await page.clock.fastForward(30 * 60000);
   await expect(page.locator('#reading-age')).toContainText(/3\d minutes ago/);
   await expect(page.locator('#reading-freshness')).toContainText('observation is now stale');
+  await page.clock.fastForward(2 * 60 * 60000);
+  await expect(page.locator('#next-events')).not.toContainText('Next predicted high');
+  await expect(page.locator('#next-events')).toContainText('Next predicted low');
+  await page.clock.fastForward(6 * 60 * 60000);
+  await expect(page.locator('#next-events')).toContainText('Upcoming predictions have passed');
   expect(await page.evaluate(() => chart_graph_partial.index)).toBe(index);
+});
+
+test('selection keeps keyboard focus visible without forcing a scroll to off-screen details', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 350 });
+  await page.goto('/'); await station(page, '9414290').scrollIntoViewIfNeeded();
+  const before = await page.evaluate(() => scrollY);
+  await station(page, '9414290').click(); await expect(chart(page)).toHaveText('San Francisco, CA');
+  await expect(station(page, '9414290')).toBeFocused();
+  expect(Math.abs(await page.evaluate(() => scrollY) - before)).toBeLessThan(2);
 });
 
 test('real chart preserves gaps, shows predictions and quality, and switches units and time', async ({ page }) => {

@@ -28,6 +28,10 @@ for (const [name, url] of Object.entries(targets)) {
         await page.getByLabel('Find a station', { exact: true }).fill(id);
         await page.locator(`#station-results button[data-station-id="${id}"]`).click();
         await expect(page.locator('#graph-partial .highcharts-title')).toHaveText(`${stationName}, ${stations.find(s => s.station_id === id).state}`, { timeout: 30000 });
+        const marker = page.getByRole('button', { name: `${stationName}, ${stations.find(s => s.station_id === id).state} ${id}`, exact: true });
+        await marker.focus(); await marker.press('Enter');
+        await expect(page.locator('#graph-partial .highcharts-title')).toHaveText(`${stationName}, ${stations.find(s => s.station_id === id).state}`, { timeout: 30000 });
+        await expect(page.locator('#map-status')).toBeHidden();
         await expect(page.locator('#station-summary')).toContainText(`Height reference: ${datum}`);
         await expect(page.locator('#graph-partial .highcharts-container')).toHaveCount(1);
         const state = await page.evaluate(() => ({

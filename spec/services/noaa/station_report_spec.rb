@@ -91,6 +91,20 @@ RSpec.describe Noaa::StationReport do
     expect(result[:warnings].pluck(:product)).to include('predictions')
   end
 
+  it 'raises an upstream error when no data request succeeds' do
+    stub_request(:get, /datagetter/).to_return(status: 503)
+    expect do
+      described_class.new(station.merge('capabilities' => %w[waterlevels tidepredictions]),
+                          client:).call
+    end.to raise_error(Noaa::Unavailable, /temporarily unavailable/)
+  end
+
+  it 'keeps a legitimate empty response distinct from transport failure' do
+    water_request(body: { data: [] })
+    result = described_class.new(station, client:).call
+    expect(result).to include(observations: [], latest: nil, weather: {}, warnings: [])
+  end
+
   it 'requests high/low intervals for subordinate locations without requesting observations' do
     station = { 'station_id' => 'TWC0331', 'station_name' => 'Prediction location',
                 'capabilities' => ['tidepredictions'], 'prediction_type' => 'S' }
