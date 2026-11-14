@@ -6,7 +6,7 @@ Use Ruby from `.ruby-version`, Node 22+, and a **new disposable local database**
 
 ```sh
 npm ci --ignore-scripts
-npx playwright install chromium webkit
+npx playwright install chromium firefox webkit
 export DATABASE_URL=postgresql://localhost/stranger_tides_browser_test
 RAILS_ENV=test bundle exec rails db:create db:schema:load
 npm run test:browser
@@ -14,13 +14,15 @@ npm run test:browser
 
 Schema loading is destructive to tables in its target database. Never use a Heroku URL for this command. It is not part of the test runner or a deployment step. CI supplies a newly created PostgreSQL service.
 
-The suite covers desktop Chromium, Android Chrome emulation and iPhone WebKit emulation. It checks loaded marker images, denied location, granted location/recentering, station selection, numeric chart data, map resizing, replacement without duplicate charts, close, and reopening. These are viewport/browser-engine tests, not physical-device tests. CI keeps screenshots and traces on failures and the HTML report for seven days.
+The suite covers desktop Chromium, Android Chrome emulation, desktop Firefox, and iPhone WebKit emulation. It checks loaded marker images, denied location, granted location/recentering, station selection, numeric chart data, map resizing, replacement without duplicate charts, close, and reopening. Location checks verify the displayed host, no request before clicking, no duplicate pending request, standard API options, and usable controls after denial, timeout, unavailable position, or a missing API. These are viewport/browser-engine tests, not physical-device tests; they cannot certify native permission labels on a tablet. CI keeps screenshots and traces on failures and the HTML report for seven days.
 
-On macOS 13, current bundled browsers are unsupported. Use installed Chrome for local desktop/Android checks, then use the Ubuntu CI job for WebKit:
+On macOS 13, current bundled browsers are unsupported. Use installed Chrome for local desktop/Android checks, then use the Ubuntu CI job for Firefox and WebKit:
 
 ```sh
 PLAYWRIGHT_CHANNEL=chrome npm run test:browser -- --project=desktop-chromium --project=mobile-chromium
 ```
+
+To test an installed desktop Brave browser, set `PLAYWRIGHT_BRAVE_EXECUTABLE` to its executable path and select `--project=desktop-brave`. This optional project uses the installed browser without adding a production dependency. Native Brave Android permission text still needs a tablet check.
 
 ## Hosted comparison
 
@@ -28,7 +30,7 @@ PLAYWRIGHT_CHANNEL=chrome npm run test:browser -- --project=desktop-chromium --p
 npm run test:live
 ```
 
-This separate, manually invoked suite contacts the public production apex, staging and production `www` domains. It uses the real Maps SDK, keyboard-activates actual station markers, and requests coastal (San Francisco) and Great Lakes (Cleveland) charts through each application's real `/show_graph` endpoint. That POST renders a graph and does not write application data. It verifies titles, source, height units, populated numeric series, replacement, map resizing and close on desktop and Android viewports. It never deploys, modifies config, migrates or seeds a hosted database, or ignores TLS errors. It makes live NOAA requests; avoid running it in a rapid loop.
+This separate, manually invoked suite contacts the public production apex, staging and production `www` domains. It uses the real Maps SDK, keyboard-activates actual station markers, and requests coastal (San Francisco) and Great Lakes (Duluth) charts through each application's read-only station-report API. It verifies chart titles, datum labels, populated numeric series and close on desktop and Android viewports. It never deploys, modifies config, migrates or seeds a hosted database, or ignores TLS errors. It makes live NOAA requests; avoid running it in a rapid loop.
 
 The suite also compares all public station IDs, names and coordinates. A data mismatch fails the parity check and saves details rather than silently accepting a changed station set. JSON results, screenshots, HTML reports and failure traces appear in `test-results/live` and `playwright-report/live`. Traces can include public page HTML, browser-visible Maps keys and request data; do not publish them to an unrelated service.
 
@@ -45,8 +47,8 @@ References: [Playwright API mocking](https://playwright.dev/docs/mock), [browser
 
 ## Station explorer changes
 
-The feature branch replaces the executable `/show_graph` response with the read-only JSON station-report API. Its deterministic suite now covers ten scenarios across three browser configurations (30 CI checks), including null gaps, prediction-only locations, IGLD, retries, delayed-response cancellation, deep links, unit/time changes, search and map failure. Existing Maps and NOAA credentials are never used by this offline suite.
+The station explorer replaces the executable `/show_graph` response with the read-only JSON station-report API. Its deterministic suite covers 26 scenarios across four browser configurations (104 CI checks), including null gaps, prediction-only locations, IGLD, retries, delayed-response cancellation, deep links, unit/time changes, search and map failure. Existing Maps and NOAA credentials are never used by this offline suite.
 
-Hosted checks recognize both the old production interface and the new explorer. They publish the full catalog difference and require staging's observing IDs to match NOAA's current active inventory. Exact production/staging inventory equality is optional via `LIVE_REQUIRE_IDENTICAL_CATALOGS=1`, because adding current stations and prediction locations is the intended feature. The production baseline's duplicate graph wrappers remain visible in diagnostics; they are not claimed as fixed until the new interface is deployed there.
+Hosted checks recognize both the old production interface and the new explorer. They publish the full catalog difference and require staging's observing IDs to match NOAA's current active inventory. Exact production/staging inventory equality is optional via `LIVE_REQUIRE_IDENTICAL_CATALOGS=1`, because adding current stations and prediction locations is the intended feature. Both hosted apps now use the explorer; the legacy-interface comparison remains available for historical baselines.
 
 See [catalog operations](../../docs/station-catalog.md) for staged refresh, rollback, monitoring, and deployment safeguards. Historical findings above describe the earlier upgrade baseline, including the subsequently repaired DNS/certificate incident.

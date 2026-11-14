@@ -1,12 +1,10 @@
 # frozen_string_literal: true
-# Define an application-wide HTTP permissions policy. For further
-# information see https://developers.google.com/web/updates/2018/06/feature-policy
-#
-# Rails.application.config.permissions_policy do |f|
-#   f.camera      :none
-#   f.gyroscope   :none
-#   f.microphone  :none
-#   f.usb         :none
-#   f.fullscreen  :self
-#   f.payment     :self, "https://secure.example.com"
-# end
+
+# Only this origin may request location. The browser still asks for user consent.
+Rails.application.config.action_dispatch.default_headers['Permissions-Policy'] =
+  'geolocation=(self)'
+
+# Rails emits the older Feature-Policy syntax for browsers that support it.
+Rails.application.config.permissions_policy do |policy|
+  policy.geolocation :self
+end
