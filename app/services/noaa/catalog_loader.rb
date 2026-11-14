@@ -14,6 +14,7 @@ module Noaa
           station = all[row['id']] ||= normalize(row)
           station['capabilities'] |= [type]
           station['state'] = row['state'].to_s if station['state'].blank?
+          station['prediction_type'] = row['type'] if type == 'tidepredictions'
         end
       end
       all.values.sort_by { |station| station['station_id'] }

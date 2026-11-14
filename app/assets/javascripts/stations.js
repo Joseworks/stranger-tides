@@ -6,6 +6,7 @@
   const byId = id => document.getElementById(id);
   const text = (id, value) => { byId(id).textContent = value; };
   const capabilities = station => station.capabilities || ['waterlevels'];
+  const stationLabel = station => station.state && !station.station_name.endsWith(`, ${station.state}`) ? `${station.station_name}, ${station.state}` : station.station_name;
   const zone = () => byId('display-zone').value === 'utc' ? 'UTC' : Intl.DateTimeFormat().resolvedOptions().timeZone;
   const date = value => new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short', timeZone: zone() }).format(new Date(value));
   const quality = value => ({ p: 'Preliminary', v: 'Verified' }[value] || 'Quality not provided');
@@ -35,7 +36,7 @@
       `${s.station_name} ${s.station_id} ${s.state || ''}`.toLocaleLowerCase().includes(search));
     text('result-count', `${filtered.length} matching locations`);
     byId('station-results').replaceChildren(...filtered.slice(0, visibleCount).map(s => {
-      const item = document.createElement('li'); const button = element('button', `${s.station_name} ${s.station_id}`);
+      const item = document.createElement('li'); const button = element('button', `${stationLabel(s)} ${s.station_id}`);
       button.type = 'button'; button.dataset.stationId = s.station_id;
       button.append(element('small', `${s.state || ''} · ${capabilities(s).includes('waterlevels') ? 'Water-level observations' : 'Prediction / weather location'}`));
       button.addEventListener('click', () => selectStation(s)); item.append(button); return item;
@@ -56,7 +57,7 @@
       const station = group[0], count = group.length;
       const position = { lat: group.reduce((n, s) => n + Number(s.latitude), 0) / count,
         lng: group.reduce((n, s) => n + Number(s.longitude), 0) / count };
-      const title = count > 1 ? `${count} stations; zoom in` : `${station.station_name} ${station.station_id}`;
+      const title = count > 1 ? `${count} stations; zoom in` : `${stationLabel(station)} ${station.station_id}`;
       const advanced = byId('full_map').dataset.mapId && google.maps.marker?.AdvancedMarkerElement;
       let marker;
       if (advanced) {
@@ -85,12 +86,12 @@
   window.gm_authFailure = () => { byId('map-status').hidden = false; text('map-status', 'The map is unavailable. Use the station list to explore data.'); };
   function selectStation(station) {
     savedFocus = document.activeElement; selected = station; report = null;
-    byId('station-panel').hidden = false; text('station-heading', `${station.station_name} ${station.station_id}`);
+    byId('station-panel').hidden = false; text('station-heading', `${stationLabel(station)} ${station.station_id}`);
     if (window.matchMedia('(max-width: 760px)').matches) byId('station-panel').scrollIntoView({ block: 'start' });
     if (map) {
       const position = { lat: Number(station.latitude), lng: Number(station.longitude) };
       map.setCenter(position); map.setZoom(8);
-      infoWindow.setContent(element('div', `${station.station_name} · ${station.station_id}`));
+      infoWindow.setContent(element('div', `${stationLabel(station)} · ${station.station_id}`));
       infoWindow.setPosition?.(position); infoWindow.open(map);
     }
     byId('station-heading').focus({ preventScroll: true }); updateUrl(); loadReport();
@@ -124,25 +125,35 @@
     summary.append(element('p', latest ? `${latest.value.toFixed(2)} ${unit()} above ${report.datum} · ${quality(latest.quality)}` : 'No water-level observation available.', 'latest-reading'));
     if (latest) summary.append(element('p', `Observed ${date(latest.time)} · ${Math.max(0, Math.floor((Date.now() - Date.parse(latest.time)) / 60000))} minutes ago`));
     if (report.datum) summary.append(element('p', `Height reference: ${report.datum} · Times: ${zone()}`, 'muted'));
+    if (report.datum === 'IGLD') {
+      summary.append(element('p', 'Lake-surface elevation relative to the International Great Lakes Datum (IGLD), rather than tide height. The variation below shows how much the water rose and fell during the selected period.', 'datum-explanation'));
+    }
+    const heights = report.observations.map(p => p.value).filter(v => v !== null);
+    if (heights.length) summary.append(element('p', `Observed ${report.hours}-hour range: ${Math.min(...heights).toFixed(2)}–${Math.max(...heights).toFixed(2)} ${unit()} · Variation ${(Math.max(...heights) - Math.min(...heights)).toFixed(2)} ${unit()}`));
     const events = report.events.filter(e => e.value !== null && Date.parse(e.time) >= Date.now());
     for (const type of ['H', 'L']) {
       const event = events.find(e => e.type === type);
       if (event) summary.append(element('p', `Next predicted ${type === 'H' ? 'high' : 'low'}: ${date(event.time)} · ${event.value.toFixed(2)} ${unit()}`));
     }
     Object.entries(report.weather).forEach(([product, reading]) => {
-      const units = product === 'wind' ? (report.units === 'metric' ? 'm/s' : 'knots') : (report.units === 'metric' ? '°C' : '°F');
+      const units = ({ wind: report.units === 'metric' ? 'm/s' : 'knots', air_pressure: 'mb', humidity: '%' })[product] || (report.units === 'metric' ? '°C' : '°F');
       const wind = product === 'wind' ? `${reading.direction ? ` · direction ${reading.direction}°` : ''}${reading.gust ? ` · gust ${reading.gust} ${units}` : ''}` : '';
       summary.append(element('p', `${product.replaceAll('_', ' ')}: ${reading.value} ${units}${wind} · ${date(reading.time)}`));
+    });
+    (report.sensors || []).filter(sensor => !sensor.enabled).forEach(sensor => {
+      summary.append(element('p', `${sensor.name}: sensor disabled${sensor.message ? ` · ${sensor.message}` : ''}`, 'muted'));
     });
     byId('noaa-station-link').href = report.source_url;
     const series = [ ['Observed water level', report.observations], ['Predicted water level', report.predictions] ]
       .filter(([, values]) => values.some(point => point.value !== null))
-      .map(([name, values]) => ({ name, data: values.map(point => [point.timestamp, point.value]), connectNulls: false }));
+      .map(([name, values]) => ({ name: name === 'Predicted water level' && selected.prediction_type === 'S' ? 'Predicted high/low events' : name,
+        type: name === 'Predicted water level' && selected.prediction_type === 'S' ? 'scatter' : 'line',
+        data: values.map(point => [point.timestamp, point.value]), connectNulls: false }));
     if (series.length) {
       chart = Highcharts.chart('graph-partial', {
-        chart: { type: 'line', animation: false }, title: { text: selected.station_name },
+        chart: { type: 'line', animation: false }, title: { text: stationLabel(selected) },
         subtitle: { text: `Past ${report.hours} hours · Source: NOAA CO-OPS` }, time: { timezone: zone() },
-        xAxis: { type: 'datetime' }, yAxis: { title: { text: `Height (${unit()}, ${report.datum})` } },
+        xAxis: { type: 'datetime' }, yAxis: { title: { text: `${report.datum === 'IGLD' ? 'Lake-level elevation' : 'Water level'} (${unit()}, ${report.datum})` } },
         tooltip: { xDateFormat: '%e %b %Y %H:%M', valueSuffix: ` ${unit()}` },
         credits: { enabled: false }, series
       });

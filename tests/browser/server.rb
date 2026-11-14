@@ -15,12 +15,13 @@ ENV['STRANGER_TIDES_EMBED_MAPS_API_KEY'] = 'offline-browser-fixture'
 stations = [
   { 'station_id' => '9414290', 'station_name' => 'San Francisco', 'latitude' => 37.8063,
     'longitude' => -122.4659, 'state' => 'CA',
-    'capabilities' => %w[waterlevels tidepredictions waterlevelsandmet] },
+    'prediction_type' => 'H', 'capabilities' => %w[waterlevels tidepredictions waterlevelsandmet] },
   { 'station_id' => '9099064', 'station_name' => 'Duluth', 'latitude' => 46.775,
     'longitude' => -92.092,
     'state' => 'MN', 'greatlakes' => true, 'capabilities' => ['waterlevels'] },
   { 'station_id' => 'TWC0331', 'station_name' => 'Prediction Harbor', 'latitude' => 38,
-    'longitude' => -123, 'state' => 'CA', 'capabilities' => ['tidepredictions'] }
+    'longitude' => -123, 'state' => 'CA', 'prediction_type' => 'S',
+    'capabilities' => ['tidepredictions'] }
 ]
 if Station.none?
   Station.create!(station_name: Noaa::Catalog::SNAPSHOT_NAME, metadata: {
@@ -35,6 +36,13 @@ end
 WebMock.stub_request(:get, %r{/mdapi/prod/webapi/stations/\d+/datums.json}).to_return do |request|
   { body: { datums: [{ name: request.uri.path.include?('9099064') ? 'GL_LWD' : 'MLLW' }] }.to_json }
 end
+WebMock.stub_request(:get, %r{/mdapi/prod/webapi/stations/\d+/sensors.json}).to_return(
+  body: { sensors: [{ name: 'Wind', status: 1 }, { name: 'Air Temperature', status: 1 },
+                    { name: 'Barometric Pressure', status: 1 },
+                    { name: 'Relative Humidity', status: 1 },
+                    { name: 'Water Temperature', status: 0,
+                      message: '2026-11-13&Under review' }] }.to_json
+)
 data_url = %r{https://api\.tidesandcurrents\.noaa\.gov/api/prod/datagetter}
 WebMock.stub_request(:get, data_url).to_return do |request|
   params = URI.decode_www_form(request.uri.query).to_h
@@ -42,15 +50,19 @@ WebMock.stub_request(:get, data_url).to_return do |request|
     s['station_id'] == params['station']
   end || raise('Unexpected station')
   product = params.fetch('product')
+  raise 'Disabled water sensor must not be requested' if product == 'water_temperature'
+  raise 'Subordinate predictions require high/low events' if
+    station['prediction_type'] == 'S' && params['interval'] != 'hilo'
   if product == 'water_level' && station['station_id'] == '9099064' && params['datum'] != 'IGLD'
     raise 'Great Lakes chart requires the IGLD datum'
   end
 
   now = Time.current.utc.change(sec: 0)
   scale = params['units'] == 'metric' ? 0.3048 : 1
+  base = station['station_id'] == '9099064' ? 602.12 : 0.12
   rows = [18, 12, 6].map.with_index do |minutes, index|
     { t: (now - minutes.minutes).strftime('%Y-%m-%d %H:%M'),
-      v: index == 1 ? '' : (0.12 + (index * 0.03)) * scale, q: 'p', f: '0,0,0,0', s: '10' }
+      v: index == 1 ? '' : (base + (index * 0.03)) * scale, q: 'p', f: '0,0,0,0', s: '10' }
   end
   if params['interval'] == 'hilo'
     rows = [{ t: (now + 2.hours).strftime('%Y-%m-%d %H:%M'), v: 2 * scale, type: 'H' },

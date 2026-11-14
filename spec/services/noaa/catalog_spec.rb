@@ -5,9 +5,10 @@ RSpec.describe Noaa::Catalog do
   let(:client) { Noaa::Client.new(cache: ActiveSupport::Cache::NullStore.new) }
   let(:catalog) { described_class.new(client:) }
   let(:one) do
-    { id: '9414290', name: 'San Francisco', lat: 37.8, lng: -122.4, tidal: true, state: 'CA' }
+    { id: '9414290', name: 'San Francisco', lat: 37.8, lng: -122.4, tidal: true,
+      state: 'CA', type: 'H' }
   end
-  let(:two) { { id: 'TWC0331', name: 'Prediction location', lat: 38, lng: -123 } }
+  let(:two) { { id: 'TWC0331', name: 'Prediction location', lat: 38, lng: -123, type: 'S' } }
 
   def response_for(type, rows, count: rows.length)
     stub_request(:get, 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json')
@@ -34,6 +35,13 @@ RSpec.describe Noaa::Catalog do
     expect(previous.reload.metadata).to eq(original)
     expect(catalog.snapshot.metadata['stations']).to eq(original['stations'])
     expect(Station.count).to eq(2)
+  end
+
+  it 'preserves harmonic and subordinate prediction capabilities' do
+    catalog.refresh(apply: true)
+    expect(catalog.find('9414290')['prediction_type']).to eq('H')
+    expect(catalog.find('TWC0331')['prediction_type']).to eq('S')
+    expect(catalog.find('9414290')['state']).to eq('CA')
   end
 
   it 'does not replace the last good catalog after an incomplete response' do

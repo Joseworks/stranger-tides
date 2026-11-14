@@ -27,7 +27,7 @@ for (const [name, url] of Object.entries(targets)) {
       if (modern) {
         await page.getByLabel('Find a station', { exact: true }).fill(id);
         await page.locator(`#station-results button[data-station-id="${id}"]`).click();
-        await expect(page.locator('#graph-partial .highcharts-title')).toHaveText(stationName, { timeout: 30000 });
+        await expect(page.locator('#graph-partial .highcharts-title')).toHaveText(`${stationName}, ${stations.find(s => s.station_id === id).state}`, { timeout: 30000 });
         await expect(page.locator('#station-summary')).toContainText(`Height reference: ${datum}`);
         await expect(page.locator('.highcharts-container')).toHaveCount(1);
         const state = await page.evaluate(() => ({
@@ -36,6 +36,9 @@ for (const [name, url] of Object.entries(targets)) {
         }));
         expect(state.samples).toBeGreaterThan(10); results.push({ id, datum, ...state });
       } else {
+        if (!stations.some(s => String(s.station_id) === id)) {
+          results.push({ id, missingFromLegacyCatalog: true }); continue;
+        }
         const marker = page.getByRole('button', { name: `${stationName} ${id}`, exact: true });
         await marker.focus(); await marker.press('Enter');
         await expect(page.locator('#graph-partial .highcharts-title').last()).toContainText(stationName, { timeout: 30000 });

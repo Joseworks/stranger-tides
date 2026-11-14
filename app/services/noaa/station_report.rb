@@ -18,7 +18,12 @@ module Noaa
       @now = Time.current.utc.change(sec: 0)
       datum = reference
       observed = capable?('waterlevels') ? optional_data('water_level', datum:) : []
-      predicted = capable?('tidepredictions') ? optional_data('predictions', datum:) : []
+      prediction_interval = @station['prediction_type'] == 'S' ? 'hilo' : nil
+      predicted = if capable?('tidepredictions')
+                    optional_data('predictions', datum:, interval: prediction_interval)
+                  else
+                    []
+                  end
       events = if capable?('tidepredictions')
                  optional_data('predictions', datum:, interval: 'hilo', future: true)
                else
@@ -28,7 +33,7 @@ module Noaa
       { station: @station, datum:, units: @units, hours: @hours, fetched_at: @now.iso8601,
         observations: observed, predictions: predicted, events: events,
         latest:, stale: latest.nil? || Time.iso8601(latest[:time]) < @now - 18.minutes,
-        weather: weather, warnings: @warnings || [],
+        weather: weather, sensors: @sensors || [], warnings: @warnings || [],
         source_url: "https://tidesandcurrents.noaa.gov/stationhome.html?id=#{id}" }
     end
 
@@ -93,9 +98,13 @@ module Noaa
     def weather
       return {} unless capable?('waterlevelsandmet')
 
-      %w[wind water_temperature air_temperature].index_with do |product|
+      @sensors = Sensors.new(id, client: @client).call
+      @sensors.select { |sensor| sensor[:enabled] }.pluck(:product).index_with do |product|
         optional_data(product).rfind { |point| point[:value] }
       end.compact
+    rescue NoData, Unavailable => e
+      (@warnings ||= []) << { product: 'weather', message: e.message }
+      {}
     end
   end
 end

@@ -29,6 +29,20 @@ RSpec.describe Noaa::StationReport do
                               'datum' => datum)).to_return(body: body.to_json)
   end
 
+  def weather_requests
+    stub_request(:get, /sensors.json/).to_return(body: { sensors: [
+      { name: 'Wind', status: 1 }, { name: 'Barometric Pressure', status: 1 },
+      { name: 'Relative Humidity', status: 1 },
+      { name: 'Water Temperature', status: 0, message: '2026-11-13&Under review' }
+    ] }.to_json)
+    %w[wind air_pressure humidity].each do |product|
+      stub_request(:get, /datagetter/)
+        .with(query: base.merge('product' => product))
+        .to_return(body: { data: [{ t: '2026-11-13 18:54', v: '64', s: '12',
+                                    d: '180', g: '15' }] }.to_json)
+    end
+  end
+
   it 'fetches each payload once and preserves real zero, null gaps, timestamps, and quality' do
     request = water_request
     result = described_class.new(station, client:).call
@@ -76,12 +90,12 @@ RSpec.describe Noaa::StationReport do
     expect(result[:warnings].pluck(:product)).to include('predictions')
   end
 
-  it 'provides predictions and next-day high/low events for prediction-only IDs without requesting observations' do
+  it 'requests high/low intervals for subordinate locations without requesting observations' do
     station = { 'station_id' => 'TWC0331', 'station_name' => 'Prediction location',
-                'capabilities' => ['tidepredictions'] }
-    past = base.merge('station' => 'TWC0331', 'product' => 'predictions', 'datum' => 'MLLW')
-    future = past.merge('begin_date' => '20261113 19:00', 'end_date' => '20261114 19:00',
-                        'interval' => 'hilo')
+                'capabilities' => ['tidepredictions'], 'prediction_type' => 'S' }
+    past = base.merge('station' => 'TWC0331', 'product' => 'predictions', 'datum' => 'MLLW',
+                      'interval' => 'hilo')
+    future = past.merge('begin_date' => '20261113 19:00', 'end_date' => '20261114 19:00')
     stub_request(:get, /datagetter/)
       .with(query: past)
       .to_return(body: { predictions: [{ t: '2026-11-13 18:00', v: '1.2' }] }.to_json)
@@ -95,19 +109,25 @@ RSpec.describe Noaa::StationReport do
     expect(WebMock).not_to have_requested(:get, /datums.json/)
   end
 
-  it 'displays supported weather measurements and handles wind speed in NOAA field s' do
+  it 'displays enabled measurements including pressure and humidity and handles wind field s' do
     station = station().merge('capabilities' => ['waterlevelsandmet'])
-    %w[wind water_temperature air_temperature].each do |product|
-      stub_request(:get, /datagetter/)
-        .with(query: base.merge('product' => product))
-        .to_return(body: { data: [{ t: '2026-11-13 18:54', v: '64', s: '12',
-                                    d: '180',
-                                    g: '15' }] }.to_json)
-    end
-    expect(described_class.new(station,
-                               client:).call[:weather]['wind']).to include(value: 12.0,
-                                                                           direction: '180',
-                                                                           gust: '15')
+    weather_requests
+    result = described_class.new(station, client:).call
+    expect(result[:weather]['wind']).to include(value: 12.0, direction: '180', gust: '15')
+    expect(result[:weather].keys).to contain_exactly('wind', 'air_pressure', 'humidity')
+    expect(result[:sensors].last).to include(enabled: false, message: 'Under review')
+    expect(WebMock).not_to have_requested(:get, /datagetter/)
+      .with(query: hash_including('product' => 'water_temperature'))
+  end
+
+  it 'preserves observations when sensor metadata is unavailable' do
+    water_request
+    stub_request(:get, /sensors.json/).to_return(status: 503)
+    result = described_class.new(station.merge('capabilities' => %w[waterlevels waterlevelsandmet]),
+                                 client:).call
+    expect(result[:latest][:value]).to eq(0.0)
+    expect(result[:weather]).to eq({})
+    expect(result[:warnings].pluck(:product)).to include('weather')
   end
 
   it 'drops invalid timestamps and nonfinite numbers, sorts and deduplicates measurements' do
