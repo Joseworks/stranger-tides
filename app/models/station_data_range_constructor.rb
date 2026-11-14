@@ -6,6 +6,7 @@
 
 class StationDataRangeConstructor
   include ActiveModel::Model
+
   validates :my_station, presence: true, numericality: { only_integer: true }
 
   def initialize(station_id, datum)

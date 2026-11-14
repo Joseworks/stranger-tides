@@ -1,3 +1,4 @@
+removeGraph();
 $('#map-container-full').attr("id","map-container-small");
-$('body').append("<div id='tide-graph'>");
+$('body').append("<div id='tide-graph'></div>");
 $("#tide-graph").html("<%=j render :partial => 'stations/graph_partial', locals: { chart: @chart } %>")

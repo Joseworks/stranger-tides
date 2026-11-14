@@ -1,87 +1,42 @@
 # frozen_string_literal: true
 
 source 'https://rubygems.org'
-git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby '3.3.7'
-gem 'rails', '~> 7.1.0'
+ruby file: '.ruby-version'
+gem 'rails', '~> 8.1.4'
 
-# The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem 'bigdecimal'
 gem 'drb'
-gem 'faraday'
-gem 'gon'
-gem 'jquery-rails'
-gem 'lazy_high_charts'
-gem 'mutex_m' # Mutex_m is a simple mutex class for Ruby, resolve warning in Rails 7
-gem 'pg'
-gem 'puma'
-gem 'sassc-rails'
-gem 'sidekiq', '< 7.0'
-gem 'sprockets', '~> 4.0'
-gem 'turbolinks'
+gem 'faraday', '~> 2.15'
+gem 'gon', '~> 8.0'
+gem 'jquery-rails', '~> 4.6'
+gem 'lazy_high_charts', '~> 1.6'
+gem 'logger'
+gem 'mutex_m'
+gem 'pg', '~> 1.7'
+gem 'puma', '~> 8.0'
+# Action Cable uses Redis; this application has no Sidekiq workers.
+gem 'redis', '~> 5.4'
 
-# JavaScript handling
-gem 'importmap-rails'
-gem 'sprockets-rails', '~> 3.4.2'
-
-# Use Redis adapter to run Action Cable in production
-# gem 'redis'
-
-# Use Active Model has_secure_password
-# [https://guides.rubyonrails.org/active_model_basics.html
-# #securepassword]
-# gem "bcrypt", "~> 3.1.7"
-
-# Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
-# gem 'importmap-rails'
-
-# Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]
-# gem 'turbo-rails'
-
-# Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]
-# gem 'stimulus-rails'
-
-# Build JSON APIs with ease [https://github.com/rails/jbuilder]
-# gem 'jbuilder'
-
-# Use Redis adapter to run Action Cable in production
-# gem 'redis'
-
-# Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
-# gem "kredis"
-
-# Use Active Model has_secure_password
-# [https://guides.rubyonrails.org/active_model_basics.html
-# #securepassword]
-# gem "bcrypt", "~> 3.1.7"
-
-gem 'tzinfo-data', platforms: %i[mingw mswin x64_mingw jruby]
-
-# # Use Sass to process CSS
-# gem 'sassc-rails'
-
-# Use Active Storage variants
-# [https://guides.rubyonrails.org/active_storage_overview.html
-# #transforming-images]
-# gem "image_processing", "~> 1.2"
+# Keep the existing JavaScript pipeline while upgrading the server runtime.
+gem 'importmap-rails', '~> 2.2'
+gem 'sprockets', '~> 4.4'
+gem 'sprockets-rails', '~> 3.5'
+gem 'turbolinks', '~> 5.2'
+gem 'tzinfo-data', platforms: %i[windows jruby]
 
 group :development, :test do
-  # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
-  gem 'debug', platforms: %i[mri mingw x64_mingw]
+  gem 'debug', platforms: %i[mri windows]
   gem 'factory_bot_rails'
   gem 'pry'
   gem 'pry-byebug'
   gem 'rails-controller-testing'
-  gem 'rspec-rails'
-  # Code quality
+  gem 'rspec-rails', '~> 8.1'
+
   gem 'brakeman', require: false
   gem 'bullet', require: false
   gem 'bundler-audit', require: false
   gem 'debride', require: false
-  # gem 'flay', require: false
-  # gem 'flog', require: false
-  # gem 'reek', require: false
   gem 'rubocop', require: false
   gem 'rubocop-factory_bot', require: false
   gem 'rubocop-performance', require: false
@@ -92,20 +47,10 @@ group :development, :test do
   gem 'simplecov', require: false
 end
 
-# Logger fix for Rails 7 https://github.com/facebook/react-native/commit/198adb47af3676c85b35adb308c110c1d87120c8
-gem 'concurrent-ruby', '< 1.3.4'
-
 group :development do
-  # Use console on exceptions pages [https://github.com/rails/web-console]
   gem 'web-console'
-
-  # Add speed badges [https://github.com/MiniProfiler/rack-mini-profiler]
-  # gem "rack-mini-profiler"
-
-  # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
-  # gem "spring"
 end
 
 group :test do
-  # gem 'shoulda-matchers'
+  gem 'webmock'
 end

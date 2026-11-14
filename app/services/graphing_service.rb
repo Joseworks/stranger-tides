@@ -2,6 +2,7 @@
 
 # Creates the graph through a HighChart instance.
 include ActionView::Helpers::DateHelper
+
 module GraphingService
   class ChartProcessor
     def self.grapher(station, tide_information, time_range)

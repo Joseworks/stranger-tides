@@ -21,7 +21,7 @@ AllCops:
     - 'public/**/*'
     - 'stranger_tides_notes_do_not_commit.rb'
 
-  TargetRubyVersion: 3.3
+  TargetRubyVersion: 4.0
   DisplayCopNames: true
 
 Naming/PredicatePrefix:
