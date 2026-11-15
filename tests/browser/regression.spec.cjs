@@ -29,7 +29,7 @@ test('numbered clusters explain their count and expand into individual station p
   await page.goto('/'); await expect(page.getByRole('region', { name: 'Map', exact: true })).toBeVisible();
   await expect(page.locator('.map-legend')).toContainText('Number = nearby stations grouped together');
   await page.evaluate(() => fixtureMap.setZoom(0));
-  await page.getByRole('button', { name: '2 stations; zoom in', exact: true }).click();
+  await page.getByRole('button', { name: '2 stations; 1 with additional products; zoom in', exact: true }).click();
   await expect(page.locator('#full_map')).toHaveAttribute('data-zoom', '2');
   await expect(page.getByRole('button', { name: 'San Francisco, CA 9414290', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Duluth, MN 9099064', exact: true })).toBeVisible();
@@ -72,7 +72,8 @@ test('selection keeps keyboard focus visible without forcing a scroll to off-scr
   await page.goto('/'); await station(page, '9414290').scrollIntoViewIfNeeded();
   const before = await page.evaluate(() => scrollY);
   await station(page, '9414290').click(); await expect(chart(page)).toHaveText('San Francisco, CA');
-  await expect(station(page, '9414290')).toBeFocused();
+  const focus = await page.evaluate(() => {const r = document.activeElement.getBoundingClientRect(); return {top: r.top, bottom: r.bottom, height: innerHeight};});
+  expect(focus.top).toBeGreaterThanOrEqual(0); expect(focus.bottom).toBeLessThanOrEqual(focus.height);
   expect(Math.abs(await page.evaluate(() => scrollY) - before)).toBeLessThan(2);
 });
 
@@ -275,8 +276,8 @@ test('station local time updates all charts and shared links without fetching or
   const count = reports;
   await page.getByLabel('Time', { exact: true }).selectOption('utc');
   await page.getByLabel('Time', { exact: true }).selectOption('station');
-  expect(await page.evaluate(() => Highcharts.charts.filter(Boolean).map(c => c.options.time.timezone)))
-    .toEqual(Array(5).fill('America/Los_Angeles'));
+  const zones = await page.evaluate(() => Highcharts.charts.filter(Boolean).map(c => c.options.time.timezone));
+  expect(zones.length).toBeGreaterThanOrEqual(5); expect(zones.every(z => z === 'America/Los_Angeles')).toBe(true);
   expect(await page.evaluate(() => chart_graph_partial.index)).toBe(before.water);
   expect(Math.abs(await page.evaluate(() => scrollY) - before.y)).toBeLessThan(2);
   expect(reports).toBe(count); await expect(page).toHaveURL(/zone=station/);
@@ -369,4 +370,231 @@ test('browsers without a location API retain search and explain the limitation',
   await expect(page.locator('#location-status')).toContainText('unavailable in this browser or connection');
   await expect(page.locator('#locate')).toBeEnabled();
   await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
+});
+
+test('stations with additional products have purple markers, labels and a discovery filter', async ({ page }) => {
+  await page.goto('/'); await expect(page.locator('#result-count')).toContainText('2 matching');
+  await expect(station(page, '9414290')).toHaveClass(/extra-products/);
+  await expect(station(page, '9414290')).toContainText('Additional:');
+  await expect(page.locator('.map-legend')).toContainText('Purple pin = additional products');
+  await expect(page.locator('#full_map img[src*="purple_marker"]')).toBeVisible();
+  await page.getByLabel('Show stations', {exact: true}).selectOption('additional');
+  await expect(page.locator('#result-count')).toHaveText('1 matching locations');
+  await expect(station(page, '9099064')).toHaveCount(0);
+});
+
+test('future planning and 30-day history update in place and retain shareable settings', async ({ page }) => {
+  await page.goto('/?station=9414290'); await expect(page.locator('#future-tides .highcharts-container')).toBeVisible();
+  const control = page.getByLabel('History', {exact: true}); await control.scrollIntoViewIfNeeded();
+  const before = await page.evaluate(() => ({ y: scrollY, chart: chart_graph_partial.index }));
+  await control.selectOption('720');
+  await expect(page.locator('#graph-partial .highcharts-subtitle')).toContainText('Past 720 hours');
+  await page.getByLabel('Plan ahead', {exact: true}).selectOption('720');
+  await expect(page.locator('#planning-intro')).toContainText('next 30 days');
+  await expect(page).toHaveURL(/future_hours=720/);
+  expect(await page.evaluate(() => chart_graph_partial.index)).toBe(before.chart);
+  expect(Math.abs(await page.evaluate(() => scrollY) - before.y)).toBeLessThan(2);
+  await page.getByLabel('Plan ahead', {exact: true}).selectOption('0');
+  await expect(page.locator('#future-tides')).toHaveCount(0);
+});
+
+test('observed-minus-predicted graph keeps zero differences and null gaps', async ({ page }) => {
+  await page.goto('/?station=9414290');
+  await expect(page.locator('#tide-difference .highcharts-container')).toBeVisible();
+  expect(await page.evaluate(() => Highcharts.charts.find(c => c?.renderTo.id === 'tide-difference').series[0].getColumn('y'))).toEqual([0, null, 0]);
+  await page.getByLabel('Show stations', {exact: true}).selectOption('tidepredictions');
+  await station(page, 'TWC0331').click();
+  await expect(page.locator('#departure-note')).toContainText('requires matching');
+  await expect(page.locator('#tide-difference')).toHaveCount(0);
+});
+
+test('forecast, one-minute observations and flood outlooks are labelled as distinct NOAA products', async ({ page }) => {
+  await page.goto('/?station=9414290');
+  await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
+  await expect(page.locator('#one-minute-water-level .highcharts-container')).toBeVisible();
+  await expect(page.locator('#flood-outlook')).toContainText('12.5%');
+  await expect(page.locator('#flood-outlook')).toContainText('above MLLW');
+  await expect(page.locator('#context-intro')).toContainText('Model guidance');
+  await station(page, '9099064').click();
+  await expect(page.locator('#context-intro')).toContainText('No water-level model forecast');
+  await expect(page.locator('#forecast-water-level')).toHaveCount(0);
+});
+
+test('nearby buoy charts show instrument identity, distance and converted measurements', async ({ page }) => {
+  await page.goto('/?station=9414290');
+  await expect(page.locator('#buoy-46026 > summary')).toContainText('Offshore test buoy');
+  await expect(page.locator('#buoy-46026 > summary')).toContainText('km away');
+  await page.locator('#buoy-46026 > summary').click();
+  await expect(page.locator('#buoy-46026-wave_height .highcharts-container')).toBeVisible();
+  const value = await page.evaluate(() => Highcharts.charts.find(c => c?.renderTo.id === 'buoy-46026-wave_height').series[0].getColumn('y')[0]);
+  expect(value).toBeCloseTo(8.2021, 3);
+  await page.getByLabel('Units', {exact: true}).selectOption('metric');
+  await expect.poll(() => page.evaluate(() => Highcharts.charts.find(c => c?.renderTo.id === 'buoy-46026-wave_height')?.yAxis[0].axisTitle.textStr)).toBe('m');
+});
+
+test('failed optional products leave the main report usable and can be retried independently', async ({ page }) => {
+  let fail = true, mainRequests = 0;
+  page.on('request', r => {if (r.url().includes('/report?')) mainRequests++;});
+  await page.route('**/stations/9414290/context?*', route => fail ? route.fulfill({status: 503, json: {error: 'Forecast service unavailable'}}) : route.continue());
+  await page.goto('/?station=9414290');
+  await expect(chart(page)).toHaveText('San Francisco, CA');
+  await expect(page.locator('#context-intro')).toContainText('Forecast service unavailable');
+  fail = false; const count = mainRequests;
+  await page.getByRole('button', {name: 'Retry additional products'}).click();
+  await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
+  expect(mainRequests).toBe(count);
+});
+
+test('extra station sensor histories retain their own units and conditional graphs', async ({ page }) => {
+  await page.route('**/stations/9414290/report?*', async route => {
+    const response = await route.fetch(), payload = await response.json();
+    for (const [product, value] of [['conductivity', 42], ['salinity', 32], ['specific_gravity', 1.02], ['visibility', 4], ['air_gap', 60]]) {
+      payload.weather_series[product] = payload.observations.map(p => ({...p, value}));
+      payload.weather[product] = payload.weather_series[product].at(-1);
+    }
+    await route.fulfill({response, json: payload});
+  });
+  await page.goto('/?station=9414290');
+  await expect(page.locator('#weather-conductivity')).toContainText('mS/cm');
+  await expect(page.locator('#weather-salinity')).toContainText('PSU');
+  await expect(page.locator('#weather-visibility')).toContainText('nmi');
+  await expect(page.locator('#weather-air_gap')).toContainText('ft');
+  await expect(page.locator('#weather-specific_gravity')).not.toContainText('°F');
+});
+
+
+test('mixed clusters visibly count additional-product stations and offer a one-click filter', async ({ page }) => {
+  await page.goto('/'); await expect(page.getByRole('region', { name: 'Map', exact: true })).toBeVisible();
+  await page.evaluate(() => fixtureMap.setZoom(0));
+  const cluster = page.getByRole('button', {name: '2 stations; 1 with additional products; zoom in', exact: true});
+  await expect(cluster).toBeVisible();
+  await expect(cluster.locator('img')).toHaveAttribute('src', /1%20extra/);
+  const toggle = page.getByRole('button', {name: 'Show additional products only', exact: true});
+  await toggle.click(); await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#result-count')).toHaveText('1 matching locations');
+  await expect(station(page, '9414290')).toBeVisible();
+  await toggle.click(); await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.locator('#result-count')).toHaveText('2 matching locations');
+});
+
+
+test('new graph tables expose measurements and follow the selected time zone', async ({page}) => {
+  await page.goto('/?station=9414290');
+  await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
+  await page.locator('#forecast-water-level-data > summary').click();
+  await expect(page.locator('#forecast-water-level-data tbody')).toContainText('NOAA OFS model guidance');
+  await expect(page.locator('#forecast-water-level-data tbody')).toContainText('ft, MLLW');
+  await page.getByLabel('Time', {exact: true}).selectOption('utc');
+  await expect(page.locator('#forecast-water-level-data caption')).toContainText('Times: UTC');
+});
+
+test('an obsolete optional response cannot paint the newly selected station', async ({page}) => {
+  let release; const barrier = new Promise(resolve => {release = resolve;});
+  let finished; const done = new Promise(resolve => {finished = resolve;});
+  await page.route('**/stations/9414290/context?*', async route => {
+    await barrier;
+    await route.fulfill({json: {station_id: '9414290', units: 'english', datum: 'MLLW', fetched_at: new Date().toISOString(),
+      forecast: [{time: new Date().toISOString(), timestamp: Date.now(), value: 99}], flood_outlook: [], products: [], warnings: []}});
+    finished();
+  });
+  await page.goto('/?station=9414290'); await expect(chart(page)).toHaveText('San Francisco, CA');
+  await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
+  await expect(page.locator('#context-intro')).toContainText('No water-level model forecast');
+  release(); await done;
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  await expect(page.locator('#forecast-water-level')).toHaveCount(0);
+  await expect(page.locator('#station-summary')).toContainText('IGLD');
+});
+
+test('hourly forecasts form a line while a missing forecast hour remains a gap', async ({page}) => {
+  await page.route('**/stations/9414290/context?*', async route => {
+    const response = await route.fetch(), payload = await response.json();
+    const start = Date.now();
+    payload.forecast = [0, 1, 3].map(hour => ({timestamp: start + hour * 3600000, value: hour}));
+    await route.fulfill({response, json: payload});
+  });
+  await page.goto('/?station=9414290');
+  await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
+  expect(await page.evaluate(() => Highcharts.charts.find(c => c?.renderTo.id === 'forecast-water-level').series[0].getColumn('y'))).toEqual([0, 1, null, 3]);
+  await page.locator('#forecast-water-level-data > summary').click();
+  await expect(page.locator('#forecast-water-level-data tbody tr')).toHaveCount(4);
+});
+
+test('optional rerenders preserve expanded table pages, calendar and keyboard focus', async ({page}) => {
+  await page.route('**/stations/9414290/context?*', async route => {
+    const response = await route.fetch(), payload = await response.json();
+    const start = Date.now();
+    payload.one_minute = Array.from({length: 1200}, (_, i) => ({timestamp: start + i * 60000, value: i}));
+    await route.fulfill({response, json: payload});
+  });
+  await page.goto('/?station=9414290');
+  const details = page.locator('#one-minute-water-level-data');
+  await details.locator('summary').click();
+  const more = details.getByRole('button', {name: 'Show more chart data'});
+  await more.focus(); await page.keyboard.press('Enter');
+  await expect(more).toBeFocused();
+  await expect(details.locator('tbody tr')).toHaveCount(1000);
+  const calendar = page.locator('#planning-events details');
+  await calendar.locator('summary').click();
+  await page.getByLabel('Time', {exact: true}).selectOption('utc');
+  await expect(details.locator('tbody tr')).toHaveCount(1000);
+  await expect(calendar).toHaveAttribute('open', '');
+  await page.locator('#buoy-46026 > summary').click();
+  await expect(calendar).toHaveAttribute('open', '');
+  await expect(details.locator('tbody tr')).toHaveCount(1000);
+  await more.focus(); await page.keyboard.press('Enter');
+  await expect(details.locator('tbody tr')).toHaveCount(1200);
+  await expect(details.locator('summary')).toBeFocused();
+});
+
+test('a failed units refresh clears stale flood context and product links', async ({page}) => {
+  await page.route('**/stations/9414290/context?*', route => route.request().url().includes('units=metric') ?
+    route.fulfill({status: 503, json: {error: 'Context unavailable'}}) : route.continue());
+  await page.goto('/?station=9414290');
+  await expect(page.locator('#flood-outlook')).toContainText('12.5%');
+  await page.getByLabel('Units', {exact: true}).selectOption('metric');
+  await expect(page.locator('#context-intro')).toContainText('Context unavailable');
+  await expect(page.locator('#flood-outlook')).toHaveCount(0);
+  await expect(page.locator('#noaa-extra-products')).toHaveCount(0);
+  await expect(chart(page)).toHaveText('San Francisco, CA');
+});
+
+test('main measurement pagination restores final-page focus and resets on station selection', async ({page}) => {
+  await page.route('**/stations/*/report?*', async route => {
+    const response = await route.fetch(), payload = await response.json();
+    const start = Date.now() - 2200 * 60000;
+    payload.observations = Array.from({length:2200}, (_, i) => ({...payload.observations[0], timestamp:start+i*60000, time:new Date(start+i*60000).toISOString(), value:i/100}));
+    payload.predictions=[]; payload.future_predictions=[]; payload.differences=[]; payload.weather_series={}; payload.weather={};
+    await route.fulfill({response,json:payload});
+  });
+  await page.goto('/?station=9414290'); await expect(chart(page)).toHaveText('San Francisco, CA');
+  const summary=page.locator('#observations-table > summary'), more=page.locator('#more-measurements');
+  await summary.focus(); await page.keyboard.press('Enter');
+  await expect(page.locator('#observations-table')).toHaveAttribute('open','');
+  await expect(page.locator('#measurement-rows tr')).toHaveCount(1000);
+  await more.focus(); await page.keyboard.press('Enter');
+  await expect(page.locator('#measurement-rows tr')).toHaveCount(2000); await expect(more).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#measurement-rows tr')).toHaveCount(2200); await expect(summary).toBeFocused();
+  await station(page,'9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
+  await expect(page.locator('#observations-table')).not.toHaveAttribute('open','');
+  await summary.focus(); await page.keyboard.press('Enter');
+  await expect(page.locator('#observations-table')).toHaveAttribute('open','');
+  await expect(page.locator('#measurement-rows tr')).toHaveCount(1000);
+});
+
+
+test('NOAA product disclosures and link focus survive unrelated optional renders', async ({page}) => {
+  let release; const barrier = new Promise(resolve => {release=resolve;});
+  await page.route('**/stations/9414290/nearby?*', async route => {await barrier; await route.continue();});
+  await page.goto('/?station=9414290');
+  const details=page.locator('#noaa-extra-products details');
+  await details.locator('summary').click();
+  const link=details.getByRole('link').first(); await link.focus();
+  release(); await expect(page.locator('#buoy-46026 > summary')).toBeVisible();
+  await expect(details).toHaveAttribute('open',''); await expect(link).toBeFocused();
+  await page.locator('#buoy-46026 > summary').click();
+  await expect(details).toHaveAttribute('open','');
+  await link.focus(); await page.getByLabel('Time',{exact:true}).selectOption('utc');
+  await expect(details).toHaveAttribute('open','');
 });

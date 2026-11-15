@@ -4,6 +4,14 @@ require 'rails_helper'
 # Request coverage spans the HTML explorer and its JSON API.
 # rubocop:disable RSpec/DescribeClass
 RSpec.describe 'Station explorer' do
+  before do
+    stub_request(:get, Noaa::Client::ORIGIN + Noaa::Catalog::PATH)
+      .with(query: { type: 'waterlevelsandmet', expand: 'sensors' })
+      .to_return(body: { count: 0, stations: [] }.to_json)
+    stub_request(:get, Noaa::Client::ORIGIN + Noaa::Catalog::PATH)
+      .with(query: { type: '1minute' }).to_return(body: { count: 0, stations: [] }.to_json)
+  end
+
   it 'renders a searchable, keyboard-accessible explorer and fingerprinted marker icon' do
     get '/'
     expect(response).to have_http_status(:ok)
@@ -68,6 +76,25 @@ RSpec.describe 'Station explorer' do
                                  station_name: 'San Francisco' }])
     get '/stations/9414290/report', params: { hours: '999999' }
     expect(response).to have_http_status(:unprocessable_content)
+    expect(WebMock).not_to have_requested(:get, /noaa/)
+  end
+
+  it 'validates every additional endpoint before contacting NOAA' do
+    %w[context nearby].each do |endpoint|
+      get "/stations/9999999/#{endpoint}"
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+    expect(WebMock).not_to have_requested(:get, /noaa/)
+  end
+
+  it 'rejects invalid product options before contacting NOAA' do
+    Station.create!(station_name: 'All stations',
+                    metadata: [{ station_id: '9414290', station_name: 'San Francisco' }])
+    [['context', { units: 'bad' }], ['nearby', { hours: 999 }],
+     ['report', { future_hours: 999 }]].each do |endpoint, options|
+      get "/stations/9414290/#{endpoint}", params: options
+      expect(response).to have_http_status(:unprocessable_content)
+    end
     expect(WebMock).not_to have_requested(:get, /noaa/)
   end
 

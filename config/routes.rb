@@ -5,5 +5,7 @@ Rails.application.routes.draw do
   post 'show_graph' => 'stations#show_graph'
   get 'stations.json' => 'stations#catalog'
   get 'stations/:id/report' => 'stations#report', as: :station_report
+  get 'stations/:id/context' => 'stations#context'
+  get 'stations/:id/nearby' => 'stations#nearby'
   root 'stations#show_stations'
 end

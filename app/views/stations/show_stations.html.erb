@@ -11,6 +11,7 @@
       <option value="waterlevels">Active water-level stations</option>
       <option value="tidepredictions">Tide prediction locations</option>
       <option value="waterlevelsandmet">Water-level &amp; weather stations</option>
+      <option value="additional">Additional products</option>
       <option value="all">All locations</option>
     </select>
     <p id="catalog-status" class="muted" role="status">Loading station catalog…</p>
@@ -23,8 +24,9 @@
   </section>
   <section class="map-section" aria-label="Station map">
     <p id="map-status" class="muted" role="status">Loading map. You can also use the station list.</p>
-    <p class="map-legend"><span class="cluster-swatch" aria-hidden="true">3</span> Number = nearby stations grouped together. Click to zoom in. <span class="station-swatch" aria-hidden="true"></span> Pin = one station.</p>
+    <p class="map-legend"><span class="cluster-swatch" aria-hidden="true">3</span> Number = nearby stations grouped together. Click to zoom in. <span class="station-swatch" aria-hidden="true"></span> Orange pin = no confirmed extra products. <span class="station-swatch extra-swatch" aria-hidden="true"></span> Purple pin = additional products. Purple groups show the number of stations with additional products. <button id="extra-products-toggle" type="button" aria-pressed="false">Show additional products only</button></p>
     <div id="full_map" data-marker-icon="<%= asset_path('orange_marker.png') %>"
+         data-extra-marker-icon="<%= asset_path('purple_marker.svg') %>"
          data-maps-key="<%= ENV['STRANGER_TIDES_EMBED_MAPS_API_KEY'] %>"
          data-map-id="<%= ENV['STRANGER_TIDES_MAP_ID'] %>"></div>
   </section>
@@ -34,7 +36,8 @@
       <button id="close-station" type="button" aria-label="Close station details">Close</button>
     </div>
     <div class="chart-controls">
-      <label>History <select id="history-hours" aria-label="History"><option value="24">24 hours</option><option value="48" selected>48 hours</option><option value="72">72 hours</option></select></label>
+      <label>History <select id="history-hours" aria-label="History"><option value="24">24 hours</option><option value="48" selected>48 hours</option><option value="72">72 hours</option><option value="168">7 days</option><option value="720">30 days</option></select></label>
+      <label>Plan ahead <select id="future-hours" aria-label="Plan ahead"><option value="0">Off</option><option value="24">24 hours</option><option value="72">3 days</option><option value="168" selected>7 days</option><option value="720">30 days</option></select></label>
       <label>Units <select id="height-units" aria-label="Units"><option value="english">US units</option><option value="metric">Metric</option></select></label>
       <label>Time <select id="display-zone" aria-label="Time"><option value="local">Your local time</option><option value="station" disabled>Station local time</option><option value="utc">UTC</option></select></label>
     </div>
@@ -45,7 +48,10 @@
       <div id="graph-partial" aria-label="Water-level chart"></div>
       <section id="weather-charts" aria-label="Station weather history" hidden></section>
     </div>
-    <details id="observations-table"><summary>View measurements as a table</summary><div class="table-scroll"><table><caption>Station observations and predictions</caption><thead><tr><th scope="col">Time</th><th scope="col">Product</th><th scope="col">Value</th><th scope="col">Quality / event</th></tr></thead><tbody id="measurement-rows"></tbody></table></div></details>
+    <section id="planning-charts" aria-label="Tide planning and differences"></section>
+    <section id="station-context" aria-label="Forecasts and flood context"></section>
+    <section id="nearby-buoys" aria-label="Nearby NOAA buoys"></section>
+    <details id="observations-table"><summary>View measurements as a table</summary><div class="table-scroll"><table><caption>Station observations and predictions</caption><thead><tr><th scope="col">Time</th><th scope="col">Product</th><th scope="col">Value</th><th scope="col">Quality / event</th></tr></thead><tbody id="measurement-rows"></tbody></table></div><p id="measurement-page" class="muted"></p><button id="more-measurements" type="button" hidden>Show more measurements</button></details>
     <p><a id="noaa-station-link" target="_blank" rel="noopener noreferrer">View this station at NOAA</a> · <button id="share-station" type="button">Copy station link</button></p>
     <p class="muted">Source: NOAA CO-OPS. Demonstration only; not for navigation. Predictions and observations are different products.</p>
   </section>

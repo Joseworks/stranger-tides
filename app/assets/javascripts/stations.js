@@ -4,7 +4,10 @@
   let stations = [], filtered = [], visibleCount = 100, map, infoWindow, markers = [];
   let selected, report, pending, generation = 0, chart, savedFocus;
   const weatherCharts = new Map();
-  let markerZoom;
+  let lastLayer = 'waterlevels';
+  let markerZoom, measurementLimit = 1000;
+  const extras = station => (station.additional_products || []).length > 0;
+  const productUnits = product => window.StationExtras.products(report.units === 'metric')[product]?.[1] || '';
   const byId = id => document.getElementById(id);
   const text = (id, value) => { byId(id).textContent = value; };
   const capabilities = station => station.capabilities || ['waterlevels'];
@@ -44,7 +47,7 @@
   function updateUrl() {
     const url = new URL(window.location.href);
     for (const [key, value] of Object.entries({ station: selected?.station_id, hours: byId('history-hours').value,
-      units: byId('height-units').value, zone: byId('display-zone').value })) {
+      future_hours: byId('future-hours').value, units: byId('height-units').value, zone: byId('display-zone').value })) {
       if (value) url.searchParams.set(key, value); else url.searchParams.delete(key);
     }
     window.history.replaceState(null, '', url);
@@ -52,17 +55,24 @@
   function renderResults() {
     const search = byId('station-search').value.trim().toLocaleLowerCase();
     const layer = byId('station-layer').value;
-    filtered = stations.filter(s => (layer === 'all' || capabilities(s).includes(layer)) &&
+    if (layer !== 'additional') lastLayer = layer;
+    byId('extra-products-toggle').setAttribute('aria-pressed', String(layer === 'additional'));
+    filtered = stations.filter(s => (layer === 'all' || (layer === 'additional' ? extras(s) : capabilities(s).includes(layer))) &&
       `${s.station_name} ${s.station_id} ${s.state || ''}`.toLocaleLowerCase().includes(search));
     text('result-count', `${filtered.length} matching locations`);
     byId('station-results').replaceChildren(...filtered.slice(0, visibleCount).map(s => {
       const item = document.createElement('li'); const button = element('button', `${stationLabel(s)} ${s.station_id}`);
-      button.type = 'button'; button.dataset.stationId = s.station_id;
+      button.type = 'button'; button.classList.toggle('extra-products', extras(s)); button.dataset.stationId = s.station_id;
       button.append(element('small', `${s.state || ''} · ${capabilities(s).includes('waterlevels') ? 'Water-level observations' : 'Prediction / weather location'}`));
+      if (extras(s)) button.append(element('small', `Additional: ${s.additional_products.map(p => p.replaceAll('_', ' ')).join(', ')}`, 'extra-label'));
       button.addEventListener('click', () => selectStation(s)); item.append(button); return item;
     }));
     byId('more-stations').hidden = filtered.length <= visibleCount;
     renderMarkers(true);
+  }
+  function clusterIcon(count, extraCount) {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="58" viewBox="0 0 80 58"><rect x="2" y="2" width="76" height="54" rx="15" fill="#5e258b" stroke="white" stroke-width="3"/><text x="40" y="25" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" font-weight="bold" fill="white">${count}</text><rect x="8" y="32" width="64" height="18" rx="8" fill="white"/><text x="40" y="45" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="bold" fill="#5e258b">${extraCount} extra</text></svg>`;
+    return {url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`};
   }
   function renderMarkers(force = false) {
     if (!map) return;
@@ -77,20 +87,21 @@
       if (!groups.has(key)) groups.set(key, []); groups.get(key).push(s);
     });
     groups.forEach(group => {
-      const station = group[0], count = group.length;
+      const station = group[0], count = group.length, extraCount = group.filter(extras).length, hasExtras = extraCount > 0;
       const position = { lat: group.reduce((n, s) => n + Number(s.latitude), 0) / count,
         lng: group.reduce((n, s) => n + Number(s.longitude), 0) / count };
-      const title = count > 1 ? `${count} stations; zoom in` : `${stationLabel(station)} ${station.station_id}`;
+      const title = count > 1 ? `${count} stations; ${hasExtras ? `${extraCount} with additional products; ` : ''}zoom in` : `${stationLabel(station)} ${station.station_id}`;
       const advanced = byId('full_map').dataset.mapId && google.maps.marker?.AdvancedMarkerElement;
       let marker;
       if (advanced) {
-        const content = element('button', count > 1 ? String(count) : '●', count > 1 ? 'map-pin' : 'map-pin individual-pin'); content.setAttribute('aria-label', title);
-        marker = new google.maps.marker.AdvancedMarkerElement({ map, position, title, content });
+        const content = element('button', count > 1 ? String(count) : hasExtras ? '+' : '●', `${count > 1 ? 'map-pin' : 'map-pin individual-pin'}${hasExtras ? ' extra-pin' : ''}`); content.setAttribute('aria-label', title);
+        if (count > 1 && hasExtras) {content.textContent = ''; content.append(element('span', String(count)), element('small', `${extraCount} extra`));}
+        marker = new google.maps.marker.AdvancedMarkerElement({ map, position, title, content, zIndex: hasExtras ? 1000 + count : count });
       } else {
-        marker = new google.maps.Marker({ map, position, title, optimized: false,
-          ...(count > 1 ? { label: { text: String(count), color: '#ffffff', fontWeight: '700' },
-            icon: { path: google.maps.SymbolPath.CIRCLE, scale: 18, fillColor: '#007b93',
-              fillOpacity: 1, strokeColor: '#ffffff', strokeWeight: 2 } } : { icon: byId('full_map').dataset.markerIcon }) });
+        marker = new google.maps.Marker({ map, position, title, optimized: false, zIndex: hasExtras ? 1000 + count : count,
+          ...(count > 1 && hasExtras ? {icon: clusterIcon(count, extraCount)} : count > 1 ? { label: { text: String(count), color: '#ffffff', fontWeight: '700' },
+            icon: { path: google.maps.SymbolPath.CIRCLE, scale: 18, fillColor: hasExtras ? '#7541a6' : '#007b93',
+              fillOpacity: 1, strokeColor: '#ffffff', strokeWeight: 2 } } : { icon: hasExtras ? byId('full_map').dataset.extraMarkerIcon : byId('full_map').dataset.markerIcon }) });
       }
       marker.addListener('click', () => {
         if (count > 1) { map.setCenter(position); map.setZoom((map.getZoom?.() ?? 3) + 2); }
@@ -118,7 +129,8 @@
     infoWindow.setPosition?.(position); infoWindow.open(map);
   }
   function selectStation(station) {
-    savedFocus = document.activeElement; selected = station; report = null; updateStationZone();
+    measurementLimit = 1000; byId('observations-table').open = false;
+    savedFocus = document.activeElement; selected = station; report = null; window.StationExtras.reset(); updateStationZone();
     byId('station-panel').hidden = false; text('station-heading', `${stationLabel(station)} ${station.station_id}`);
     byId('noaa-station-link').href = `https://tidesandcurrents.noaa.gov/stationhome.html?id=${encodeURIComponent(station.station_id)}`;
     positionSelectedStation();
@@ -137,7 +149,7 @@
     byId('station-charts').setAttribute('aria-busy', 'true');
     text('report-status', updating ? 'Updating station charts…' : 'Loading NOAA station data…');
     try {
-      const params = new URLSearchParams({ hours: byId('history-hours').value, units: byId('height-units').value });
+      const params = new URLSearchParams({ hours: byId('history-hours').value, future_hours: byId('future-hours').value, units: byId('height-units').value });
       const response = await fetch(`/stations/${encodeURIComponent(selected.station_id)}/report?${params}`, { signal: pending.signal });
       if (!response.headers.get('content-type')?.includes('application/json')) throw new Error('Station data is unavailable. Please try again.');
       const payload = await response.json();
@@ -152,12 +164,7 @@
   }
   function renderWeatherCharts() {
     const metric = report.units === 'metric';
-    const products = {
-      wind: ['Wind speed', metric ? 'm/s' : 'knots'],
-      air_temperature: ['Air temperature', metric ? '°C' : '°F'],
-      water_temperature: ['Water temperature', metric ? '°C' : '°F'],
-      air_pressure: ['Air pressure', 'mb'], humidity: ['Relative humidity', '%']
-    };
+    const products = window.StationExtras.products(metric);
     const available = Object.entries(report.weather_series || {}).filter(([product, values]) =>
       products[product] && values.some(point => point.value !== null ||
         (product === 'wind' && (numeric(point.gust) !== null || numeric(point.direction) !== null))));
@@ -223,9 +230,10 @@
     const products = [
       { name: 'Observed water level', values: report.observations, units: unit() },
       { name: 'Predicted water level', values: report.predictions, units: unit(), predicted: true },
+      { name: 'Future tide prediction', values: report.future_predictions || [], units: unit(), predicted: true },
+      { name: 'Observed minus predicted', values: report.differences || [], units: unit() },
       ...Object.entries(report.weather_series || {}).map(([product, values]) => ({
-        name: product.replaceAll('_', ' '), values, units: ({ wind: report.units === 'metric' ? 'm/s' : 'knots',
-          air_pressure: 'mb', humidity: '%' })[product] || (report.units === 'metric' ? '°C' : '°F')
+        name: product.replaceAll('_', ' '), values, units: productUnits(product)
       })),
       ...['gust', 'direction'].flatMap(field => {
         const values = report.weather_series?.wind || [];
@@ -238,7 +246,9 @@
     ];
     const rows = products.flatMap(product => product.values.map(point => ({ ...product, point })))
       .sort((a, b) => a.point.timestamp - b.point.timestamp);
-    byId('measurement-rows').replaceChildren(...rows.map(({ name, units, predicted, point }) => {
+    text('measurement-page', `Showing ${Math.min(rows.length, measurementLimit)} of ${rows.length} measurements.`);
+    byId('more-measurements').hidden = rows.length <= measurementLimit;
+    byId('measurement-rows').replaceChildren(...rows.slice(0, measurementLimit).map(({ name, units, predicted, point }) => {
       const row = document.createElement('tr');
       const event = predicted ? ({ H: 'High', L: 'Low' }[point.type] || 'Prediction') : quality(point.quality);
       row.append(element('td', date(point.time)), element('td', name), element('td', point.value === null ? 'Missing' : `${point.value} ${units}`), element('td', event));
@@ -274,7 +284,7 @@
     if (heights.length) summary.append(element('p', `Observed ${report.hours}-hour range: ${Math.min(...heights).toFixed(2)}–${Math.max(...heights).toFixed(2)} ${unit()} · Variation ${(Math.max(...heights) - Math.min(...heights)).toFixed(2)} ${unit()}`));
     const events = document.createElement('div'); events.id = 'next-events'; summary.append(events); updateNextEvents();
     Object.entries(report.weather).forEach(([product, reading]) => {
-      const units = ({ wind: report.units === 'metric' ? 'm/s' : 'knots', air_pressure: 'mb', humidity: '%' })[product] || (report.units === 'metric' ? '°C' : '°F');
+      const units = productUnits(product);
       const wind = product === 'wind' ? `${reading.direction ? ` · direction ${reading.direction}°` : ''}${reading.gust ? ` · gust ${reading.gust} ${units}` : ''}` : '';
       summary.append(element('p', `${product.replaceAll('_', ' ')}: ${reading.value} ${units}${wind} · ${date(reading.time)}`));
     });
@@ -301,11 +311,12 @@
       chart.destroy(); chart = null; window.chart_graph_partial = null;
     }
     renderWeatherCharts();
+    window.StationExtras.update({ selected, report, zone, date, unit });
     byId('observations-table').hidden = ![report.observations, report.predictions, ...Object.values(report.weather_series || {})].some(values => values.length);
     renderMeasurements();
   }
   function closeStation() {
-    generation++; pending?.abort(); selected = null; report = null; clearChart(); infoWindow?.close();
+    generation++; pending?.abort(); selected = null; report = null; clearChart(); window.StationExtras.reset(); infoWindow?.close();
     byId('station-panel').hidden = true; updateUrl();
     if (savedFocus?.isConnected) savedFocus.focus(); else byId('station-search').focus();
   }
@@ -334,18 +345,23 @@
     if (!byId('station-explorer')) return;
     text('location-origin', window.location.host);
     const params = new URL(window.location.href).searchParams;
-    for (const [key, id] of [['hours', 'history-hours'], ['units', 'height-units'], ['zone', 'display-zone']]) {
+    for (const [key, id] of [['hours', 'history-hours'], ['future_hours', 'future-hours'], ['units', 'height-units'], ['zone', 'display-zone']]) {
       const value = params.get(key); if ([...byId(id).options].some(o => o.value === value)) byId(id).value = value;
     }
     byId('station-search').addEventListener('input', () => { visibleCount = 100; renderResults(); });
     byId('station-layer').addEventListener('change', () => { visibleCount = 100; renderResults(); });
+    byId('extra-products-toggle').addEventListener('click', () => { byId('station-layer').value = byId('station-layer').value === 'additional' ? lastLayer : 'additional'; visibleCount = 100; renderResults(); });
     byId('more-stations').addEventListener('click', () => { visibleCount += 100; renderResults(); });
     byId('close-station').addEventListener('click', closeStation);
     byId('station-panel').addEventListener('keydown', event => { if (event.key === 'Escape') closeStation(); });
-    for (const id of ['history-hours', 'height-units']) byId(id).addEventListener('change', () => { updateUrl(); if (selected) loadReport(); });
+    for (const id of ['history-hours', 'height-units', 'future-hours']) byId(id).addEventListener('change', () => { updateUrl(); if (selected) { measurementLimit = 1000; loadReport(); } });
     byId('display-zone').addEventListener('change', () => { if (report) renderReport(); });
     byId('retry-report').addEventListener('click', loadReport);
     byId('observations-table').addEventListener('toggle', renderMeasurements);
+    byId('more-measurements').addEventListener('click', () => {
+      measurementLimit += 1000; renderMeasurements();
+      if (byId('more-measurements').hidden) byId('observations-table').querySelector('summary').focus({preventScroll: true});
+    });
     document.addEventListener('visibilitychange', updateFreshness); setInterval(updateFreshness, 60000);
     byId('share-station').addEventListener('click', async () => {
       try { await navigator.clipboard.writeText(window.location.href); text('report-status', 'Station link copied.'); }
@@ -357,6 +373,7 @@
       const payload = await response.json(); stations = payload.stations;
       text('catalog-status', payload.status.refreshed_at ? `Catalog refreshed ${date(payload.status.refreshed_at, 'UTC')} UTC${payload.status.stale ? ' · Refresh overdue' : ''}` : 'Saved station inventory · Automatic refresh not yet initialized');
       renderResults();
+      if (payload.products_warning) byId('catalog-status').append(element('span', ' · Additional product discovery unavailable; station search remains available.'));
       if (!stations.length) text('catalog-status', 'No stations are available. Please try again later.');
       const initial = stations.find(s => s.station_id === params.get('station'));
       if (initial) selectStation(initial);

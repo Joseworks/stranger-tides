@@ -14,13 +14,27 @@ class StationsController < ApplicationController
 
   def catalog
     catalog = Noaa::Catalog.new
-    render json: { stations: catalog.stations, status: catalog.status }
+    products = Noaa::ProductCatalog.new
+    render json: { stations: products.enrich(catalog.stations), status: catalog.status,
+                   products_warning: products.warning }
   end
 
   def report
     station = Noaa::Catalog.new.find(params.expect(:id))
     render json: Noaa::StationReport.new(station, hours: params.fetch(:hours, 48),
-                                                  units: params.fetch(:units, 'english')).call
+                                                  units: params.fetch(:units, 'english'),
+                                                  future_hours: params.fetch(:future_hours, 0)).call
+  end
+
+  def context
+    station = Noaa::Catalog.new.find(params.expect(:id))
+    render json: Noaa::StationContext.new(station, units: params.fetch(:units, 'english')).call
+  end
+
+  def nearby
+    station = Noaa::Catalog.new.find(params.expect(:id))
+    render json: Noaa::NearbyBuoys.new(station, units: params.fetch(:units, 'english'),
+                                                hours: params.fetch(:hours, 48)).call
   end
 
   private
