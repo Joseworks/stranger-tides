@@ -523,7 +523,8 @@ test('hourly forecasts form a line while a missing forecast hour remains a gap',
 test('optional rerenders preserve expanded table pages, calendar and keyboard focus', async ({page}) => {
   await page.route('**/stations/9414290/context?*', async route => {
     const response = await route.fetch(), payload = await response.json();
-    payload.one_minute = Array.from({length: 1200}, (_, i) => ({timestamp: Date.now() + i * 60000, value: i}));
+    const start = Date.now();
+    payload.one_minute = Array.from({length: 1200}, (_, i) => ({timestamp: start + i * 60000, value: i}));
     await route.fulfill({response, json: payload});
   });
   await page.goto('/?station=9414290');
