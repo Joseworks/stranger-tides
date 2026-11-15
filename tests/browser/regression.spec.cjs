@@ -505,3 +505,55 @@ test('an obsolete optional response cannot paint the newly selected station', as
   await expect(page.locator('#forecast-water-level')).toHaveCount(0);
   await expect(page.locator('#station-summary')).toContainText('IGLD');
 });
+
+test('hourly forecasts form a line while a missing forecast hour remains a gap', async ({page}) => {
+  await page.route('**/stations/9414290/context?*', async route => {
+    const response = await route.fetch(), payload = await response.json();
+    const start = Date.now();
+    payload.forecast = [0, 1, 3].map(hour => ({timestamp: start + hour * 3600000, value: hour}));
+    await route.fulfill({response, json: payload});
+  });
+  await page.goto('/?station=9414290');
+  await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
+  expect(await page.evaluate(() => Highcharts.charts.find(c => c?.renderTo.id === 'forecast-water-level').series[0].getColumn('y'))).toEqual([0, 1, null, 3]);
+  await page.locator('#forecast-water-level-data > summary').click();
+  await expect(page.locator('#forecast-water-level-data tbody tr')).toHaveCount(4);
+});
+
+test('optional rerenders preserve expanded table pages, calendar and keyboard focus', async ({page}) => {
+  await page.route('**/stations/9414290/context?*', async route => {
+    const response = await route.fetch(), payload = await response.json();
+    payload.one_minute = Array.from({length: 1200}, (_, i) => ({timestamp: Date.now() + i * 60000, value: i}));
+    await route.fulfill({response, json: payload});
+  });
+  await page.goto('/?station=9414290');
+  const details = page.locator('#one-minute-water-level-data');
+  await details.locator('summary').click();
+  const more = details.getByRole('button', {name: 'Show more chart data'});
+  await more.focus(); await page.keyboard.press('Enter');
+  await expect(more).toBeFocused();
+  await expect(details.locator('tbody tr')).toHaveCount(1000);
+  const calendar = page.locator('#planning-events details');
+  await calendar.locator('summary').click();
+  await page.getByLabel('Time', {exact: true}).selectOption('utc');
+  await expect(details.locator('tbody tr')).toHaveCount(1000);
+  await expect(calendar).toHaveAttribute('open', '');
+  await page.locator('#buoy-46026 > summary').click();
+  await expect(calendar).toHaveAttribute('open', '');
+  await expect(details.locator('tbody tr')).toHaveCount(1000);
+  await more.focus(); await page.keyboard.press('Enter');
+  await expect(details.locator('tbody tr')).toHaveCount(1200);
+  await expect(details.locator('summary')).toBeFocused();
+});
+
+test('a failed units refresh clears stale flood context and product links', async ({page}) => {
+  await page.route('**/stations/9414290/context?*', route => route.request().url().includes('units=metric') ?
+    route.fulfill({status: 503, json: {error: 'Context unavailable'}}) : route.continue());
+  await page.goto('/?station=9414290');
+  await expect(page.locator('#flood-outlook')).toContainText('12.5%');
+  await page.getByLabel('Units', {exact: true}).selectOption('metric');
+  await expect(page.locator('#context-intro')).toContainText('Context unavailable');
+  await expect(page.locator('#flood-outlook')).toHaveCount(0);
+  await expect(page.locator('#noaa-extra-products')).toHaveCount(0);
+  await expect(chart(page)).toHaveText('San Francisco, CA');
+});

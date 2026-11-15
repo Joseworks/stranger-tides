@@ -40,6 +40,10 @@
     });
     return result;
   }
+  function forecastCadence(values) {
+    const intervals = values.slice(1).map((p, i) => (p.timestamp - values[i].timestamp) / 60000);
+    return intervals.some(n => n > 0 && n <= 6) ? 6 : intervals.includes(60) ? 60 : 6;
+  }
   function draw(parent, id, title, units, series, active, subtitle, extra = {}) {
     if (!series.some(s => s.data.some(p => p[1] !== null))) return;
     active.add(id);
@@ -63,7 +67,7 @@
     const wrapper = block(parent, `${id}-block`);
     let details = byId(`${id}-data`);
     if (!details) { details = node('details', ''); details.id = `${id}-data`; details.append(node('summary', 'View chart data as a table')); wrapper.append(details); }
-    let limit = 500;
+    let limit = Number(details.dataset.limit) || 500;
     const fill = () => {
       if (!details.open) return;
       const rows = series.flatMap(s => s.data.map(p => ({time: p[0], value: p[1], name: s.name}))).sort((a, b) => a.time - b.time);
@@ -75,7 +79,7 @@
         const tr = node('tr', ''); [state.date(p.time), p.name, p.value === null ? 'Missing' : `${p.value} ${units}`].forEach(t => tr.append(node('td', t))); tbody.append(tr);
       }); table.append(tbody); const scroll = node('div', '', 'table-scroll'); scroll.append(table); body.append(scroll);
       body.append(node('p', `Showing ${Math.min(rows.length, limit)} of ${rows.length} measurements.`, 'muted'));
-      if (rows.length > limit) {const button = node('button', 'Show more chart data'); button.type = 'button'; button.addEventListener('click', () => {limit += 500; fill();}); body.append(button);}
+      if (rows.length > limit) {const button = node('button', 'Show more chart data'); button.type = 'button'; button.addEventListener('click', () => {limit += 500; details.dataset.limit = limit; fill(); (body.querySelector('button') || details.querySelector('summary')).focus({preventScroll: true});}); body.append(button);}
     };
     details.ontoggle = fill; fill();
   }
@@ -93,8 +97,11 @@
     if (events.length) {
       const list = node('ul', '');
       events.forEach(p => list.append(node('li', `${state.date(p.time)} · ${p.type === 'H' ? 'High' : 'Low'} · ${p.value === null ? 'Missing' : p.value.toFixed(2)} ${unit()}`)));
-      const details = node('details', ''); details.append(node('summary', `High/low tide calendar (${events.length} events)`), list);
-      label(parent, 'planning-events', details);
+      const holder = block(parent, 'planning-events');
+      let details = holder.querySelector('details');
+      if (!details) {details = node('details', ''); details.append(node('summary', '')); holder.append(details);}
+      details.querySelector('summary').textContent = `High/low tide calendar (${events.length} events)`;
+      details.querySelector('ul')?.remove(); details.append(list);
     } else byId('planning-events')?.remove();
     const valid = differences.filter(p => p.value !== null), latest = valid.at(-1);
     label(parent, 'departure-note', node('p', latest ?
@@ -109,12 +116,13 @@
   function context(active) {
     const parent = byId('station-context'), result = results.get('context');
     label(parent, 'context-intro', node('h2', 'Forecasts & flood context'));
+    if (!result || result.error) {byId('flood-outlook')?.remove(); byId('noaa-extra-products')?.remove();}
     if (!result) { block(parent, 'context-intro').append(node('p', 'Loading optional NOAA forecast and flood products…', 'muted')); return; }
     if (result.error) { block(parent, 'context-intro').append(node('p', result.error, 'muted')); return; }
     block(parent, 'context-intro').append(node('p', `Retrieved ${state.date(result.fetched_at)}. Model guidance and flood outlooks are separate products from astronomical tide predictions.`, 'muted'));
     (result.warnings || []).forEach(w => block(parent, 'context-intro').append(node('p', w, 'muted')));
     draw(parent, 'forecast-water-level', 'Water-level model forecast', `${state.unit()}, ${result.datum}`, [{
-      name: 'NOAA OFS model guidance', data: points(result.forecast || []), dashStyle: 'Dash'
+      name: 'NOAA OFS model guidance', data: points(result.forecast || [], forecastCadence(result.forecast || [])), dashStyle: 'Dash'
     }], active, 'Available guidance within the next 48 hours · NOAA CO-OPS');
     if (!(result.forecast || []).length) block(parent, 'context-intro').append(node('p', 'No water-level model forecast is available for this station.', 'muted'));
     draw(parent, 'one-minute-water-level', 'One-minute water-level observations', `${state.unit()}, ${result.datum}`, [{name: 'Observed water level (one minute)', data: points(result.one_minute || [], 1)}], active, 'Past 24 hours · NOAA CO-OPS · Preliminary');

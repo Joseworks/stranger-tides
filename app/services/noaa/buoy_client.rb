@@ -18,19 +18,30 @@ module Noaa
         remaining = @deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC)
         raise Unavailable, 'Buoy request time limit reached.' if remaining <= 0
 
+        body = +''
         response = @connection.get(path) do |request|
           request.options.open_timeout = [remaining, 2].min
           request.options.timeout = [remaining, 5].min
+          request.options.on_data = stream_into(body)
         end
         raise Unavailable, 'NOAA buoy data is temporarily unavailable.' unless response.success?
-        if response.body.bytesize > 2.megabytes
-          raise Unavailable, 'NOAA buoy response is too large.'
-        end
 
-        response.body
+        body
       end
     rescue Faraday::Error
       raise Unavailable, 'NOAA buoy data is temporarily unavailable.'
+    end
+
+    private
+
+    def stream_into(body)
+      proc do |chunk, _bytes|
+        if body.bytesize + chunk.bytesize > 2.megabytes
+          raise Unavailable, 'NOAA buoy response is too large.'
+        end
+
+        body << chunk
+      end
     end
   end
 end

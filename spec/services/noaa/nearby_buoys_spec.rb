@@ -81,6 +81,22 @@ RSpec.describe Noaa::NearbyBuoys do
     expect { described_class.new(station, client:).call }.to raise_error(Noaa::Unavailable)
   end
 
+  it 'aborts a chunked download before reading beyond the cumulative limit' do
+    connection = instance_double(Faraday::Connection)
+    allow(Faraday).to receive(:new).and_return(connection)
+    reached_next_chunk = false
+    allow(connection).to receive(:get) do |_path, &configure|
+      request = Struct.new(:options).new(Faraday::RequestOptions.new)
+      configure.call(request)
+      request.options.on_data.call('a' * 1.megabyte, 1.megabyte)
+      request.options.on_data.call('b' * (1.megabyte + 1), 2.megabytes + 1)
+      reached_next_chunk = true
+    end
+    expect { described_class.new(station, client: Noaa::BuoyClient.new).call }
+      .to raise_error(Noaa::Unavailable, /too large/)
+    expect(reached_next_chunk).to be(false)
+  end
+
   it 'validates ranges, units, coordinates and outbound paths' do
     expect { described_class.new(station, hours: '999', client:) }.to raise_error(Noaa::NoData)
     expect { described_class.new(station, units: 'bad', client:) }.to raise_error(Noaa::NoData)

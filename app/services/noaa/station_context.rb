@@ -86,7 +86,9 @@ module Noaa
     def flood_row(row)
       return unless row.is_a?(Hash)
 
-      date = Date.iso8601(row.fetch('date'))
+      return unless row['date'].is_a?(String)
+
+      date = Date.iso8601(row['date'])
       likelihood = Float(row['likelihood'], exception: false)
       threshold = Float(row['threshold'], exception: false)
       return unless date.between?(@now.to_date, @now.to_date + 6) &&

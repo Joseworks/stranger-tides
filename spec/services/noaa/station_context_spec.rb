@@ -37,7 +37,7 @@ RSpec.describe Noaa::StationContext do
       { t: '2026-11-16 20:00', v: '3' }, { t: '2026-11-14 21:00', v: 'NaN' }
     ] }.to_json)
     stub_request(:get, /htb.json/).to_return(body: { floodLikelihood: [nil, { 'NOS minor' => [
-      nil, { date: 'bad' },
+      nil, { date: 'bad' }, { date: nil }, { date: 123 },
       { date: '2026-11-14', likelihood: 20, threshold: 5, updated: '2026-11-01' },
       { date: '2026-11-14', likelihood: 20, threshold: 5 },
       { date: '2026-11-15', likelihood: 101, threshold: 5 },
