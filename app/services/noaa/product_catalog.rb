@@ -13,21 +13,25 @@ module Noaa
     def enrich(stations)
       return stations if stations.empty?
 
+      one_minute = one_minute_ids
+      index = water_level_index
+      stations.map { |station| enrich_station(station, index[station['station_id']], one_minute) }
+    end
+
+    private
+
+    def water_level_index
       rows = @client.get(Catalog::PATH, { type: 'waterlevelsandmet', expand: 'sensors' },
                          expires_in: 6.hours)
       entries = rows['stations']
       raise Unavailable, 'Product discovery is incomplete.' unless
         entries.is_a?(Array) && rows['count'] == entries.length && entries.all?(Hash)
 
-      one_minute = one_minute_ids
-      index = entries.index_by { |row| row['id'] }
-      stations.map { |station| enrich_station(station, index[station['station_id']], one_minute) }
+      entries.index_by { |row| row['id'] }
     rescue NoData, Unavailable => e
       @warning = e.message
-      stations.map { |station| station.merge('products_checked' => false) }
+      {}
     end
-
-    private
 
     def enrich_station(station, row, one_minute)
       checked = !row.nil?

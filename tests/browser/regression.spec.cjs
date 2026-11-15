@@ -578,3 +578,19 @@ test('main measurement pagination restores final-page focus and resets on statio
   await expect(page.locator('#observations-table')).not.toHaveAttribute('open','');
   await summary.click(); await expect(page.locator('#measurement-rows tr')).toHaveCount(1000);
 });
+
+
+test('NOAA product disclosures and link focus survive unrelated optional renders', async ({page}) => {
+  let release; const barrier = new Promise(resolve => {release=resolve;});
+  await page.route('**/stations/9414290/nearby?*', async route => {await barrier; await route.continue();});
+  await page.goto('/?station=9414290');
+  const details=page.locator('#noaa-extra-products details');
+  await details.locator('summary').click();
+  const link=details.getByRole('link').first(); await link.focus();
+  release(); await expect(page.locator('#buoy-46026 > summary')).toBeVisible();
+  await expect(details).toHaveAttribute('open',''); await expect(link).toBeFocused();
+  await page.locator('#buoy-46026 > summary').click();
+  await expect(details).toHaveAttribute('open','');
+  await link.focus(); await page.getByLabel('Time',{exact:true}).selectOption('utc');
+  await expect(details).toHaveAttribute('open','');
+});

@@ -79,9 +79,12 @@ def observation_fixture(station, now, scale)
   end
 end
 
+def fixture_time(params, key)
+  Time.strptime("#{params.fetch(key)} +0000", '%Y%m%d %H:%M %z')
+end
+
 def future_fixture?(params, now)
-  params['product'] == 'predictions' &&
-    Time.strptime(params['begin_date'], '%Y%m%d %H:%M') >= now
+  params['product'] == 'predictions' && fixture_time(params, 'end_date') > now
 end
 
 def forecast_fixture(now, scale)
@@ -90,9 +93,10 @@ end
 
 def fixture_rows(params, station)
   product = params.fetch('product')
-  now = Time.current.utc.change(sec: 0)
+  future = product == 'ofs_water_level' || future_fixture?(params, Time.current.utc.change(sec: 0))
+  now = fixture_time(params, future ? 'begin_date' : 'end_date')
   scale = params['units'] == 'metric' ? 0.3048 : 1
-  rows = if future_fixture?(params, now)
+  rows = if future
            forecast_fixture(now, scale)
          else
            observation_fixture(station, now, scale)

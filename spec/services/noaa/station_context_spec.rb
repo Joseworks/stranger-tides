@@ -137,6 +137,15 @@ RSpec.describe Noaa::StationContext do
     expect(described_class.new(station, client:).call[:one_minute]).not_to be_empty
   end
 
+  it 'preserves independent one-minute data when the met collection fails' do
+    stub_request(:get, /stations.json/)
+      .with(query: { type: 'waterlevelsandmet', expand: 'sensors' }).to_return(status: 503)
+    result = described_class.new(station, client:).call
+    expect(result[:one_minute]).not_to be_empty
+    expect(result[:forecast]).to be_empty
+    expect(result[:warnings].join).to include('temporarily unavailable')
+  end
+
   [503, 200].each do |status|
     it "preserves independent product links when height references fail (#{status})" do
       stub_request(:get, /datums.json/).to_return(status:, body: { datums: [] }.to_json)

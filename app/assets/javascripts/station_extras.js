@@ -138,13 +138,17 @@
         [p.date, `${p.likelihood}%`, `${p.threshold.toFixed(2)} ${state.unit()}`, p.updated].forEach(t => row.append(node('td', t))); body.append(row);
       }); table.append(body); const scroll = node('div', '', 'table-scroll'); scroll.append(table); outlook.append(scroll);
     } else outlook.append(node('p', 'No high-tide flooding outlook is available for this station.', 'muted'));
-    const links = block(parent, 'noaa-extra-products'); links.replaceChildren();
-    if (result.products?.length) {
-      const details = node('details', ''); details.append(node('summary', 'Other NOAA station products'));
-      const list = node('ul', ''); result.products.forEach(p => { const li = node('li', ''); li.append(link(p.name, p.url)); list.append(li); });
-      details.append(list); links.append(details);
+    const links = block(parent, 'noaa-extra-products'), signature = JSON.stringify(result.products || []);
+    if (links.dataset.products !== signature) {
+      links.replaceChildren(); links.dataset.products = signature;
+      if (result.products?.length) {
+        const details = node('details', ''); details.append(node('summary', 'Other NOAA station products'));
+        const list = node('ul', ''); result.products.forEach(p => { const li = node('li', ''); li.append(link(p.name, p.url)); list.append(li); });
+        details.append(list); links.append(details);
+      }
     }
   }
+
   function buoys(active) {
     const parent = byId('nearby-buoys'), result = results.get('nearby');
     label(parent, 'buoy-intro', node('h2', 'Nearby NOAA buoy observations'), node('p', 'These are separate instruments at nearby locations. Distance alone does not establish equivalent harbor or coastal conditions.', 'muted'));
