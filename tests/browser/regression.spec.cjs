@@ -429,7 +429,7 @@ test('nearby buoy charts show instrument identity, distance and converted measur
   const value = await page.evaluate(() => Highcharts.charts.find(c => c?.renderTo.id === 'buoy-46026-wave_height').series[0].getColumn('y')[0]);
   expect(value).toBeCloseTo(8.2021, 3);
   await page.getByLabel('Units', {exact: true}).selectOption('metric');
-  await expect.poll(() => page.evaluate(() => Highcharts.charts.find(c => c?.renderTo.id === 'buoy-46026-wave_height').yAxis[0].axisTitle.textStr)).toBe('m');
+  await expect.poll(() => page.evaluate(() => Highcharts.charts.find(c => c?.renderTo.id === 'buoy-46026-wave_height')?.yAxis[0].axisTitle.textStr)).toBe('m');
 });
 
 test('failed optional products leave the main report usable and can be retried independently', async ({ page }) => {
