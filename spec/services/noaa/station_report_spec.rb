@@ -184,4 +184,51 @@ RSpec.describe Noaa::StationReport do
     expect { described_class.new(station, units: 'bad', client:) }.to raise_error(Noaa::NoData)
     expect(WebMock).not_to have_requested(:get, /noaa/)
   end
+
+  it 'requests bounded 30-day histories and future plans independently' do
+    stub_request(:get, /datagetter/).to_return do |request|
+      params = URI.decode_www_form(request.uri.query).to_h
+      { body: { (params['product'] == 'predictions' ? :predictions : :data) => rows }.to_json }
+    end
+    result = described_class.new(station.merge('capabilities' => %w[waterlevels tidepredictions]),
+                                 hours: 720, future_hours: 720, client:).call
+    expect(result).to include(hours: 720, future_hours: 720)
+    expect(WebMock).to have_requested(:get, /datagetter/).with(query: hash_including(
+      'product' => 'water_level', 'begin_date' => '20261014 19:00', 'end_date' => '20261113 19:00'
+    )).once
+    expect(WebMock).to have_requested(:get, /datagetter/).with(query: hash_including(
+      'product' => 'predictions', 'begin_date' => '20261113 19:00', 'end_date' => '20261213 19:00'
+    )).twice
+  end
+
+  it 'rejects unsupported planning periods without making requests' do
+    expect { described_class.new(station, future_hours: -1, client:) }.to raise_error(Noaa::NoData)
+    expect(WebMock).not_to have_requested(:get, /noaa/)
+  end
+
+  def extra_sensor_requests
+    stub_request(:get, /sensors.json/).to_return(body: { sensors: [
+      { name: 'Conductivity', status: 1 }, { name: 'Visibility', status: 1 },
+      { name: 'AIR GAP', status: 1 }
+    ] }.to_json)
+    stub_request(:get, /datagetter/).with(query: hash_including('product' => 'salinity'))
+                                    .to_return(body: { data: [{ t: '2026-11-13 18:54', s: '32',
+                                                                g: '1.02' }] }.to_json)
+    %w[conductivity visibility air_gap].each do |product|
+      stub_request(:get, /datagetter/).with(query: hash_including('product' => product))
+                                      .to_return(body: { data: rows }.to_json)
+    end
+  end
+
+  it 'graphs extra physical products and specific gravity with the original observations intact' do
+    water_request
+    extra_sensor_requests
+    result = described_class.new(station, client:).call
+    expect(result[:weather_series]['salinity'].last[:value]).to eq(32)
+    expect(result[:weather_series]['specific_gravity'].last[:value]).to eq(1.02)
+    expect(result[:weather_series].keys).to contain_exactly(
+      'conductivity', 'visibility', 'air_gap', 'salinity', 'specific_gravity'
+    )
+    expect(result[:latest][:value]).to eq(0)
+  end
 end

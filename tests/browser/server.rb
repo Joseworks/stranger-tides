@@ -33,6 +33,78 @@ else
     abort 'Browser fixture database contains unexpected data'
   end
 end
+WebMock.stub_request(:get, Noaa::Client::ORIGIN + Noaa::Catalog::PATH)
+       .with(query: { type: 'waterlevelsandmet', expand: 'sensors' }).to_return(
+         body: { count: 2, stations: stations.first(2).map do |s|
+           { id: s['station_id'], forecast: s['station_id'] == '9414290',
+             outlook: s['station_id'] == '9414290',
+             sensors: { sensors: if s['station_id'] == '9414290'
+                                   [{ name: 'Conductivity', status: 1 },
+                                    { name: 'Visibility', status: 1 }]
+                                 else
+                                   []
+                                 end } }
+         end }.to_json
+       )
+WebMock.stub_request(:get, Noaa::Client::ORIGIN + Noaa::Catalog::PATH)
+       .with(query: { type: '1minute' }).to_return(body: {
+         count: 1, stations: [{ id: '9414290' }]
+       }.to_json)
+WebMock.stub_request(:get, %r{/stations/[A-Za-z0-9]+/products.json}).to_return(body: {
+  products: [{ name: 'Station datums',
+               value: 'https://tidesandcurrents.noaa.gov/datums.html?id=9414290' }]
+}.to_json)
+WebMock.stub_request(:get, %r{/dpapi/prod/webapi/htb.json}).to_return do
+  row = { date: Time.current.utc.to_date.iso8601, likelihood: 12.5,
+          threshold: 7, updated: Time.current.utc.to_date.iso8601 }
+  { body: { floodLikelihood: [{ 'NOS minor' => [row] }] }.to_json }
+end
+WebMock.stub_request(:get, 'https://www.ndbc.noaa.gov/activestations.xml').to_return(body:
+  '<stations count="1"><station id="46026" name="Offshore test buoy" ' \
+  'lat="37.8" lon="-122.7" met="y" type="buoy" /></stations>')
+WebMock.stub_request(:get, 'https://www.ndbc.noaa.gov/data/realtime2/46026.txt').to_return do
+  now = Time.current.utc
+  header = "#YY MM DD hh mm WDIR WSPD GST WVHT DPD APD MWD PRES ATMP WTMP\n# units\n"
+  rows = [60, 30].map do |minutes|
+    "#{(now - minutes.minutes).strftime('%Y %m %d %H %M')} 270 5 8 2.5 12 9 300 1013 16 14"
+  end
+  { body: header + rows.join("\n") }
+end
+def observation_fixture(station, now, scale)
+  base = station['station_id'] == '9099064' ? 602.12 : 0.12
+  [18, 12, 6].map.with_index do |minutes, index|
+    { t: (now - minutes.minutes).strftime('%Y-%m-%d %H:%M'),
+      v: index == 1 ? '' : (base + (index * 0.03)) * scale, q: 'p', f: '0,0,0,0',
+      s: index == 1 ? '' : '10', g: index == 1 ? '' : '14', d: index == 1 ? '' : '180' }
+  end
+end
+
+def future_fixture?(params, now)
+  params['product'] == 'predictions' &&
+    Time.strptime(params['begin_date'], '%Y%m%d %H:%M') >= now
+end
+
+def forecast_fixture(now, scale)
+  [1, 2, 3].map { |h| { t: (now + h.hours).strftime('%Y-%m-%d %H:%M'), v: 2 * scale } }
+end
+
+def fixture_rows(params, station)
+  product = params.fetch('product')
+  now = Time.current.utc.change(sec: 0)
+  scale = params['units'] == 'metric' ? 0.3048 : 1
+  rows = if future_fixture?(params, now)
+           forecast_fixture(now, scale)
+         else
+           observation_fixture(station, now, scale)
+         end
+  rows = forecast_fixture(now, scale) if product == 'ofs_water_level'
+  if params['interval'] == 'hilo'
+    rows = [{ t: (now + 2.hours).strftime('%Y-%m-%d %H:%M'), v: 2 * scale, type: 'H' },
+            { t: (now + 8.hours).strftime('%Y-%m-%d %H:%M'), v: 0.1 * scale, type: 'L' }]
+  end
+  rows
+end
+
 station_metadata_url = %r{/mdapi/prod/webapi/stations/[A-Za-z0-9]+\.json}
 WebMock.stub_request(:get, station_metadata_url).to_return do |request|
   id = request.uri.path.split('/').last.delete_suffix('.json')
@@ -63,18 +135,7 @@ WebMock.stub_request(:get, data_url).to_return do |request|
     raise 'Great Lakes chart requires the IGLD datum'
   end
 
-  now = Time.current.utc.change(sec: 0)
-  scale = params['units'] == 'metric' ? 0.3048 : 1
-  base = station['station_id'] == '9099064' ? 602.12 : 0.12
-  rows = [18, 12, 6].map.with_index do |minutes, index|
-    { t: (now - minutes.minutes).strftime('%Y-%m-%d %H:%M'),
-      v: index == 1 ? '' : (base + (index * 0.03)) * scale, q: 'p', f: '0,0,0,0',
-      s: index == 1 ? '' : '10', g: index == 1 ? '' : '14', d: index == 1 ? '' : '180' }
-  end
-  if params['interval'] == 'hilo'
-    rows = [{ t: (now + 2.hours).strftime('%Y-%m-%d %H:%M'), v: 2 * scale, type: 'H' },
-            { t: (now + 8.hours).strftime('%Y-%m-%d %H:%M'), v: 0.1 * scale, type: 'L' }]
-  end
+  rows = fixture_rows(params, station)
   { body: { (product == 'predictions' ? :predictions : :data) => rows }.to_json }
 end
 require 'rackup'

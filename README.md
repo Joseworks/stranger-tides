@@ -24,7 +24,7 @@ See the live version: [stranger-tides.com](https://www.stranger-tides.com/)
 ---
 
 ## About
-Search NOAA water-level, tide-prediction, and weather locations on a map or accessible station list. View observed/predicted levels, freshness and quality, next predicted high/low events, available wind/temperature, unit/time controls, and shareable station links. The catalog comes from current NOAA APIs, replacing the historical manual text list. See [catalog operations and rollout](docs/station-catalog.md).
+Search NOAA water-level, tide-prediction, and weather locations on a map or accessible station list. View observed/predicted levels, freshness and quality, next predicted high/low events, available wind/temperature, unit/time controls, and shareable station links. The catalog comes from current NOAA APIs, replacing the historical manual text list. Plan future tides, compare observed and predicted levels, explore longer history, and view available forecasts, flood outlooks and nearby buoy graphs. Purple pins and cluster badges identify additional station products. See [NOAA products](docs/noaa-products.md) and [catalog operations and rollout](docs/station-catalog.md).
 
 ---
 

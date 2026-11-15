@@ -15,8 +15,9 @@
     constructor(options) {
       Object.assign(this, options);
       this.button = document.createElement('button'); this.button.textContent = options.title;
-      if (typeof options.icon === 'string') {
-        const image = document.createElement('img'); image.src = options.icon; image.alt = '';
+      this.button.dataset.markerColor = options.icon?.fillColor || '';
+      if (typeof options.icon === 'string' || options.icon?.url) {
+        const image = document.createElement('img'); image.src = typeof options.icon === 'string' ? options.icon : options.icon.url; image.alt = '';
         this.button.prepend(image);
       }
       options.map.element.append(this.button);
