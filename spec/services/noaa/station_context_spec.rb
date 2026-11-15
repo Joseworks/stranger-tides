@@ -127,6 +127,27 @@ RSpec.describe Noaa::StationContext do
     expect(WebMock).not_to have_requested(:get, /datagetter/)
   end
 
+  it 'keeps independently confirmed one-minute products without a met catalog row' do
+    stub_request(:get, /stations.json/)
+      .with(query: { type: 'waterlevelsandmet', expand: 'sensors' })
+      .to_return(body: { count: 0, stations: [] }.to_json)
+    enriched = Noaa::ProductCatalog.new(client:).enrich([station]).first
+    expect(enriched).to include('additional_products' => ['one_minute_water_level'],
+                                'products_checked' => false)
+    expect(described_class.new(station, client:).call[:one_minute]).not_to be_empty
+  end
+
+  [503, 200].each do |status|
+    it "preserves independent product links when height references fail (#{status})" do
+      stub_request(:get, /datums.json/).to_return(status:, body: { datums: [] }.to_json)
+      result = described_class.new(station, client:).call
+      expect(result).to include(datum: nil, one_minute: [], forecast: [], flood_outlook: [])
+      expect(result[:products].sole[:name]).to eq('Datums')
+      expect(result[:warnings].join).to include('Height reference')
+      expect(WebMock).not_to have_requested(:get, /datagetter|htb.json/)
+    end
+  end
+
   it 'validates units before any requests' do
     expect { described_class.new(station, units: 'bad', client:) }.to raise_error(Noaa::NoData)
     expect(WebMock).not_to have_requested(:get, /noaa/)

@@ -558,3 +558,23 @@ test('a failed units refresh clears stale flood context and product links', asyn
   await expect(page.locator('#noaa-extra-products')).toHaveCount(0);
   await expect(chart(page)).toHaveText('San Francisco, CA');
 });
+
+test('main measurement pagination restores final-page focus and resets on station selection', async ({page}) => {
+  await page.route('**/stations/*/report?*', async route => {
+    const response = await route.fetch(), payload = await response.json();
+    const start = Date.now() - 2200 * 60000;
+    payload.observations = Array.from({length:2200}, (_, i) => ({...payload.observations[0], timestamp:start+i*60000, time:new Date(start+i*60000).toISOString(), value:i/100}));
+    payload.predictions=[]; payload.future_predictions=[]; payload.differences=[]; payload.weather_series={}; payload.weather={};
+    await route.fulfill({response,json:payload});
+  });
+  await page.goto('/?station=9414290'); await expect(chart(page)).toHaveText('San Francisco, CA');
+  const summary=page.locator('#observations-table > summary'), more=page.locator('#more-measurements');
+  await summary.click(); await expect(page.locator('#measurement-rows tr')).toHaveCount(1000);
+  await more.focus(); await page.keyboard.press('Enter');
+  await expect(page.locator('#measurement-rows tr')).toHaveCount(2000); await expect(more).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#measurement-rows tr')).toHaveCount(2200); await expect(summary).toBeFocused();
+  await station(page,'9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
+  await expect(page.locator('#observations-table')).not.toHaveAttribute('open','');
+  await summary.click(); await expect(page.locator('#measurement-rows tr')).toHaveCount(1000);
+});

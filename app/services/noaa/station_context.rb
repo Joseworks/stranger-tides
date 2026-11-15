@@ -16,7 +16,7 @@ module Noaa
       discovery = ProductCatalog.new(client: @client)
       station = discovery.enrich([@station]).first
       @warnings << discovery.warning if discovery.warning
-      datum = WaterLevelDatum.new(@station, client: @client).call
+      datum = height_reference
       { station_id: id, units: @units, datum:, fetched_at: @now.iso8601,
         one_minute: if station.fetch('additional_products', []).include?('one_minute_water_level')
                       optional('One-minute water levels') { one_minute(datum) }
@@ -35,6 +35,13 @@ module Noaa
     private
 
     def id = @station.fetch('station_id')
+
+    def height_reference
+      WaterLevelDatum.new(@station, client: @client).call
+    rescue NoData, Unavailable => e
+      @warnings << "Height reference: #{e.message}"
+      nil
+    end
 
     def optional(name)
       yield

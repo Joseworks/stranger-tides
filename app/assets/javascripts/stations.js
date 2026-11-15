@@ -129,6 +129,7 @@
     infoWindow.setPosition?.(position); infoWindow.open(map);
   }
   function selectStation(station) {
+    measurementLimit = 1000; byId('observations-table').open = false;
     savedFocus = document.activeElement; selected = station; report = null; window.StationExtras.reset(); updateStationZone();
     byId('station-panel').hidden = false; text('station-heading', `${stationLabel(station)} ${station.station_id}`);
     byId('noaa-station-link').href = `https://tidesandcurrents.noaa.gov/stationhome.html?id=${encodeURIComponent(station.station_id)}`;
@@ -357,7 +358,10 @@
     byId('display-zone').addEventListener('change', () => { if (report) renderReport(); });
     byId('retry-report').addEventListener('click', loadReport);
     byId('observations-table').addEventListener('toggle', renderMeasurements);
-    byId('more-measurements').addEventListener('click', () => { measurementLimit += 1000; renderMeasurements(); });
+    byId('more-measurements').addEventListener('click', () => {
+      measurementLimit += 1000; renderMeasurements();
+      if (byId('more-measurements').hidden) byId('observations-table').querySelector('summary').focus({preventScroll: true});
+    });
     document.addEventListener('visibilitychange', updateFreshness); setInterval(updateFreshness, 60000);
     byId('share-station').addEventListener('click', async () => {
       try { await navigator.clipboard.writeText(window.location.href); text('report-status', 'Station link copied.'); }

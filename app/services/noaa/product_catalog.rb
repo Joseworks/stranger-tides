@@ -30,7 +30,8 @@ module Noaa
     private
 
     def enrich_station(station, row, one_minute)
-      return station.merge('additional_products' => [], 'products_checked' => false) unless row
+      checked = !row.nil?
+      row ||= {}
 
       sensors = row['sensors'].is_a?(Hash) ? row['sensors']['sensors'] : []
       products = Sensors.normalize(sensors).select { |s| s[:enabled] }.pluck(:product) & EXTRA
@@ -38,7 +39,7 @@ module Noaa
       products << 'specific_gravity' if products.include?('salinity')
       products << 'ofs_water_level' if row['forecast'] == true
       products << 'flood_outlook' if row['outlook'] == true
-      station.merge('additional_products' => products.uniq, 'products_checked' => true,
+      station.merge('additional_products' => products.uniq, 'products_checked' => checked,
                     'forecast' => row['forecast'] == true, 'outlook' => row['outlook'] == true)
     end
 
