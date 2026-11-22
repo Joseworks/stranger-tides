@@ -13,9 +13,9 @@
       const bridge = new google.maps.OverlayView();
       bridge.onAdd = bridge.draw = bridge.onRemove = () => {};
       bridge.setMap(map);
-      function close(returnFocus = false) {
+      function close(returnFocus) {
         const current = root;
-        const shouldRestore = returnFocus || current?.contains(document.activeElement);
+        const shouldRestore = returnFocus === undefined ? current?.contains(document.activeElement) : returnFocus;
         root = null; current?.remove();
         if (shouldRestore) {
           const target = restoreFocus?.isConnected ? restoreFocus : host;
@@ -116,7 +116,7 @@
         const turn = direction => {page += direction; render(); area.querySelector('button')?.focus({preventScroll: true});};
         previous.addEventListener('click', () => turn(-1)); next.addEventListener('click', () => turn(1));
         root.addEventListener('keydown', event => {if (event.key === 'Escape') {event.preventDefault(); event.stopPropagation(); close(true);}});
-        root.addEventListener('focusout', event => {if (event.relatedTarget && !current.contains(event.relatedTarget)) close();});
+        root.addEventListener('focusout', event => {if (event.relatedTarget && !current.contains(event.relatedTarget)) close(false);});
         area.addEventListener('click', event => {if (event.target === area) close(true);});
         render(); area.querySelector('button')?.focus({preventScroll: true});
       }

@@ -481,7 +481,7 @@ test('overlap selection preserves purple products and the one-click discovery fi
   const picker=page.getByRole('dialog',{name:'Choose an overlapping station'});
   await expect(picker.locator('.spread-station.extra-products')).toHaveCount(1);
   const toggle=page.getByRole('button',{name:'Show additional products only',exact:true});
-  await toggle.click(); await expect(picker).toHaveCount(0);
+  await toggle.click(); await expect(picker).toHaveCount(0); await expect(toggle).toBeFocused();
   await expect(toggle).toHaveAttribute('aria-pressed','true');
   await expect(page.locator('#result-count')).toHaveText('1 matching locations');
   await expect(page.locator('#full_map img[src*="purple_marker"]')).toBeVisible();
@@ -625,6 +625,9 @@ test('overlapping stations can be searched and closed with Escape without changi
   await pin.press('Enter'); await expect(picker).toBeVisible();
   await page.setViewportSize({width:700,height:500});
   await expect(picker).toHaveCount(0); await expect(pin).toBeFocused();
+  await pin.press('Enter'); await expect(picker).toBeVisible();
+  const search=page.getByLabel('Find a station',{exact:true}); await search.focus();
+  await expect(picker).toHaveCount(0); await expect(search).toBeFocused();
 });
 
 test('dense overlapping stations have bounded radial pages and search reaches every station', async ({page}) => {
