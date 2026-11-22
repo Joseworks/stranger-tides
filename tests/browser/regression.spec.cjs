@@ -349,8 +349,10 @@ for (const control of ['Find stations near me', 'Center on your location']) {
   });
 }
 
-for (const completed of [false, true]) {
-  test(`delayed map inherits a ${completed ? 'completed' : 'pending'} location request`, async ({page}) => {
+for (const state of ['pending', 'completed', 'newer station selection', 'pending newer station selection']) {
+  const completed = ['completed', 'newer station selection'].includes(state);
+  const newerSelection = state.includes('station selection');
+  test(`delayed map respects ${state}`, async ({page}) => {
     let release; const barrier = new Promise(resolve => {release = resolve;});
     await page.route('https://maps.googleapis.com/**', async route => {
       await barrier; await route.fulfill({path: path.join(__dirname, 'maps-fixture.js'), contentType: 'application/javascript'});
@@ -361,13 +363,20 @@ for (const completed of [false, true]) {
     await page.goto('/'); await expect(station(page, '9414290')).toBeVisible();
     await page.getByRole('button', {name: 'Find stations near me', exact: true}).click();
     if (completed) await page.evaluate(() => window.finishLocation({coords: {latitude: 46.8, longitude: -92.1}}));
+    if (newerSelection) await station(page, '9414290').click();
     release();
     const control = page.getByRole('button', {name: 'Center on your location', exact: true});
     await expect(control).toBeVisible();
-    if (completed) {
+    if (state === 'pending newer station selection') {
+      await expect(control).toBeDisabled();
+      await page.evaluate(() => window.finishLocation({coords: {latitude: 46.8, longitude: -92.1}}));
+    }
+    if (completed || newerSelection) {
       await expect(control).toBeEnabled();
-      await expect(page.locator('#map-location-status')).toContainText('sorted by distance');
-      await expect(page.locator('#full_map')).toHaveAttribute('data-center', JSON.stringify({lat: 46.8, lng: -92.1}));
+      await expect(page.locator('#map-location-status')).toContainText(state === 'pending newer station selection' ? 'Keeping your selected station' : 'sorted by distance');
+      const expectedCenter = newerSelection ? {lat: 37.8063, lng: -122.4659} : {lat: 46.8, lng: -92.1};
+      await expect(page.locator('#full_map')).toHaveAttribute('data-center', JSON.stringify(expectedCenter));
+      if (newerSelection) await expect(page.getByRole('dialog')).toContainText('San Francisco, CA');
       await expect(page.locator('#full_map')).toHaveAttribute('data-zoom', '8');
     } else {
       await expect(control).toBeDisabled();

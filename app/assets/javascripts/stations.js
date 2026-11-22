@@ -4,7 +4,7 @@
   let stations = [], filtered = [], visibleCount = 100, map, infoWindow, spread, markers = new Map();
   let selected, report, pending, generation = 0, chart, savedFocus;
   const weatherCharts = new Map();
-  let locationPosition;
+  let locationPosition, locationIntent = 0;
   let lastLayer = 'waterlevels';
   let measurementLimit = 1000;
   const extras = station => (station.additional_products || []).length > 0;
@@ -130,6 +130,7 @@
     infoWindow.setPosition?.(position); infoWindow.open(map);
   }
   function selectStation(station, {preserveViewport = false} = {}) {
+    locationPosition = null; locationIntent++;
     spread?.close();
     measurementLimit = 1000; byId('observations-table').open = false;
     savedFocus = document.activeElement; selected = station; report = null; window.StationExtras.reset(); updateStationZone();
@@ -337,9 +338,11 @@
       update('Location is unavailable in this browser or connection. Search by name or state.'); return;
     }
     const finish = message => update(message);
+    const intent = ++locationIntent;
     update(`Requesting location for ${window.location.host}…`, true);
     try {
       navigator.geolocation.getCurrentPosition(position => {
+        if (intent !== locationIntent) {finish('Location found. Keeping your selected station in view.'); return;}
         const { latitude: lat, longitude: lng } = position.coords;
         locationPosition = {lat, lng};
         stations.sort((a, b) => distance(a, lat, lng) - distance(b, lat, lng)); renderResults();
