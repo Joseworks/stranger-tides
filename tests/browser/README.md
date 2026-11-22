@@ -47,10 +47,12 @@ References: [Playwright API mocking](https://playwright.dev/docs/mock), [browser
 
 ## Station explorer changes
 
-The station explorer replaces the executable `/show_graph` response with the read-only JSON station-report API. Its deterministic suite covers 41 scenarios across four browser configurations (164 CI checks), including null gaps, prediction-only locations, IGLD, retries, delayed-response cancellation, deep links, unit/time changes, search and map failure. Existing Maps and NOAA credentials are never used by this offline suite.
+The station explorer replaces the executable `/show_graph` response with the read-only JSON station-report API. Its deterministic suite covers 46 scenarios across four browser configurations (184 CI checks), including null gaps, prediction-only locations, IGLD, retries, delayed-response cancellation, deep links, unit/time changes, search and map failure. Existing Maps and NOAA credentials are never used by this offline suite.
 
 Hosted checks recognize both the old production interface and the new explorer. They publish the full catalog difference and require staging's observing IDs to match NOAA's current active inventory. Exact production/staging inventory equality is optional via `LIVE_REQUIRE_IDENTICAL_CATALOGS=1`, because adding current stations and prediction locations is the intended feature. Both hosted apps now use the explorer; the legacy-interface comparison remains available for historical baselines.
 
 See [catalog operations](../../docs/station-catalog.md) for staged refresh, rollback, monitoring, and deployment safeguards. Historical findings above describe the earlier upgrade baseline, including the subsequently repaired DNS/certificate incident.
 
 Planning/product tests also cover purple mixed-cluster counts and the one-click filter, seven/thirty-day history and future planning without scrolling or reload, exact-time differences, independent optional-product retries/cancellation, correct additional sensor units, nearby buoy graphs, and accessible chart tables. See [NOAA products](../../docs/noaa-products.md).
+
+The radial map tests cover individual legacy/advanced pins, no-zoom selection, Escape/focus restoration, overlap search, dense-group paging and non-overlapping touch targets, date-line wrapping, viewport marker retention, and the purple-product filter. Geographic zoom-to-expand clusters are no longer used.

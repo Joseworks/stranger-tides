@@ -24,7 +24,7 @@
   </section>
   <section class="map-section" aria-label="Station map">
     <p id="map-status" class="muted" role="status">Loading map. You can also use the station list.</p>
-    <p class="map-legend"><span class="cluster-swatch" aria-hidden="true">3</span> Number = nearby stations grouped together. Click to zoom in. <span class="station-swatch" aria-hidden="true"></span> Orange pin = no confirmed extra products. <span class="station-swatch extra-swatch" aria-hidden="true"></span> Purple pin = additional products. Purple groups show the number of stations with additional products. <button id="extra-products-toggle" type="button" aria-pressed="false">Show additional products only</button></p>
+    <p class="map-legend">Each pin is one station. Tap overlapping pins to spread them out without zooming. <span class="station-swatch" aria-hidden="true"></span> Orange pin = no confirmed extra products. <span class="station-swatch extra-swatch" aria-hidden="true"></span> Purple pin = additional products. <button id="extra-products-toggle" type="button" aria-pressed="false">Show additional products only</button></p>
     <div id="full_map" data-marker-icon="<%= asset_path('orange_marker.png') %>"
          data-extra-marker-icon="<%= asset_path('purple_marker.svg') %>"
          data-maps-key="<%= ENV['STRANGER_TIDES_EMBED_MAPS_API_KEY'] %>"
