@@ -1,11 +1,11 @@
 /* global google, Highcharts */
 (() => {
   'use strict';
-  let stations = [], filtered = [], visibleCount = 100, map, infoWindow, markers = [];
+  let stations = [], filtered = [], visibleCount = 100, map, infoWindow, spread, markers = new Map();
   let selected, report, pending, generation = 0, chart, savedFocus;
   const weatherCharts = new Map();
   let lastLayer = 'waterlevels';
-  let markerZoom, measurementLimit = 1000;
+  let measurementLimit = 1000;
   const extras = station => (station.additional_products || []).length > 0;
   const productUnits = product => window.StationExtras.products(report.units === 'metric')[product]?.[1] || '';
   const byId = id => document.getElementById(id);
@@ -70,70 +70,60 @@
     byId('more-stations').hidden = filtered.length <= visibleCount;
     renderMarkers(true);
   }
-  function clusterIcon(count, extraCount) {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="58" viewBox="0 0 80 58"><rect x="2" y="2" width="76" height="54" rx="15" fill="#5e258b" stroke="white" stroke-width="3"/><text x="40" y="25" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" font-weight="bold" fill="white">${count}</text><rect x="8" y="32" width="64" height="18" rx="8" fill="white"/><text x="40" y="45" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="bold" fill="#5e258b">${extraCount} extra</text></svg>`;
-    return {url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`};
-  }
   function renderMarkers(force = false) {
     if (!map) return;
-    const zoom = map.getZoom?.() ?? 3;
-    if (!force && markerZoom === zoom) return;
-    markerZoom = zoom;
-    markers.forEach(marker => { if (marker.setMap) marker.setMap(null); else marker.map = null; }); markers = [];
-    const cell = 360 / 2 ** (zoom + 2);
-    const groups = new Map();
-    filtered.forEach(s => {
-      const key = `${Math.floor(Number(s.latitude) / cell)},${Math.floor(Number(s.longitude) / cell)}`;
-      if (!groups.has(key)) groups.set(key, []); groups.get(key).push(s);
+    if (force) spread?.close();
+    const bounds = map.getBounds?.();
+    const visible = filtered.filter(s => !bounds || bounds.contains({lat: Number(s.latitude), lng: Number(s.longitude)}));
+    const ids = new Set(visible.map(s => s.station_id));
+    markers.forEach((marker, id) => {
+      if (!ids.has(id)) {if (marker.setMap) marker.setMap(null); else marker.map = null; markers.delete(id);}
     });
-    groups.forEach(group => {
-      const station = group[0], count = group.length, extraCount = group.filter(extras).length, hasExtras = extraCount > 0;
-      const position = { lat: group.reduce((n, s) => n + Number(s.latitude), 0) / count,
-        lng: group.reduce((n, s) => n + Number(s.longitude), 0) / count };
-      const title = count > 1 ? `${count} stations; ${hasExtras ? `${extraCount} with additional products; ` : ''}zoom in` : `${stationLabel(station)} ${station.station_id}`;
+    visible.forEach(station => {
+      if (markers.has(station.station_id)) return;
+      const hasExtras = extras(station), title = `${stationLabel(station)} ${station.station_id}`;
+      const position = {lat: Number(station.latitude), lng: Number(station.longitude)};
       const advanced = byId('full_map').dataset.mapId && google.maps.marker?.AdvancedMarkerElement;
       let marker;
       if (advanced) {
-        const content = element('button', count > 1 ? String(count) : hasExtras ? '+' : '●', `${count > 1 ? 'map-pin' : 'map-pin individual-pin'}${hasExtras ? ' extra-pin' : ''}`); content.setAttribute('aria-label', title);
-        if (count > 1 && hasExtras) {content.textContent = ''; content.append(element('span', String(count)), element('small', `${extraCount} extra`));}
-        marker = new google.maps.marker.AdvancedMarkerElement({ map, position, title, content, zIndex: hasExtras ? 1000 + count : count });
+        const content = element('button', hasExtras ? '+' : '●', `map-pin individual-pin${hasExtras ? ' extra-pin' : ''}`);
+        content.type = 'button'; content.setAttribute('aria-label', title);
+        marker = new google.maps.marker.AdvancedMarkerElement({map, position, title, content, zIndex: hasExtras ? 1000 : 1});
       } else {
-        marker = new google.maps.Marker({ map, position, title, optimized: false, zIndex: hasExtras ? 1000 + count : count,
-          ...(count > 1 && hasExtras ? {icon: clusterIcon(count, extraCount)} : count > 1 ? { label: { text: String(count), color: '#ffffff', fontWeight: '700' },
-            icon: { path: google.maps.SymbolPath.CIRCLE, scale: 18, fillColor: hasExtras ? '#7541a6' : '#007b93',
-              fillOpacity: 1, strokeColor: '#ffffff', strokeWeight: 2 } } : { icon: hasExtras ? byId('full_map').dataset.extraMarkerIcon : byId('full_map').dataset.markerIcon }) });
+        marker = new google.maps.Marker({map, position, title, optimized: false, zIndex: hasExtras ? 1000 : 1,
+          icon: hasExtras ? byId('full_map').dataset.extraMarkerIcon : byId('full_map').dataset.markerIcon});
       }
-      marker.addListener('click', () => {
-        if (count > 1) { map.setCenter(position); map.setZoom((map.getZoom?.() ?? 3) + 2); }
-        else selectStation(station);
-      });
-      markers.push(marker);
+      marker.addListener('click', () => spread.open(station, filtered));
+      markers.set(station.station_id, marker);
     });
   }
   window.initMap = () => {
     try {
       map = new google.maps.Map(byId('full_map'), { center: { lat: 38.88, lng: -98.35 }, zoom: 3,
         ...(byId('full_map').dataset.mapId ? { mapId: byId('full_map').dataset.mapId } : {}) });
-      infoWindow = new google.maps.InfoWindow();
+      infoWindow = new google.maps.InfoWindow({disableAutoPan: true});
+      spread = window.StationSpread.create({map, host: byId('full_map'), label: stationLabel, extras,
+        select: station => selectStation(station, {preserveViewport: true})});
       positionSelectedStation();
       map.addListener?.('idle', () => renderMarkers());
       byId('map-status').hidden = true; renderMarkers(true);
     } catch (_) { text('map-status', 'The map is unavailable. Use the station list to explore data.'); }
   };
   window.gm_authFailure = () => { byId('map-status').hidden = false; text('map-status', 'The map is unavailable. Use the station list to explore data.'); };
-  function positionSelectedStation() {
+  function positionSelectedStation({preserveViewport = false} = {}) {
     if (!map || !selected) return;
     const position = { lat: Number(selected.latitude), lng: Number(selected.longitude) };
-    map.setCenter(position); map.setZoom(8);
+    if (!preserveViewport) {map.setCenter(position); map.setZoom(8);}
     infoWindow.setContent(element('div', `${stationLabel(selected)} · ${selected.station_id}`));
     infoWindow.setPosition?.(position); infoWindow.open(map);
   }
-  function selectStation(station) {
+  function selectStation(station, {preserveViewport = false} = {}) {
+    spread?.close();
     measurementLimit = 1000; byId('observations-table').open = false;
     savedFocus = document.activeElement; selected = station; report = null; window.StationExtras.reset(); updateStationZone();
     byId('station-panel').hidden = false; text('station-heading', `${stationLabel(station)} ${station.station_id}`);
     byId('noaa-station-link').href = `https://tidesandcurrents.noaa.gov/stationhome.html?id=${encodeURIComponent(station.station_id)}`;
-    positionSelectedStation();
+    positionSelectedStation({preserveViewport});
     const heading = byId('station-heading'), bounds = heading.getBoundingClientRect();
     if (bounds.top >= 0 && bounds.bottom <= window.innerHeight) heading.focus({ preventScroll: true });
     updateUrl(); loadReport();
@@ -316,7 +306,7 @@
     renderMeasurements();
   }
   function closeStation() {
-    generation++; pending?.abort(); selected = null; report = null; clearChart(); window.StationExtras.reset(); infoWindow?.close();
+    generation++; pending?.abort(); spread?.close(); selected = null; report = null; clearChart(); window.StationExtras.reset(); infoWindow?.close();
     byId('station-panel').hidden = true; updateUrl();
     if (savedFocus?.isConnected) savedFocus.focus(); else byId('station-search').focus();
   }

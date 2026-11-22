@@ -25,15 +25,26 @@ test('search, layers, and fingerprinted markers expose the complete catalog', as
   await expect(station(page, 'TWC0331')).toBeVisible();
 });
 
-test('numbered clusters explain their count and expand into individual station pins', async ({ page }) => {
-  await page.goto('/'); await expect(page.getByRole('region', { name: 'Map', exact: true })).toBeVisible();
-  await expect(page.locator('.map-legend')).toContainText('Number = nearby stations grouped together');
-  await page.evaluate(() => fixtureMap.setZoom(0));
-  await page.getByRole('button', { name: '2 stations; 1 with additional products; zoom in', exact: true }).click();
-  await expect(page.locator('#full_map')).toHaveAttribute('data-zoom', '2');
-  await expect(page.getByRole('button', { name: 'San Francisco, CA 9414290', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Duluth, MN 9099064', exact: true })).toBeVisible();
-});
+for (const advanced of [false, true]) {
+  test(`individual ${advanced ? 'advanced' : 'legacy'} pins spread radially and select without zooming`, async ({page}) => {
+    if (advanced) await page.addInitScript(() => {window.useAdvancedMarkersFixture=true;});
+    await page.goto('/'); await expect(page.getByRole('region',{name:'Map',exact:true})).toBeVisible();
+    await expect(page.locator('.map-legend')).toContainText('Each pin is one station');
+    await page.evaluate(() => fixtureMap.setZoom(0));
+    const pin=page.locator('#full_map').getByRole('button',{name:'San Francisco, CA 9414290',exact:true});
+    await expect(pin).toBeVisible();
+    await expect(page.locator('#full_map').getByRole('button',{name:'Duluth, MN 9099064',exact:true})).toBeVisible();
+    const before=await page.locator('#full_map').getAttribute('data-center');
+    await pin.click();
+    const picker=page.getByRole('dialog',{name:'Choose an overlapping station'});
+    await expect(picker).toBeVisible(); await expect(picker.locator('.spread-station')).toHaveCount(2);
+    await expect(picker.locator('line')).toHaveCount(2);
+    await picker.getByRole('button',{name:'Duluth, MN 9099064',exact:true}).click();
+    await expect(chart(page)).toHaveText('Duluth, MN'); await expect(picker).toHaveCount(0);
+    await expect(page.locator('#full_map')).toHaveAttribute('data-zoom','0');
+    await expect(page.locator('#full_map')).toHaveAttribute('data-center',before);
+  });
+}
 
 test('shared selections position the map after a delayed SDK, and ordinary pans retain markers', async ({ page }) => {
   let release; const barrier = new Promise(resolve => { release = resolve; });
@@ -463,20 +474,19 @@ test('extra station sensor histories retain their own units and conditional grap
 });
 
 
-test('mixed clusters visibly count additional-product stations and offer a one-click filter', async ({ page }) => {
-  await page.goto('/'); await expect(page.getByRole('region', { name: 'Map', exact: true })).toBeVisible();
+test('overlap selection preserves purple products and the one-click discovery filter', async ({page}) => {
+  await page.goto('/'); await expect(page.getByRole('region',{name:'Map',exact:true})).toBeVisible();
   await page.evaluate(() => fixtureMap.setZoom(0));
-  const cluster = page.getByRole('button', {name: '2 stations; 1 with additional products; zoom in', exact: true});
-  await expect(cluster).toBeVisible();
-  await expect(cluster.locator('img')).toHaveAttribute('src', /1%20extra/);
-  const toggle = page.getByRole('button', {name: 'Show additional products only', exact: true});
-  await toggle.click(); await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('#full_map').getByRole('button',{name:'San Francisco, CA 9414290',exact:true}).click();
+  const picker=page.getByRole('dialog',{name:'Choose an overlapping station'});
+  await expect(picker.locator('.spread-station.extra-products')).toHaveCount(1);
+  const toggle=page.getByRole('button',{name:'Show additional products only',exact:true});
+  await toggle.click(); await expect(picker).toHaveCount(0); await expect(toggle).toBeFocused();
+  await expect(toggle).toHaveAttribute('aria-pressed','true');
   await expect(page.locator('#result-count')).toHaveText('1 matching locations');
-  await expect(station(page, '9414290')).toBeVisible();
-  await toggle.click(); await expect(toggle).toHaveAttribute('aria-pressed', 'false');
-  await expect(page.locator('#result-count')).toHaveText('2 matching locations');
+  await expect(page.locator('#full_map img[src*="purple_marker"]')).toBeVisible();
+  await toggle.click(); await expect(page.locator('#result-count')).toHaveText('2 matching locations');
 });
-
 
 test('new graph tables expose measurements and follow the selected time zone', async ({page}) => {
   await page.goto('/?station=9414290');
@@ -597,4 +607,103 @@ test('NOAA product disclosures and link focus survive unrelated optional renders
   await expect(details).toHaveAttribute('open','');
   await link.focus(); await page.getByLabel('Time',{exact:true}).selectOption('utc');
   await expect(details).toHaveAttribute('open','');
+});
+
+
+test('overlapping stations can be searched and closed with Escape without changing zoom', async ({page}) => {
+  await page.goto('/'); await expect(page.getByRole('region',{name:'Map',exact:true})).toBeVisible();
+  await page.evaluate(() => fixtureMap.setZoom(0));
+  const pin=page.locator('#full_map').getByRole('button',{name:'San Francisco, CA 9414290',exact:true});
+  await pin.focus(); await page.keyboard.press('Enter');
+  const picker=page.getByRole('dialog',{name:'Choose an overlapping station'});
+  await expect(picker.locator('.spread-station').first()).toBeFocused();
+  await picker.getByRole('searchbox',{name:'Search overlapping stations'}).fill('9099064');
+  await expect(picker.locator('.spread-station')).toHaveCount(1);
+  await expect(picker.locator('.spread-station')).toContainText('Duluth, MN');
+  await page.keyboard.press('Escape'); await expect(picker).toHaveCount(0); await expect(pin).toBeFocused();
+  await expect(page.locator('#full_map')).toHaveAttribute('data-zoom','0');
+  await pin.press('Enter'); await expect(picker).toBeVisible();
+  await page.setViewportSize({width:700,height:500});
+  await expect(picker).toHaveCount(0); await expect(pin).toBeFocused();
+  await pin.press('Enter'); await expect(picker).toBeVisible();
+  const search=page.getByLabel('Find a station',{exact:true}); await search.focus();
+  await expect(picker).toHaveCount(0); await expect(search).toBeFocused();
+});
+
+test('dense overlapping stations have bounded radial pages and search reaches every station', async ({page}) => {
+  await page.route('**/stations.json',async route=>{
+    const response=await route.fetch(), payload=await response.json();
+    const base=payload.stations.find(s=>s.station_id==='9414290');
+    payload.stations=Array.from({length:25},(_,i)=>({...base,station_id:String(9414290+i),station_name:`Harbor ${i}`,latitude:base.latitude,longitude:base.longitude}));
+    await route.fulfill({response,json:payload});
+  });
+  await page.goto('/'); await expect(page.locator('#result-count')).toContainText('25 matching');
+  await page.locator('#full_map').getByRole('button',{name:'Harbor 0, CA 9414290',exact:true}).click();
+  const picker=page.getByRole('dialog',{name:'Choose an overlapping station'});
+  await expect(picker.locator('.spread-station')).toHaveCount(6);
+  await expect(picker.getByRole('status')).toHaveText('1–6 of 25');
+  await picker.getByRole('button',{name:'Next',exact:true}).click();
+  await expect(picker.getByRole('status')).toHaveText('7–12 of 25');
+  await expect(picker.locator('.spread-station').first()).toBeFocused();
+  const boxes=await picker.locator('.spread-station').evaluateAll(nodes=>nodes.map(n=>{const b=n.getBoundingClientRect();return{x:b.x,y:b.y,w:b.width,h:b.height};}));
+  for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++)expect(boxes[i].x+boxes[i].w<=boxes[j].x||boxes[j].x+boxes[j].w<=boxes[i].x||boxes[i].y+boxes[i].h<=boxes[j].y||boxes[j].y+boxes[j].h<=boxes[i].y).toBe(true);
+  await picker.getByRole('searchbox',{name:'Search overlapping stations'}).fill('Harbor 24');
+  await expect(picker.locator('.spread-station')).toHaveCount(1); await expect(picker.locator('.spread-station')).toContainText('Harbor 24, CA');
+  await page.evaluate(()=>fixtureMap.setCenter({lat:40,lng:-120})); await expect(picker).toHaveCount(0);
+});
+
+
+test('an isolated individual pin opens its report and restores focus without zooming', async ({page}) => {
+  await page.goto('/');
+  const pin=page.locator('#full_map').getByRole('button',{name:'San Francisco, CA 9414290',exact:true});
+  await pin.focus(); await page.keyboard.press('Enter');
+  await expect(chart(page)).toHaveText('San Francisco, CA');
+  await expect(page.locator('.station-spread')).toHaveCount(0);
+  await expect(page.locator('#full_map')).toHaveAttribute('data-zoom','3');
+  await page.getByRole('button',{name:'Close station details'}).click(); await expect(pin).toBeFocused();
+});
+
+test('overlapping pins across the date line remain selectable at the current zoom', async ({page}) => {
+  await page.route('**/stations.json',async route=>{
+    const response=await route.fetch(), payload=await response.json();
+    payload.stations=payload.stations.slice(0,2).map((s,i)=>({...s,latitude:37,longitude:i ? -179.9 : 179.9}));
+    await route.fulfill({response,json:payload});
+  });
+  await page.goto('/'); await expect(page.locator('#result-count')).toContainText('2 matching');
+  await page.evaluate(()=>{fixtureMap.setCenter({lat:37,lng:180});fixtureMap.setZoom(8);});
+  await page.locator('#full_map').getByRole('button',{name:'San Francisco, CA 9414290',exact:true}).click();
+  await expect(page.locator('.spread-station')).toHaveCount(2);
+  await expect(page.locator('#full_map')).toHaveAttribute('data-zoom','8');
+});
+
+
+test('the radial picker stays within the viewport on tall maps and short screens', async ({page}) => {
+  await page.setViewportSize({width:390,height:350});
+  await page.goto('/'); await expect(page.getByRole('region',{name:'Map',exact:true})).toBeVisible();
+  await page.evaluate(()=>fixtureMap.setZoom(0));
+  const pin=page.locator('#full_map').getByRole('button',{name:'San Francisco, CA 9414290',exact:true});
+  await pin.focus();
+  const before=await page.evaluate(()=>scrollY);
+  await page.keyboard.press('Enter');
+  const picker=page.getByRole('dialog',{name:'Choose an overlapping station'});
+  await expect(picker).toBeVisible();
+  const boxes=await picker.locator('input, button').evaluateAll(nodes=>nodes.filter(n=>!n.disabled).map(n=>{const b=n.getBoundingClientRect();return{top:b.top,bottom:b.bottom,left:b.left,right:b.right};}));
+  for(const box of boxes){expect(box.top).toBeGreaterThanOrEqual(0);expect(box.bottom).toBeLessThanOrEqual(350);expect(box.left).toBeGreaterThanOrEqual(0);expect(box.right).toBeLessThanOrEqual(390);}
+  expect(await page.evaluate(()=>scrollY)).toBe(before);
+});
+
+
+test('five overlapping station choices have separate touch targets on short screens', async ({page}) => {
+  await page.setViewportSize({width:390,height:350});
+  await page.route('**/stations.json',async route=>{
+    const response=await route.fetch(), payload=await response.json();
+    const base=payload.stations.find(s=>s.station_id==='9414290');
+    payload.stations=Array.from({length:5},(_,i)=>({...base,station_id:String(9414290+i),station_name:`Harbor ${i}`}));
+    await route.fulfill({response,json:payload});
+  });
+  await page.goto('/'); await expect(page.locator('#result-count')).toContainText('5 matching');
+  await page.locator('#full_map').getByRole('button',{name:'Harbor 0, CA 9414290',exact:true}).click();
+  const choices=page.locator('.spread-station'); await expect(choices).toHaveCount(5);
+  const boxes=await choices.evaluateAll(nodes=>nodes.map(n=>{const b=n.getBoundingClientRect();return{x:b.x,y:b.y,w:b.width,h:b.height};}));
+  for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++)expect(boxes[i].x+boxes[i].w<=boxes[j].x||boxes[j].x+boxes[j].w<=boxes[i].x||boxes[i].y+boxes[i].h<=boxes[j].y||boxes[j].y+boxes[j].h<=boxes[i].y).toBe(true);
 });

@@ -88,3 +88,30 @@ test('www production has valid HTTPS and loads the app', async ({ page }) => {
   expect(response.ok()).toBe(true);
   await expect(page.getByRole('region', { name: 'Map', exact: true })).toBeVisible({ timeout: 30000 });
 });
+
+// Opt in after deploying the radial picker to the selected environment.
+if (process.env.LIVE_REQUIRE_RADIAL === '1') {
+  for (const [name, url] of Object.entries(targets)) {
+    if (process.env.LIVE_RADIAL_TARGET && process.env.LIVE_RADIAL_TARGET !== name) continue;
+    test(`${name}: radial overlap selection preserves the real map viewport`, async ({page}, info) => {
+      const errors=[]; page.on('pageerror', e=>errors.push(e.message));
+      await page.goto(url);
+      const pin=page.locator('#full_map').getByRole('button',{name:'Boston, MA 8443970',exact:true});
+      await expect(pin).toBeVisible({timeout:30000}); await pin.focus();
+      const mapLink=page.getByRole('link',{name:'Open this area in Google Maps (opens a new window)',exact:true});
+      const viewport=async()=>{const u=new URL(await mapLink.getAttribute('href'));return{center:u.searchParams.get('ll'),zoom:u.searchParams.get('z')};};
+      const before=await viewport(); await pin.press('Enter');
+      const picker=page.getByRole('dialog',{name:'Choose an overlapping station'});
+      await expect(picker).toBeVisible();
+      const count=await picker.locator('.spread-station').count(); expect(count).toBeGreaterThan(1); expect(count).toBeLessThanOrEqual(6);
+      const bounds=await picker.locator('.spread-header,.spread-footer,.spread-station').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return{top:r.top,bottom:r.bottom,left:r.left,right:r.right};}));
+      for(const box of bounds){expect(box.top).toBeGreaterThanOrEqual(0);expect(box.bottom).toBeLessThanOrEqual(page.viewportSize().height);expect(box.left).toBeGreaterThanOrEqual(0);expect(box.right).toBeLessThanOrEqual(page.viewportSize().width);}
+      await page.screenshot({path:info.outputPath(`${name}-radial.png`)});
+      await picker.getByRole('searchbox',{name:'Search overlapping stations'}).fill('8443970');
+      await expect(picker.locator('.spread-station')).toHaveCount(1); await picker.locator('.spread-station').click();
+      await expect(page.locator('#graph-partial .highcharts-title')).toHaveText('Boston, MA',{timeout:60000});
+      expect(await viewport()).toEqual(before); expect(errors).toEqual([]);
+      await fs.writeFile(info.outputPath(`${name}-radial.json`),JSON.stringify({url,viewport:before,choices:count,errors},null,2));
+    });
+  }
+}

@@ -22,9 +22,8 @@ a { color: #00677c; }
 .map-section { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
 #map-status { padding: 0 1rem; }
 .map-legend { padding: .6rem 1rem; margin: 0; font-size: .85rem; }
-.cluster-swatch { display: inline-block; border-radius: 50%; background: #007b93; color: white; width: 1.6rem; text-align: center; font-weight: 700; }
 .station-swatch { display: inline-block; border-radius: 50%; border: 5px solid #ff6633; width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-left: .5rem; }
-#full_map { min-height: 560px; flex: 1; }
+#full_map { position: relative; min-height: 560px; flex: 1; }
 .map-pin { border-radius: 50%; background: #007b93; color: white; font-weight: bold; min-width: 40px; }
 .map-pin.individual-pin { background: #ff6633; }
 #station-panel { grid-column: 1 / -1; }
@@ -50,7 +49,7 @@ summary { cursor: pointer; }
 @media (max-width: 760px) {
   #header { padding: 1rem; }
   #station-explorer { display: flex; flex-direction: column; padding: .5rem; gap: .5rem; }
-  #full_map { min-height: 320px; height: 40vh; }
+  #full_map { position: relative; min-height: 320px; height: 40vh; }
   #station-results { max-height: 28vh; }
   #station-panel { scroll-margin-top: .5rem; }
   .discovery { order: 0; }
@@ -78,3 +77,20 @@ h3 { font-size: 1rem; }
 .map-pin.extra-pin small { background: white; color: #5e258b; border-radius: 8px; padding: 0 .4rem; font-size: 12px; }
 #extra-products-toggle { font-size: .8rem; padding: .3rem .5rem; margin: .3rem; border-color: #7541a6; color: #63328f; }
 #extra-products-toggle[aria-pressed="true"] { background: #5e258b; color: white; }
+
+.station-spread { position: absolute; inset: 0; z-index: 1000001; background: rgb(244 247 248 / 87%); display: grid; grid-template-rows: 48px minmax(0, 1fr) 48px; }
+.spread-header, .spread-footer { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 2px 8px; background: white; }
+.spread-header input { flex: 1; min-width: 0; padding: 6px 8px; }
+.spread-header button { font-size: 24px; line-height: 1; min-width: 44px; height: 44px; padding: 0; }
+.spread-footer button { min-height: 44px; padding: 4px 8px; }
+.spread-footer span { font-size: 13px; text-align: center; }
+.spread-area { position: relative; min-height: 0; }
+.spread-area svg { position: absolute; inset: 0; pointer-events: none; }
+.spread-area line { stroke: #506976; stroke-width: 2; }
+.spread-station { position: absolute; transform: translate(-50%, -50%); height: 44px; border: 2px solid #c84b20; border-radius: 12px; background: #fff4ee; padding: 4px 6px; font-size: 12px; font-weight: 650; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; box-shadow: 0 2px 5px #172d3b40; }
+.spread-station.extra-products { border-color: #7541a6; background: #f6edff; color: #5e258b; }
+.spread-station:focus-visible { z-index: 2; outline-offset: 2px; }
+.station-spread button:disabled { opacity: .45; cursor: default; }
+
+.spread-station span, .spread-station small { display: block; line-height: 16px; overflow: hidden; text-overflow: ellipsis; }
+.spread-station small { font-size: 10px; line-height: 12px; }
