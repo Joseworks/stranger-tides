@@ -104,7 +104,7 @@
             line.setAttribute('x1', origin.x); line.setAttribute('y1', origin.y);
             line.setAttribute('x2', x); line.setAttribute('y2', y); lines.append(line);
             const button = element('button', '', `spread-station${extras(s) ? ' extra-products' : ''}`);
-            button.append(element('span', label(s)), element('small', `${s.station_id}${extras(s) ? ' · +' : ''}`));
+            button.append(element('span', label(s)), element('small', s.station_id));
             button.type = 'button'; button.dataset.stationId = s.station_id;
             button.setAttribute('aria-label', `${label(s)} ${s.station_id}${extras(s) ? ' · Additional products' : ''}`);
             button.title = `${label(s)} ${s.station_id}`;

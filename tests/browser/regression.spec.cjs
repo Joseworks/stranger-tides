@@ -331,12 +331,23 @@ test('station list still works if the Maps SDK fails to load', async ({ page }) 
   await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
 });
 
-test('location sorting works only after a user requests it', async ({ context, page }) => {
-  await context.grantPermissions(['geolocation']); await context.setGeolocation({ latitude: 46.8, longitude: -92.1 });
-  await page.goto('/'); await page.getByRole('button', { name: 'Find stations near me' }).click();
-  await expect(page.locator('#location-status')).toContainText('sorted by distance');
-  await expect(page.locator('#station-results button').first()).toHaveAttribute('data-station-id', '9099064');
-});
+for (const control of ['Find stations near me', 'Center on your location']) {
+  test(`${control} sorts nearby stations and centers the map without scrolling`, async ({ context, page }) => {
+    await context.grantPermissions(['geolocation']); await context.setGeolocation({ latitude: 46.8, longitude: -92.1 });
+    await page.goto('/');
+    const button = page.getByRole('button', { name: control, exact: true });
+    await button.scrollIntoViewIfNeeded();
+    const scroll = await page.evaluate(() => window.scrollY);
+    await button.click();
+    await expect(page.locator('#location-status')).toContainText('sorted by distance');
+    await expect(page.locator('#map-location-status')).toContainText('sorted by distance');
+    await expect(page.locator('#station-results button').first()).toHaveAttribute('data-station-id', '9099064');
+    await expect(page.locator('#full_map')).toHaveAttribute('data-center', JSON.stringify({ lat: 46.8, lng: -92.1 }));
+    await expect(page.locator('#full_map')).toHaveAttribute('data-zoom', '8');
+    expect(await page.evaluate(() => window.scrollY)).toBe(scroll);
+    await expect(button).toBeEnabled();
+  });
+}
 
 test('location requests identify this origin and wait for the existing browser permission flow', async ({ page }) => {
   await page.addInitScript(() => {
@@ -351,7 +362,9 @@ test('location requests identify this origin and wait for the existing browser p
   await expect(page.locator('#location-origin')).toHaveText('127.0.0.1:3467');
   await expect(page.getByRole('button', { name: 'Find stations near me' })).toHaveAttribute('aria-describedby', 'location-details');
   expect(await page.evaluate(() => window.locationRequests)).toEqual([]);
-  await page.getByRole('button', { name: 'Find stations near me' }).click();
+  await page.getByRole('button', { name: 'Center on your location', exact: true }).click();
+  await expect(page.locator('#map-location-status')).toContainText('Requesting location');
+  await expect(page.locator('#map-locate')).toBeDisabled();
   await expect(page.locator('#location-status')).toContainText('Requesting location for 127.0.0.1:3467');
   await expect(page.locator('#locate')).toBeDisabled();
   await page.evaluate(() => document.querySelector('#locate').dispatchEvent(new MouseEvent('click')));
@@ -359,6 +372,8 @@ test('location requests identify this origin and wait for the existing browser p
     options: { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 } }]);
   await page.evaluate(() => window.locationFailure({ code: 1 }));
   await expect(page.locator('#location-status')).toContainText('Location access for 127.0.0.1:3467 was declined');
+  await expect(page.locator('#map-location-status')).toContainText('was declined');
+  await expect(page.locator('#map-locate')).toBeEnabled();
   await expect(page.locator('#locate')).toBeEnabled();
   await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
 });
@@ -370,6 +385,8 @@ for (const [code, message] of [[2, 'could not be determined'], [3, 'timed out']]
     } }), code);
     await page.goto('/'); await page.getByRole('button', { name: 'Find stations near me' }).click();
     await expect(page.locator('#location-status')).toContainText(message);
+    await expect(page.locator('#map-location-status')).toContainText(message);
+    await expect(page.locator('#map-locate')).toBeEnabled();
     await expect(page.locator('#locate')).toBeEnabled();
     await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
   });
@@ -379,6 +396,7 @@ test('browsers without a location API retain search and explain the limitation',
   await page.addInitScript(() => Object.defineProperty(navigator, 'geolocation', { value: undefined }));
   await page.goto('/'); await page.getByRole('button', { name: 'Find stations near me' }).click();
   await expect(page.locator('#location-status')).toContainText('unavailable in this browser or connection');
+  await expect(page.locator('#map-location-status')).toContainText('unavailable in this browser or connection');
   await expect(page.locator('#locate')).toBeEnabled();
   await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
 });

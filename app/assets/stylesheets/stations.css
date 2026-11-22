@@ -94,3 +94,8 @@ h3 { font-size: 1rem; }
 
 .spread-station span, .spread-station small { display: block; line-height: 16px; overflow: hidden; text-overflow: ellipsis; }
 .spread-station small { font-size: 10px; line-height: 12px; }
+
+.map-location-control { margin: 10px; max-width: min(230px, calc(100vw - 80px)); font: 14px/1.4 system-ui, sans-serif; }
+.map-location-control button { min-height: 44px; width: 100%; box-shadow: 0 1px 5px #172d3b40; font: inherit; font-weight: 600; }
+.map-location-control button:disabled { cursor: wait; opacity: .75; }
+.map-location-status { margin: 4px 0 0; padding: 8px; border-radius: 6px; background: white; color: #172d3b; box-shadow: 0 1px 5px #172d3b40; }

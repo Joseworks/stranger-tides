@@ -86,7 +86,7 @@
       const advanced = byId('full_map').dataset.mapId && google.maps.marker?.AdvancedMarkerElement;
       let marker;
       if (advanced) {
-        const content = element('button', hasExtras ? '+' : '●', `map-pin individual-pin${hasExtras ? ' extra-pin' : ''}`);
+        const content = element('button', '●', `map-pin individual-pin${hasExtras ? ' extra-pin' : ''}`);
         content.type = 'button'; content.setAttribute('aria-label', title);
         marker = new google.maps.marker.AdvancedMarkerElement({map, position, title, content, zIndex: hasExtras ? 1000 : 1});
       } else {
@@ -101,6 +101,15 @@
     try {
       map = new google.maps.Map(byId('full_map'), { center: { lat: 38.88, lng: -98.35 }, zoom: 3,
         ...(byId('full_map').dataset.mapId ? { mapId: byId('full_map').dataset.mapId } : {}) });
+      const locationControl = element('div', '', 'map-location-control');
+      const locate = element('button', 'Center on your location');
+      locate.id = 'map-locate'; locate.type = 'button'; locate.title = 'Center on your location';
+      locate.setAttribute('aria-describedby', 'location-details map-location-status');
+      locate.addEventListener('click', locateStations);
+      const status = element('p', '', 'map-location-status');
+      status.id = 'map-location-status'; status.setAttribute('role', 'status'); status.hidden = true;
+      locationControl.append(locate, status);
+      map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(locationControl);
       infoWindow = new google.maps.InfoWindow({disableAutoPan: true});
       spread = window.StationSpread.create({map, host: byId('full_map'), label: stationLabel, extras,
         select: station => selectStation(station, {preserveViewport: true})});
@@ -313,11 +322,19 @@
   function locateStations() {
     const button = byId('locate');
     if (button.disabled) return;
+    const update = (message, pending = false) => {
+      button.disabled = pending;
+      if (byId('map-locate')) byId('map-locate').disabled = pending;
+      text('location-status', message);
+      if (byId('map-location-status')) {
+        text('map-location-status', message); byId('map-location-status').hidden = !message;
+      }
+    };
     if (!window.isSecureContext || !navigator.geolocation) {
-      text('location-status', 'Location is unavailable in this browser or connection. Search by name or state.'); return;
+      update('Location is unavailable in this browser or connection. Search by name or state.'); return;
     }
-    const finish = message => { button.disabled = false; text('location-status', message); };
-    button.disabled = true; text('location-status', `Requesting location for ${window.location.host}…`);
+    const finish = message => update(message);
+    update(`Requesting location for ${window.location.host}…`, true);
     try {
       navigator.geolocation.getCurrentPosition(position => {
         const { latitude: lat, longitude: lng } = position.coords;

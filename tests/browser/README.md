@@ -14,7 +14,7 @@ npm run test:browser
 
 Schema loading is destructive to tables in its target database. Never use a Heroku URL for this command. It is not part of the test runner or a deployment step. CI supplies a newly created PostgreSQL service.
 
-The suite covers desktop Chromium, Android Chrome emulation, desktop Firefox, and iPhone WebKit emulation. It checks loaded marker images, denied location, granted location/recentering, station selection, numeric chart data, map resizing, replacement without duplicate charts, close, and reopening. Location checks verify the displayed host, no request before clicking, no duplicate pending request, standard API options, and usable controls after denial, timeout, unavailable position, or a missing API. These are viewport/browser-engine tests, not physical-device tests; they cannot certify native permission labels on a tablet. CI keeps screenshots and traces on failures and the HTML report for seven days.
+The suite covers desktop Chromium, Android Chrome emulation, desktop Firefox, and iPhone WebKit emulation. It checks loaded marker images, denied location, granted location/recentering, station selection, numeric chart data, map resizing, replacement without duplicate charts, close, and reopening. Location checks cover both the sidebar and native map location controls, recentering without page scrolling, the displayed host, no request before clicking, no duplicate pending request, standard API options, and usable controls after denial, timeout, unavailable position, or a missing API. These are viewport/browser-engine tests, not physical-device tests; they cannot certify native permission labels on a tablet. CI keeps screenshots and traces on failures and the HTML report for seven days.
 
 On macOS 13, current bundled browsers are unsupported. Use installed Chrome for local desktop/Android checks, then use the Ubuntu CI job for Firefox and WebKit:
 
@@ -47,13 +47,13 @@ References: [Playwright API mocking](https://playwright.dev/docs/mock), [browser
 
 ## Station explorer changes
 
-The station explorer replaces the executable `/show_graph` response with the read-only JSON station-report API. Its deterministic suite covers 48 scenarios across four browser configurations (192 CI checks), including null gaps, prediction-only locations, IGLD, retries, delayed-response cancellation, deep links, unit/time changes, search and map failure. Existing Maps and NOAA credentials are never used by this offline suite.
+The station explorer replaces the executable `/show_graph` response with the read-only JSON station-report API. Its deterministic suite covers 49 scenarios across four browser configurations (196 CI checks), including null gaps, prediction-only locations, IGLD, retries, delayed-response cancellation, deep links, unit/time changes, search and map failure. Existing Maps and NOAA credentials are never used by this offline suite.
 
 Hosted checks recognize both the old production interface and the new explorer. They publish the full catalog difference and require staging's observing IDs to match NOAA's current active inventory. Exact production/staging inventory equality is optional via `LIVE_REQUIRE_IDENTICAL_CATALOGS=1`, because adding current stations and prediction locations is the intended feature. Both hosted apps now use the explorer; the legacy-interface comparison remains available for historical baselines.
 
 See [catalog operations](../../docs/station-catalog.md) for staged refresh, rollback, monitoring, and deployment safeguards. Historical findings above describe the earlier upgrade baseline, including the subsequently repaired DNS/certificate incident.
 
-Planning/product tests also cover purple mixed-cluster counts and the one-click filter, seven/thirty-day history and future planning without scrolling or reload, exact-time differences, independent optional-product retries/cancellation, correct additional sensor units, nearby buoy graphs, and accessible chart tables. See [NOAA products](../../docs/noaa-products.md).
+Planning/product tests also cover purple station pins and the one-click filter, seven/thirty-day history and future planning without scrolling or reload, exact-time differences, independent optional-product retries/cancellation, correct additional sensor units, nearby buoy graphs, and accessible chart tables. See [NOAA products](../../docs/noaa-products.md).
 
 The radial map tests cover individual legacy/advanced pins, no-zoom selection, Escape/focus restoration, overlap search, dense-group paging and non-overlapping touch targets, date-line wrapping, viewport marker retention, and the purple-product filter. Geographic zoom-to-expand clusters are no longer used.
 
