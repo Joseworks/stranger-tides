@@ -56,7 +56,7 @@ test('shared selections position the map after a delayed SDK, and ordinary pans 
   await expect(page.locator('#full_map')).toHaveAttribute('data-zoom', '8');
   await expect(page.locator('#full_map')).toHaveAttribute('data-center', JSON.stringify({ lat: 46.775, lng: -92.092 }));
   await expect(page.getByRole('dialog')).toContainText('Duluth, MN');
-  const marker = await page.locator('#full_map button').first().elementHandle();
+  const marker = await page.locator('#full_map').getByRole('button', {name: 'Duluth, MN 9099064', exact: true}).elementHandle();
   await page.evaluate(() => fixtureMap.setCenter({ lat: 47, lng: -93 }));
   expect(await marker.evaluate(node => node.isConnected)).toBe(true);
 });

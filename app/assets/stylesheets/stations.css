@@ -11,7 +11,7 @@ a { color: #00677c; }
 #header { padding: 1rem 1.5rem; background: #173b4c; color: white; }
 .brand { color: white; font-size: 1.5rem; font-weight: 700; text-decoration: none; }
 #header p { margin: .1rem 0 0; }
-#station-explorer { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 1rem; padding: 1rem; max-width: 1600px; margin: auto; }
+#station-explorer { overflow-anchor: none; display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 1rem; padding: 1rem; max-width: 1600px; margin: auto; }
 .discovery, .map-section, #station-panel { background: white; border: 1px solid #d8e2e6; border-radius: 10px; padding: 1rem; min-width: 0; }
 .discovery > label { display: block; font-weight: 600; margin-bottom: .3rem; }
 .discovery > input, .discovery > select { width: 100%; margin-bottom: .8rem; }
