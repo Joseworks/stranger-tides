@@ -4,6 +4,7 @@
   let stations = [], filtered = [], visibleCount = 100, map, infoWindow, spread, markers = new Map();
   let selected, report, pending, generation = 0, chart, savedFocus;
   const weatherCharts = new Map();
+  let locationPosition, locationIntent = 0;
   let lastLayer = 'waterlevels';
   let measurementLimit = 1000;
   const extras = station => (station.additional_products || []).length > 0;
@@ -86,7 +87,7 @@
       const advanced = byId('full_map').dataset.mapId && google.maps.marker?.AdvancedMarkerElement;
       let marker;
       if (advanced) {
-        const content = element('button', hasExtras ? '+' : '●', `map-pin individual-pin${hasExtras ? ' extra-pin' : ''}`);
+        const content = element('button', '●', `map-pin individual-pin${hasExtras ? ' extra-pin' : ''}`);
         content.type = 'button'; content.setAttribute('aria-label', title);
         marker = new google.maps.marker.AdvancedMarkerElement({map, position, title, content, zIndex: hasExtras ? 1000 : 1});
       } else {
@@ -101,10 +102,21 @@
     try {
       map = new google.maps.Map(byId('full_map'), { center: { lat: 38.88, lng: -98.35 }, zoom: 3,
         ...(byId('full_map').dataset.mapId ? { mapId: byId('full_map').dataset.mapId } : {}) });
+      const locationControl = element('div', '', 'map-location-control');
+      const locate = element('button', 'Center on your location');
+      locate.id = 'map-locate'; locate.type = 'button'; locate.title = 'Center on your location';
+      locate.disabled = byId('locate').disabled;
+      locate.setAttribute('aria-describedby', 'location-details map-location-status');
+      locate.addEventListener('click', locateStations);
+      const status = element('p', byId('location-status').textContent, 'map-location-status');
+      status.id = 'map-location-status'; status.setAttribute('role', 'status'); status.hidden = !status.textContent;
+      locationControl.append(locate, status);
+      map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(locationControl);
       infoWindow = new google.maps.InfoWindow({disableAutoPan: true});
       spread = window.StationSpread.create({map, host: byId('full_map'), label: stationLabel, extras,
         select: station => selectStation(station, {preserveViewport: true})});
       positionSelectedStation();
+      if (locationPosition) {map.setCenter(locationPosition); map.setZoom(8);}
       map.addListener?.('idle', () => renderMarkers());
       byId('map-status').hidden = true; renderMarkers(true);
     } catch (_) { text('map-status', 'The map is unavailable. Use the station list to explore data.'); }
@@ -118,6 +130,7 @@
     infoWindow.setPosition?.(position); infoWindow.open(map);
   }
   function selectStation(station, {preserveViewport = false} = {}) {
+    locationPosition = null; locationIntent++;
     spread?.close();
     measurementLimit = 1000; byId('observations-table').open = false;
     savedFocus = document.activeElement; selected = station; report = null; window.StationExtras.reset(); updateStationZone();
@@ -313,14 +326,25 @@
   function locateStations() {
     const button = byId('locate');
     if (button.disabled) return;
+    const update = (message, pending = false) => {
+      button.disabled = pending;
+      if (byId('map-locate')) byId('map-locate').disabled = pending;
+      text('location-status', message);
+      if (byId('map-location-status')) {
+        text('map-location-status', message); byId('map-location-status').hidden = !message;
+      }
+    };
     if (!window.isSecureContext || !navigator.geolocation) {
-      text('location-status', 'Location is unavailable in this browser or connection. Search by name or state.'); return;
+      update('Location is unavailable in this browser or connection. Search by name or state.'); return;
     }
-    const finish = message => { button.disabled = false; text('location-status', message); };
-    button.disabled = true; text('location-status', `Requesting location for ${window.location.host}…`);
+    const finish = message => update(message);
+    const intent = ++locationIntent;
+    update(`Requesting location for ${window.location.host}…`, true);
     try {
       navigator.geolocation.getCurrentPosition(position => {
+        if (intent !== locationIntent) {finish('Location found. Keeping your selected station in view.'); return;}
         const { latitude: lat, longitude: lng } = position.coords;
+        locationPosition = {lat, lng};
         stations.sort((a, b) => distance(a, lat, lng) - distance(b, lat, lng)); renderResults();
         map?.setCenter({ lat, lng }); map?.setZoom(8); finish('Stations sorted by distance from you.');
       }, error => finish(({

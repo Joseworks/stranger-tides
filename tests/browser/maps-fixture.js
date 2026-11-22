@@ -7,6 +7,7 @@
   class Map {
     constructor(element, options) {
       this.listeners = {}; window.fixtureMap = this;
+      this.controls = {RIGHT_BOTTOM: {push: control => element.append(control)}};
       this.element = element; this.center = options.center; this.setZoom(options.zoom); this.setCenter(options.center);
       element.setAttribute('role', 'region'); element.setAttribute('aria-label', 'Map');
     }
@@ -54,7 +55,7 @@
       this.node.append(this.content); this.node.setAttribute('role', 'dialog'); map.element.append(this.node);
     }
   }
-  window.google = {maps:{Map,Marker,InfoWindow,OverlayView,marker:{AdvancedMarkerElement}}};
+  window.google = {maps:{Map,Marker,InfoWindow,OverlayView,ControlPosition:{RIGHT_BOTTOM:'RIGHT_BOTTOM'},marker:{AdvancedMarkerElement}}};
   if (window.useAdvancedMarkersFixture) document.querySelector('#full_map').dataset.mapId='offline-map';
   window.initMap();
 })();
