@@ -103,7 +103,17 @@
       map = new google.maps.Map(byId('full_map'), { center: { lat: 38.88, lng: -98.35 }, zoom: 3,
         ...(byId('full_map').dataset.mapId ? { mapId: byId('full_map').dataset.mapId } : {}) });
       const locationControl = element('div', '', 'map-location-control');
-      const locate = element('button', 'Center on your location');
+      const locate = element('button', '');
+      locate.setAttribute('aria-label', 'Center on your location');
+      const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      icon.setAttribute('viewBox', '0 0 24 24'); icon.setAttribute('width', '24'); icon.setAttribute('height', '24');
+      icon.setAttribute('aria-hidden', 'true'); icon.setAttribute('focusable', 'false');
+      const target = document.createElementNS(icon.namespaceURI, 'path');
+      target.setAttribute('d', 'M12 2v4m0 12v4M2 12h4m12 0h4M19 12a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z');
+      target.setAttribute('fill', 'none'); target.setAttribute('stroke', 'currentColor'); target.setAttribute('stroke-width', '2');
+      const center = document.createElementNS(icon.namespaceURI, 'circle');
+      center.setAttribute('cx', '12'); center.setAttribute('cy', '12'); center.setAttribute('r', '3'); center.setAttribute('fill', 'currentColor');
+      icon.append(target, center); locate.append(icon);
       locate.id = 'map-locate'; locate.type = 'button'; locate.title = 'Center on your location';
       locate.disabled = byId('locate').disabled;
       locate.setAttribute('aria-describedby', 'location-details map-location-status');
