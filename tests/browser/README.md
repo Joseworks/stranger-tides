@@ -47,7 +47,7 @@ References: [Playwright API mocking](https://playwright.dev/docs/mock), [browser
 
 ## Station explorer changes
 
-The station explorer replaces the executable `/show_graph` response with the read-only JSON station-report API. Its deterministic suite covers 49 scenarios across four browser configurations (196 CI checks), including null gaps, prediction-only locations, IGLD, retries, delayed-response cancellation, deep links, unit/time changes, search and map failure. Existing Maps and NOAA credentials are never used by this offline suite.
+The station explorer replaces the executable `/show_graph` response with the read-only JSON station-report API. Its deterministic suite covers 51 scenarios across four browser configurations (204 CI checks), including null gaps, prediction-only locations, IGLD, retries, delayed-response cancellation, deep links, unit/time changes, search and map failure. Existing Maps and NOAA credentials are never used by this offline suite.
 
 Hosted checks recognize both the old production interface and the new explorer. They publish the full catalog difference and require staging's observing IDs to match NOAA's current active inventory. Exact production/staging inventory equality is optional via `LIVE_REQUIRE_IDENTICAL_CATALOGS=1`, because adding current stations and prediction locations is the intended feature. Both hosted apps now use the explorer; the legacy-interface comparison remains available for historical baselines.
 

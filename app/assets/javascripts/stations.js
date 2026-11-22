@@ -4,6 +4,7 @@
   let stations = [], filtered = [], visibleCount = 100, map, infoWindow, spread, markers = new Map();
   let selected, report, pending, generation = 0, chart, savedFocus;
   const weatherCharts = new Map();
+  let locationPosition;
   let lastLayer = 'waterlevels';
   let measurementLimit = 1000;
   const extras = station => (station.additional_products || []).length > 0;
@@ -104,16 +105,18 @@
       const locationControl = element('div', '', 'map-location-control');
       const locate = element('button', 'Center on your location');
       locate.id = 'map-locate'; locate.type = 'button'; locate.title = 'Center on your location';
+      locate.disabled = byId('locate').disabled;
       locate.setAttribute('aria-describedby', 'location-details map-location-status');
       locate.addEventListener('click', locateStations);
-      const status = element('p', '', 'map-location-status');
-      status.id = 'map-location-status'; status.setAttribute('role', 'status'); status.hidden = true;
+      const status = element('p', byId('location-status').textContent, 'map-location-status');
+      status.id = 'map-location-status'; status.setAttribute('role', 'status'); status.hidden = !status.textContent;
       locationControl.append(locate, status);
       map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(locationControl);
       infoWindow = new google.maps.InfoWindow({disableAutoPan: true});
       spread = window.StationSpread.create({map, host: byId('full_map'), label: stationLabel, extras,
         select: station => selectStation(station, {preserveViewport: true})});
       positionSelectedStation();
+      if (locationPosition) {map.setCenter(locationPosition); map.setZoom(8);}
       map.addListener?.('idle', () => renderMarkers());
       byId('map-status').hidden = true; renderMarkers(true);
     } catch (_) { text('map-status', 'The map is unavailable. Use the station list to explore data.'); }
@@ -338,6 +341,7 @@
     try {
       navigator.geolocation.getCurrentPosition(position => {
         const { latitude: lat, longitude: lng } = position.coords;
+        locationPosition = {lat, lng};
         stations.sort((a, b) => distance(a, lat, lng) - distance(b, lat, lng)); renderResults();
         map?.setCenter({ lat, lng }); map?.setZoom(8); finish('Stations sorted by distance from you.');
       }, error => finish(({

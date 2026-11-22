@@ -349,6 +349,36 @@ for (const control of ['Find stations near me', 'Center on your location']) {
   });
 }
 
+for (const completed of [false, true]) {
+  test(`delayed map inherits a ${completed ? 'completed' : 'pending'} location request`, async ({page}) => {
+    let release; const barrier = new Promise(resolve => {release = resolve;});
+    await page.route('https://maps.googleapis.com/**', async route => {
+      await barrier; await route.fulfill({path: path.join(__dirname, 'maps-fixture.js'), contentType: 'application/javascript'});
+    });
+    await page.addInitScript(() => Object.defineProperty(navigator, 'geolocation', {value: {
+      getCurrentPosition(success, failure) {window.finishLocation = success; window.failLocation = failure;}
+    }}));
+    await page.goto('/'); await expect(station(page, '9414290')).toBeVisible();
+    await page.getByRole('button', {name: 'Find stations near me', exact: true}).click();
+    if (completed) await page.evaluate(() => window.finishLocation({coords: {latitude: 46.8, longitude: -92.1}}));
+    release();
+    const control = page.getByRole('button', {name: 'Center on your location', exact: true});
+    await expect(control).toBeVisible();
+    if (completed) {
+      await expect(control).toBeEnabled();
+      await expect(page.locator('#map-location-status')).toContainText('sorted by distance');
+      await expect(page.locator('#full_map')).toHaveAttribute('data-center', JSON.stringify({lat: 46.8, lng: -92.1}));
+      await expect(page.locator('#full_map')).toHaveAttribute('data-zoom', '8');
+    } else {
+      await expect(control).toBeDisabled();
+      await expect(page.locator('#map-location-status')).toContainText('Requesting location');
+      await page.evaluate(() => window.failLocation({code: 1}));
+      await expect(control).toBeEnabled();
+      await expect(page.locator('#map-location-status')).toContainText('was declined');
+    }
+  });
+}
+
 test('location requests identify this origin and wait for the existing browser permission flow', async ({ page }) => {
   await page.addInitScript(() => {
     window.locationRequests = [];
