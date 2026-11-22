@@ -622,6 +622,9 @@ test('overlapping stations can be searched and closed with Escape without changi
   await expect(picker.locator('.spread-station')).toContainText('Duluth, MN');
   await page.keyboard.press('Escape'); await expect(picker).toHaveCount(0); await expect(pin).toBeFocused();
   await expect(page.locator('#full_map')).toHaveAttribute('data-zoom','0');
+  await pin.press('Enter'); await expect(picker).toBeVisible();
+  await page.setViewportSize({width:700,height:500});
+  await expect(picker).toHaveCount(0); await expect(pin).toBeFocused();
 });
 
 test('dense overlapping stations have bounded radial pages and search reaches every station', async ({page}) => {
@@ -668,4 +671,36 @@ test('overlapping pins across the date line remain selectable at the current zoo
   await page.locator('#full_map').getByRole('button',{name:'San Francisco, CA 9414290',exact:true}).click();
   await expect(page.locator('.spread-station')).toHaveCount(2);
   await expect(page.locator('#full_map')).toHaveAttribute('data-zoom','8');
+});
+
+
+test('the radial picker stays within the viewport on tall maps and short screens', async ({page}) => {
+  await page.setViewportSize({width:390,height:350});
+  await page.goto('/'); await expect(page.getByRole('region',{name:'Map',exact:true})).toBeVisible();
+  await page.evaluate(()=>fixtureMap.setZoom(0));
+  const pin=page.locator('#full_map').getByRole('button',{name:'San Francisco, CA 9414290',exact:true});
+  await pin.focus();
+  const before=await page.evaluate(()=>scrollY);
+  await page.keyboard.press('Enter');
+  const picker=page.getByRole('dialog',{name:'Choose an overlapping station'});
+  await expect(picker).toBeVisible();
+  const boxes=await picker.locator('input, button').evaluateAll(nodes=>nodes.filter(n=>!n.disabled).map(n=>{const b=n.getBoundingClientRect();return{top:b.top,bottom:b.bottom,left:b.left,right:b.right};}));
+  for(const box of boxes){expect(box.top).toBeGreaterThanOrEqual(0);expect(box.bottom).toBeLessThanOrEqual(350);expect(box.left).toBeGreaterThanOrEqual(0);expect(box.right).toBeLessThanOrEqual(390);}
+  expect(await page.evaluate(()=>scrollY)).toBe(before);
+});
+
+
+test('five overlapping station choices have separate touch targets on short screens', async ({page}) => {
+  await page.setViewportSize({width:390,height:350});
+  await page.route('**/stations.json',async route=>{
+    const response=await route.fetch(), payload=await response.json();
+    const base=payload.stations.find(s=>s.station_id==='9414290');
+    payload.stations=Array.from({length:5},(_,i)=>({...base,station_id:String(9414290+i),station_name:`Harbor ${i}`}));
+    await route.fulfill({response,json:payload});
+  });
+  await page.goto('/'); await expect(page.locator('#result-count')).toContainText('5 matching');
+  await page.locator('#full_map').getByRole('button',{name:'Harbor 0, CA 9414290',exact:true}).click();
+  const choices=page.locator('.spread-station'); await expect(choices).toHaveCount(5);
+  const boxes=await choices.evaluateAll(nodes=>nodes.map(n=>{const b=n.getBoundingClientRect();return{x:b.x,y:b.y,w:b.width,h:b.height};}));
+  for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++)expect(boxes[i].x+boxes[i].w<=boxes[j].x||boxes[j].x+boxes[j].w<=boxes[i].x||boxes[i].y+boxes[i].h<=boxes[j].y||boxes[j].y+boxes[j].h<=boxes[i].y).toBe(true);
 });
