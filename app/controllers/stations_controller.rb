@@ -45,6 +45,11 @@ class StationsController < ApplicationController
                                                 hours: params.fetch(:hours, 48)).call
   end
 
+  def photo
+    station = Noaa::Catalog.new.find(params.expect(:id))
+    render json: Noaa::StationPhotos.new(station).call
+  end
+
   private
 
   def no_data(error)

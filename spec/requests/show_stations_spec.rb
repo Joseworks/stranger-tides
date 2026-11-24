@@ -80,11 +80,23 @@ RSpec.describe 'Station explorer' do
   end
 
   it 'validates every additional endpoint before contacting NOAA' do
-    %w[context nearby].each do |endpoint|
+    %w[context nearby photo].each do |endpoint|
       get "/stations/9999999/#{endpoint}"
       expect(response).to have_http_status(:unprocessable_content)
     end
     expect(WebMock).not_to have_requested(:get, /noaa/)
+  end
+
+  it 'returns official station photo metadata separately from the readings' do
+    Station.create!(station_name: 'All stations',
+                    metadata: [{ station_id: '9414290', station_name: 'San Francisco' }])
+    stub_request(:get, Noaa::StationPhotos::INDEX_URL)
+      .to_return(body: { '9414290' => 'ABC' }.to_json)
+    get '/stations/9414290/photo'
+    expect(response).to have_http_status(:ok)
+    expect(response.parsed_body).to include('station_id' => '9414290', 'photo_count' => 3)
+    expect(response.parsed_body['image_url']).to start_with(Noaa::StationPhotos::PHOTO_ROOT)
+    expect(WebMock).not_to have_requested(:get, /datagetter/)
   end
 
   it 'rejects invalid product options before contacting NOAA' do

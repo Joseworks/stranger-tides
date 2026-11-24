@@ -177,7 +177,7 @@
     locationPosition = null; locationIntent++;
     spread?.close();
     measurementLimit = 1000; byId('observations-table').open = false;
-    savedFocus = document.activeElement; selected = station; report = null; window.StationExtras.reset(); window.StationHistory.reset(); updateStationZone();
+    savedFocus = document.activeElement; selected = station; report = null; window.StationPhotos.reset(station); window.StationExtras.reset(); window.StationHistory.reset(); updateStationZone();
     byId('station-panel').hidden = false; text('station-heading', stationLabel(station));
     text('station-code', `NOAA ${station.station_id}`); window.StationLayout.selected(station);
     byId('noaa-station-link').href = `https://tidesandcurrents.noaa.gov/stationhome.html?id=${encodeURIComponent(station.station_id)}`;
@@ -423,7 +423,7 @@
     window.StationLayout.reflow();
   }
   function closeStation() {
-    generation++; pending?.abort(); spread?.close(); selected = null; report = null; clearChart(); window.StationExtras.reset(); window.StationHistory.reset(); infoWindow?.close();
+    generation++; pending?.abort(); spread?.close(); selected = null; report = null; window.StationPhotos.reset(); clearChart(); window.StationExtras.reset(); window.StationHistory.reset(); infoWindow?.close();
     byId('station-panel').hidden = true; updateUrl();
     window.StationLayout.closed();
     updateSelectedMarkers();

@@ -9,5 +9,6 @@ Rails.application.routes.draw do
   get 'stations/:id/history' => 'stations#history'
   get 'stations/:id/context' => 'stations#context'
   get 'stations/:id/nearby' => 'stations#nearby'
+  get 'stations/:id/photo' => 'stations#photo'
   root 'stations#show_stations'
 end

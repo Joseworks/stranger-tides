@@ -11,6 +11,8 @@ require 'webmock'
 WebMock.enable!
 WebMock.disable_net_connect!(allow_localhost: true)
 ENV['STRANGER_TIDES_EMBED_MAPS_API_KEY'] = 'offline-browser-fixture'
+WebMock.stub_request(:get, Noaa::StationPhotos::INDEX_URL)
+       .to_return(body: { '9414290' => 'ABCDFG' }.to_json)
 
 stations = [
   { 'station_id' => '9414290', 'station_name' => 'San Francisco', 'latitude' => 37.8063,

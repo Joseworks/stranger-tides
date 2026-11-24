@@ -1,6 +1,6 @@
 <header id="header">
   <a href="/" class="brand"><svg class="brand-wave" viewBox="0 0 44 26" aria-hidden="true"><path d="M2 8C9 0 16 0 23 7S36 14 42 6M2 20C9 12 16 12 23 19S36 26 42 18"/></svg>Stranger Tides</a>
-  <span class="header-caption">Water levels &amp; coastal conditions</span>
+  <p class="header-caption">NOAA water levels, tide predictions &amp; station conditions</p>
 </header>
 <main id="station-explorer">
   <div class="explorer-toolbar" aria-label="Station search and map tools">
@@ -68,6 +68,7 @@
       <section id="view-now" role="tabpanel" aria-labelledby="tab-now" tabindex="0">
         <div id="station-summary"></div>
         <button id="open-tides" class="text-action" type="button">View water levels →</button>
+        <details id="station-photo" class="secondary-details"><summary>Station photo</summary><div id="station-photo-content" aria-live="polite"></div></details>
       </section>
       <section id="view-tides" role="tabpanel" aria-labelledby="tab-tides" tabindex="0" hidden>
         <div class="range-controls"><label>History <select id="history-hours" aria-label="History"><option value="24">24 hours</option><option value="48" selected>48 hours</option><option value="72">72 hours</option><option value="168">7 days</option><option value="720">30 days</option></select></label><label>Plan ahead <select id="future-hours" aria-label="Plan ahead"><option value="0">Off</option><option value="24">24 hours</option><option value="72">3 days</option><option value="168" selected>7 days</option><option value="720">30 days</option></select></label></div>

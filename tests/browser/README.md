@@ -72,3 +72,5 @@ Review regressions also exercise units changing during the first pending histori
 ## Map-first layout coverage
 
 All 75 previous scenarios remain. `navigation.cjs` follows the public tab/drawer/disclosure controls before reaching a retained data-flow target; it does not mutate DOM state or enable a production test mode. `layout.spec.cjs` independently starts from the default collapsed interface and checks the map-first home, phone/tablet panel placement, keyboard tabs, shared History links, panel expansion, focus restoration, automatic-refresh detail focus and panel-scroll memory. Eleven new scenarios bring the suite to 86 scenarios / 344 CI checks, including cross-tab retained-data warnings, catalog-failure visibility and clipboard feedback. Hosted tests must similarly open the station list and Tides tab when checking real charts.
+
+Station-photo coverage adds three scenarios for loading on demand with attribution/gallery links, missing photos, service/image failures and retry, and delayed responses after changing stations. The header description stays visible below the title at phone and desktop sizes. The suite now has 89 scenarios / 356 CI checks.

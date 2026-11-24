@@ -9,6 +9,8 @@ const select=async page=>{await page.getByLabel('Find a station',{exact:true}).f
 test('map-first home keeps search and map visible with filters and results tucked away',async({page})=>{
   await page.goto('/');await expect(page.getByRole('region',{name:'Map',exact:true})).toBeVisible();
   await expect(page.locator('#station-list')).toBeHidden();await expect(page.locator('#station-filters')).toBeHidden();
+  const caption=page.locator('.header-caption');await expect(caption).toHaveText('NOAA water levels, tide predictions & station conditions');await expect(caption).toBeVisible();
+  const brandBox=await page.locator('.brand').boundingBox(),captionBox=await caption.boundingBox();expect(captionBox.y).toBeGreaterThanOrEqual(brandBox.y+brandBox.height);
   const bounds=await page.locator('#full_map').boundingBox(),size=page.viewportSize();expect(bounds.y).toBeLessThan(150);expect(bounds.height).toBeGreaterThan(size.height*.5);
   await page.getByRole('button',{name:'Filters',exact:true}).click();await expect(page.getByLabel('Highlight product',{exact:true})).toBeVisible();
   await page.getByRole('button',{name:'List',exact:true}).click();await expect(page.locator('#station-filters')).toBeHidden();await expect(page.locator('#station-list')).toBeVisible();
@@ -90,3 +92,33 @@ for(const failed of [false,true]){
     await expect(page.locator('#catalog-alert')).toBeVisible();await expect(page.locator('#catalog-alert')).toContainText('Please reload to retry.');
   });
 }
+const photoRoot='https://cdn.tidesandcurrents.noaa.gov/assets/stationphotos/';
+async function fixturePhoto(page){await page.route(photoRoot+'*.jpg',r=>r.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480"><rect width="640" height="480" fill="#cde8f0"/></svg>'}));}
+test('station photos load on demand with NOAA attribution and handle stations without photos',async({page})=>{
+  await fixturePhoto(page);let photos=0;page.on('request',r=>{if(r.url().endsWith('/photo'))photos++;});
+  await page.goto('/?station=9414290');await expect(page.locator('.latest-reading')).toContainText('MLLW');expect(photos).toBe(0);
+  await page.locator('#station-photo > summary').click();const image=page.locator('#station-photo img');
+  await expect(image).toHaveAttribute('src',photoRoot+'9414290A.jpg');await expect(image).toHaveJSProperty('naturalWidth',640);
+  await expect(image).toHaveAttribute('alt',/San Francisco, CA.*9414290/);await expect(page.locator('#station-photo figcaption')).toContainText('not a live camera');
+  await expect(page.getByRole('link',{name:'View all 6 photos at NOAA',exact:true})).toHaveAttribute('href','https://tidesandcurrents.noaa.gov/stationphotos.html?id=9414290');
+  await page.locator('#station-photo > summary').click();await page.locator('#station-photo > summary').click();expect(photos).toBe(1);
+  await page.getByLabel('Find a station',{exact:true}).fill('9099064');await page.locator('#station-results button[data-station-id="9099064"]').click();
+  await expect(page.locator('#station-photo')).not.toHaveAttribute('open','');await expect(image).toHaveCount(0);
+  await page.locator('#station-photo > summary').click();await expect(page.locator('#station-photo-content')).toContainText('no published station photo');await expect(image).toHaveCount(0);
+});
+test('photo service and image failures leave readings available and offer NOAA fallback',async({page})=>{
+  let unavailable=true;await page.route('**/stations/9414290/photo',r=>unavailable?r.fulfill({status:503,json:{error:'Unavailable'}}):r.continue());
+  await page.route(photoRoot+'*.jpg',r=>r.fulfill({status:404}));
+  await page.goto('/?station=9414290');await expect(page.locator('.latest-reading')).toContainText('MLLW');
+  await page.locator('#station-photo > summary').click();await expect(page.locator('#station-photo-content')).toContainText('Station data remain available');
+  unavailable=false;await page.getByRole('button',{name:'Retry station photo',exact:true}).click();await expect(page.locator('#station-photo-content')).toContainText('photo could not be loaded');
+  await expect(page.locator('#station-photo img')).toHaveCount(0);await expect(page.getByRole('link',{name:'View all 6 photos at NOAA',exact:true})).toBeVisible();await expect(page.locator('.latest-reading')).toContainText('MLLW');
+});
+test('a delayed station photo cannot appear under a newer station',async({page})=>{
+  let release;const barrier=new Promise(resolve=>{release=resolve;});let requested=false;
+  await page.route('**/stations/9414290/photo',async r=>{requested=true;await barrier;await r.continue();});await fixturePhoto(page);
+  await page.goto('/?station=9414290');await expect(page.locator('.latest-reading')).toContainText('MLLW');await page.locator('#station-photo > summary').click();await expect.poll(()=>requested).toBe(true);
+  await page.getByLabel('Find a station',{exact:true}).fill('9099064');await page.locator('#station-results button[data-station-id="9099064"]').click();
+  release();await page.locator('#station-photo > summary').click();await expect(page.locator('#station-photo-content')).toContainText('no published station photo');
+  await expect(page.locator('#station-heading')).toHaveText('Duluth, MN');await expect(page.locator('#station-photo img')).toHaveCount(0);
+});
