@@ -119,7 +119,7 @@
     byId('history-start').value = params.get('begin_date') || past; byId('history-end').value = params.get('end_date') || today;
     for (const id of ['history-start','history-end']) byId(id).max = today;
     if (['auto','six_minute','hourly','monthly'].includes(params.get('resolution'))) byId('history-resolution').value = params.get('resolution');
-    byId('historical-explorer').open = params.has('begin_date') || params.has('end_date');
+    byId('historical-explorer').open = byId('historical-explorer').open || params.has('begin_date') || params.has('end_date');
     byId('history-form').addEventListener('submit', event => {event.preventDefault(); load();});
     byId('history-export').addEventListener('click', exportCsv);
     byId('history-table').addEventListener('toggle', table);

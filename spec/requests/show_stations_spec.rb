@@ -16,7 +16,7 @@ RSpec.describe 'Station explorer' do
     get '/'
     expect(response).to have_http_status(:ok)
     expect(response.body).to include('station-search', 'station-results', 'Close station details')
-    expect(response.body).to match(/data-marker-icon="[^" ]*orange_marker[^" ]*\.png"/)
+    expect(response.body).to match(/data-marker-icon="[^" ]*orange_marker[^" ]*\.svg"/)
   end
 
   it 'returns a clear refresh instruction to old browser tabs' do

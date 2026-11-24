@@ -68,3 +68,7 @@ Use the [phone and tablet checklist](../../docs/device-acceptance.md) on real Br
 Historical regressions add fixed UTC dates, resolution selection, monthly calendar labels, timezone/unit changes, no reload/map movement/forced scroll, cancellation, empty/failure feedback, and complete CSV downloads including quality/flags, missing/zero/negative values and formula-like text. All 66 previous scenarios remain.
 
 Review regressions also exercise units changing during the first pending historical request and archive access/CSV when current conditions fail. Historical controls initialize from station selection independently of the live-report response.
+
+## Map-first layout coverage
+
+All 75 previous scenarios remain. `navigation.cjs` follows the public tab/drawer/disclosure controls before reaching a retained data-flow target; it does not mutate DOM state or enable a production test mode. `layout.spec.cjs` independently starts from the default collapsed interface and checks the map-first home, phone/tablet panel placement, keyboard tabs, shared History links, panel expansion, focus restoration, automatic-refresh detail focus and panel-scroll memory. Six new scenarios bring the suite to 81 scenarios / 324 CI checks. Hosted tests must similarly open the station list and Tides tab when checking real charts.

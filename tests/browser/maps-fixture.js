@@ -34,6 +34,8 @@
       options.map.element.append(this.button);
     }
     addListener(name, callback) { this.button.addEventListener(name, () => callback.call(this)); }
+    setIcon(icon) { this.icon = icon; this.button.querySelector('img').src = icon.url; }
+    setZIndex(value) { this.zIndex = value; }
     setMap(map) { if (!map) this.button.remove(); }
   }
   class AdvancedMarkerElement {
@@ -55,7 +57,9 @@
       this.node.append(this.content); this.node.setAttribute('role', 'dialog'); map.element.append(this.node);
     }
   }
-  window.google = {maps:{Map,Marker,InfoWindow,OverlayView,ControlPosition:{RIGHT_BOTTOM:'RIGHT_BOTTOM'},marker:{AdvancedMarkerElement}}};
+  class Size {constructor(width,height) {this.width=width;this.height=height;}}
+  class Point {constructor(x,y) {this.x=x;this.y=y;}}
+  window.google = {maps:{Map,Marker,InfoWindow,OverlayView,Size,Point,ControlPosition:{RIGHT_BOTTOM:'RIGHT_BOTTOM'},marker:{AdvancedMarkerElement}}};
   if (window.useAdvancedMarkersFixture) document.querySelector('#full_map').dataset.mapId='offline-map';
   window.initMap();
 })();

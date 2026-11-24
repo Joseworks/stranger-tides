@@ -1,3 +1,4 @@
+const {reveal}=require('./navigation.cjs');
 const { test, expect } = require('@playwright/test');
 const path = require('node:path');
 const station = (page, id) => page.locator(`#station-results button[data-station-id="${id}"]`);
@@ -15,31 +16,31 @@ test.afterEach(async ({ page }) => expect(page.testErrors).toEqual([]));
 test('search, layers, and fingerprinted markers expose the complete catalog', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('#result-count')).toHaveText('2 matching locations');
-  await expect(page.getByRole('region', { name: 'Map', exact: true })).toBeVisible();
+  await reveal(page, page.getByRole('region', { name: 'Map', exact: true })); await expect(page.getByRole('region', { name: 'Map', exact: true })).toBeVisible();
   await expect(page.locator('#full_map img').first()).toHaveJSProperty('naturalWidth', 32);
   await page.getByLabel('Find a station', { exact: true }).fill('MN');
-  await expect(station(page, '9099064')).toBeVisible();
+  await reveal(page, station(page, '9099064')); await expect(station(page, '9099064')).toBeVisible();
   await expect(station(page, '9414290')).toHaveCount(0);
   await page.getByLabel('Find a station', { exact: true }).fill('');
-  await page.getByLabel('Show stations', { exact: true }).selectOption('tidepredictions');
-  await expect(station(page, 'TWC0331')).toBeVisible();
+  await reveal(page, page.getByLabel('Show stations', { exact: true })); await page.getByLabel('Show stations', { exact: true }).selectOption('tidepredictions');
+  await reveal(page, station(page, 'TWC0331')); await expect(station(page, 'TWC0331')).toBeVisible();
 });
 
 for (const advanced of [false, true]) {
   test(`individual ${advanced ? 'advanced' : 'legacy'} pins spread radially and select without zooming`, async ({page}) => {
     if (advanced) await page.addInitScript(() => {window.useAdvancedMarkersFixture=true;});
-    await page.goto('/'); await expect(page.getByRole('region',{name:'Map',exact:true})).toBeVisible();
+    await page.goto('/'); await reveal(page, page.getByRole('region',{name:'Map',exact:true})); await expect(page.getByRole('region',{name:'Map',exact:true})).toBeVisible();
     await expect(page.locator('.map-legend')).toContainText('Each pin is one station');
     await page.evaluate(() => fixtureMap.setZoom(0));
-    const pin=page.locator('#full_map').getByRole('button',{name:'San Francisco, CA 9414290',exact:true});
-    await expect(pin).toBeVisible();
-    await expect(page.locator('#full_map').getByRole('button',{name:'Duluth, MN 9099064',exact:true})).toBeVisible();
+    const pin=page.locator('#full_map').getByRole('button', {includeHidden:true, name:'San Francisco, CA 9414290',exact:true});
+    await reveal(page, pin); await expect(pin).toBeVisible();
+    await reveal(page, page.locator('#full_map').getByRole('button', {includeHidden:true, name:'Duluth, MN 9099064',exact:true})); await expect(page.locator('#full_map').getByRole('button', {includeHidden:true, name:'Duluth, MN 9099064',exact:true})).toBeVisible();
     const before=await page.locator('#full_map').getAttribute('data-center');
-    await pin.click();
+    await reveal(page, pin); await pin.click();
     const picker=page.getByRole('dialog',{name:'Choose an overlapping station'});
-    await expect(picker).toBeVisible(); await expect(picker.locator('.spread-station')).toHaveCount(2);
+    await reveal(page, picker); await expect(picker).toBeVisible(); await expect(picker.locator('.spread-station')).toHaveCount(2);
     await expect(picker.locator('line')).toHaveCount(2);
-    await picker.getByRole('button',{name:'Duluth, MN 9099064',exact:true}).click();
+    await reveal(page, picker.getByRole('button', {includeHidden:true, name:'Duluth, MN 9099064',exact:true})); await picker.getByRole('button', {includeHidden:true, name:'Duluth, MN 9099064',exact:true}).click();
     await expect(chart(page)).toHaveText('Duluth, MN'); await expect(picker).toHaveCount(0);
     await expect(page.locator('#full_map')).toHaveAttribute('data-zoom','0');
     await expect(page.locator('#full_map')).toHaveAttribute('data-center',before);
@@ -52,18 +53,18 @@ test('shared selections position the map after a delayed SDK, and ordinary pans 
     await barrier; await route.fulfill({ path: path.join(__dirname, 'maps-fixture.js'), contentType: 'application/javascript' });
   });
   await page.goto('/?station=9099064'); await expect(chart(page)).toHaveText('Duluth, MN');
-  release(); await expect(page.getByRole('region', { name: 'Map', exact: true })).toBeVisible();
+  release(); await reveal(page, page.getByRole('region', { name: 'Map', exact: true })); await expect(page.getByRole('region', { name: 'Map', exact: true })).toBeVisible();
   await expect(page.locator('#full_map')).toHaveAttribute('data-zoom', '8');
   await expect(page.locator('#full_map')).toHaveAttribute('data-center', JSON.stringify({ lat: 46.775, lng: -92.092 }));
   await expect(page.getByRole('dialog')).toContainText('Duluth, MN');
-  const marker = await page.locator('#full_map').getByRole('button', {name: 'Duluth, MN 9099064', exact: true}).elementHandle();
+  const marker = await page.locator('#full_map').getByRole('button', {includeHidden:true, name: 'Duluth, MN 9099064', exact: true}).elementHandle();
   await page.evaluate(() => fixtureMap.setCenter({ lat: 47, lng: -93 }));
   expect(await marker.evaluate(node => node.isConnected)).toBe(true);
 });
 
 test('reading age and stale warning advance without replacing charts', async ({ page }) => {
   await page.clock.install();
-  await page.goto('/'); await station(page, '9414290').click();
+  await page.goto('/'); await reveal(page, station(page, '9414290')); await station(page, '9414290').click();
   await expect(chart(page)).toHaveText('San Francisco, CA');
   const index = await page.evaluate(() => chart_graph_partial.index);
   await expect(page.locator('#reading-freshness')).toBeHidden();
@@ -80,16 +81,16 @@ test('reading age and stale warning advance without replacing charts', async ({ 
 
 test('selection keeps keyboard focus visible without forcing a scroll to off-screen details', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 350 });
-  await page.goto('/'); await station(page, '9414290').scrollIntoViewIfNeeded();
+  await page.goto('/'); await reveal(page, station(page, '9414290')); await station(page, '9414290').scrollIntoViewIfNeeded();
   const before = await page.evaluate(() => scrollY);
-  await station(page, '9414290').click(); await expect(chart(page)).toHaveText('San Francisco, CA');
+  await reveal(page, station(page, '9414290')); await station(page, '9414290').click(); await expect(chart(page)).toHaveText('San Francisco, CA');
   const focus = await page.evaluate(() => {const r = document.activeElement.getBoundingClientRect(); return {top: r.top, bottom: r.bottom, height: innerHeight};});
   expect(focus.top).toBeGreaterThanOrEqual(0); expect(focus.bottom).toBeLessThanOrEqual(focus.height);
   expect(Math.abs(await page.evaluate(() => scrollY) - before)).toBeLessThan(2);
 });
 
 test('real chart preserves gaps, shows predictions and quality, and switches units and time', async ({ page }) => {
-  await page.goto('/'); await station(page, '9414290').click();
+  await page.goto('/'); await reveal(page, station(page, '9414290')); await station(page, '9414290').click();
   await expect(chart(page)).toHaveText('San Francisco, CA');
   expect(await page.evaluate(() => chart_graph_partial.series[0].getColumn('y'))).toEqual([0.12, null, 0.18]);
   await expect(page.locator('#station-summary')).toContainText('Preliminary');
@@ -98,25 +99,25 @@ test('real chart preserves gaps, shows predictions and quality, and switches uni
   await expect(page.locator('#station-summary')).toContainText('humidity:');
   await expect(page.locator('#station-summary')).toContainText('Water Temperature: sensor disabled · Under review');
   expect(await page.evaluate(() => chart_graph_partial.series.map(s => s.name))).toEqual(['Observed water level', 'Predicted water level']);
-  await page.getByLabel('Units', { exact: true }).selectOption('metric');
+  await reveal(page, page.getByLabel('Units', { exact: true })); await page.getByLabel('Units', { exact: true }).selectOption('metric');
   await expect(page.locator('.latest-reading')).toContainText('0.05 m above MLLW');
-  await page.getByLabel('Time', { exact: true }).selectOption('utc');
+  await reveal(page, page.getByLabel('Time', { exact: true })); await page.getByLabel('Time', { exact: true }).selectOption('utc');
   await expect(page.locator('#station-summary')).toContainText('Times: UTC');
-  await page.getByText('View measurements as a table', { exact: true }).click();
+  await reveal(page, page.getByText('View measurements as a table', { exact: true })); await page.getByText('View measurements as a table', { exact: true }).click();
   await expect(page.locator('#measurement-rows')).toContainText('Missing');
   expect(await page.evaluate(() => chart_graph_partial.xAxis[0].categories)).toBeFalsy();
 });
 
 test('Great Lakes chart uses IGLD and closes with focus restored', async ({ page }) => {
-  await page.goto('/'); await station(page, '9099064').click();
+  await page.goto('/'); await reveal(page, station(page, '9099064')); await station(page, '9099064').click();
   await expect(chart(page)).toHaveText('Duluth, MN');
   await expect(page.locator('.latest-reading')).toContainText('602.18 ft above IGLD');
-  await expect(page.locator('#station-heading')).toHaveText('Duluth, MN 9099064');
+  await expect(page.locator('#station-heading')).toHaveText('Duluth, MN');
   await expect(station(page, '9099064')).toContainText('Duluth, MN');
   await expect(page.locator('.datum-explanation')).toContainText('rather than tide height');
   await expect(page.locator('#station-summary')).toContainText('Variation 0.06 ft');
   expect(await page.evaluate(() => chart_graph_partial.yAxis[0].axisTitle.textStr)).toBe('Lake-level elevation (ft, IGLD)');
-  await page.getByRole('button', { name: 'Close station details', exact: true }).click();
+  await reveal(page, page.getByRole('button', {includeHidden:true,  name: 'Close station details', exact: true })); await page.getByRole('button', {includeHidden:true,  name: 'Close station details', exact: true }).click();
   await expect(page.locator('#station-panel')).toBeHidden();
   await expect(station(page, '9099064')).toBeFocused();
 });
@@ -131,7 +132,7 @@ test('omitted observation rows break the line across a six-hour outage', async (
       time: new Date(firstTimestamp).toISOString() }, last];
     await route.fulfill({ response, json: payload });
   });
-  await page.goto('/'); await station(page, '9414290').click();
+  await page.goto('/'); await reveal(page, station(page, '9414290')); await station(page, '9414290').click();
   await expect(chart(page)).toHaveText('San Francisco, CA');
   expect(await page.evaluate(() => chart_graph_partial.series[0].getColumn('y'))).toEqual([0.12, null, 0.18]);
   expect(await page.evaluate(() => chart_graph_partial.series[0].getColumn('x')))
@@ -144,10 +145,10 @@ test('NOAA link follows selection immediately and survives the new station faili
   await page.route('**/stations/9099064/report?*', async route => {
     await barrier; await route.fulfill({ status: 503, json: { error: 'Station unavailable' } });
   });
-  await page.goto('/'); await station(page, '9414290').click();
+  await page.goto('/'); await reveal(page, station(page, '9414290')); await station(page, '9414290').click();
   await expect(chart(page)).toHaveText('San Francisco, CA');
   await expect(page.locator('#noaa-station-link')).toHaveAttribute('href', /id=9414290$/);
-  await station(page, '9099064').click();
+  await reveal(page, station(page, '9099064')); await station(page, '9099064').click();
   await expect(page.locator('#report-status')).toContainText('Loading NOAA');
   await expect(page.locator('#noaa-station-link')).toHaveAttribute('href', /id=9099064$/);
   release();
@@ -156,8 +157,8 @@ test('NOAA link follows selection immediately and survives the new station faili
 });
 
 test('replacing a station leaves one current chart and shareable URL', async ({ page }) => {
-  await page.goto('/'); await station(page, '9414290').click(); await expect(chart(page)).toHaveText('San Francisco, CA');
-  await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
+  await page.goto('/'); await reveal(page, station(page, '9414290')); await station(page, '9414290').click(); await expect(chart(page)).toHaveText('San Francisco, CA');
+  await reveal(page, station(page, '9099064')); await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
   await expect(page.locator('#graph-partial .highcharts-container')).toHaveCount(1);
   await expect(page.locator('#weather-charts .highcharts-container')).toHaveCount(4);
   await expect(page).toHaveURL(/station=9099064/);
@@ -169,10 +170,10 @@ test('closing during a delayed request prevents its response from reopening deta
   await page.route('**/stations/9414290/report?*', async route => {
     await barrier; await route.fulfill({ status: 503, json: { error: 'Late response' } }).catch(() => {});
   });
-  await page.goto('/'); await station(page, '9414290').click();
-  await page.getByRole('button', { name: 'Close station details', exact: true }).click(); release();
+  await page.goto('/'); await reveal(page, station(page, '9414290')); await station(page, '9414290').click();
+  await reveal(page, page.getByRole('button', {includeHidden:true,  name: 'Close station details', exact: true })); await page.getByRole('button', {includeHidden:true,  name: 'Close station details', exact: true }).click(); release();
   await expect(page.locator('#station-panel')).toBeHidden();
-  await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
+  await reveal(page, station(page, '9099064')); await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
 });
 
 test('an obsolete slow response cannot replace the newer selection', async ({ page }) => {
@@ -180,7 +181,7 @@ test('an obsolete slow response cannot replace the newer selection', async ({ pa
   await page.route('**/stations/9414290/report?*', async route => {
     await barrier; await route.fulfill({ status: 503, json: { error: 'Old station failed' } }).catch(() => {});
   });
-  await page.goto('/'); await station(page, '9414290').click(); await station(page, '9099064').click();
+  await page.goto('/'); await reveal(page, station(page, '9414290')); await station(page, '9414290').click(); await reveal(page, station(page, '9099064')); await station(page, '9099064').click();
   await expect(chart(page)).toHaveText('Duluth, MN'); release();
   await expect(page.locator('#report-status')).not.toContainText('Old station failed');
 });
@@ -188,21 +189,21 @@ test('an obsolete slow response cannot replace the newer selection', async ({ pa
 test('NOAA outage offers a usable retry', async ({ page }) => {
   let fail = true;
   await page.route('**/stations/9414290/report?*', route => fail ? route.fulfill({ status: 503, json: { error: 'NOAA is temporarily unavailable.' } }) : route.continue());
-  await page.goto('/'); await station(page, '9414290').click();
+  await page.goto('/'); await reveal(page, station(page, '9414290')); await station(page, '9414290').click();
   await expect(page.locator('#report-status')).toContainText('temporarily unavailable');
   await expect(page.locator('#noaa-station-link')).toHaveAttribute('href', /id=9414290$/);
-  fail = false; await page.getByRole('button', { name: 'Retry station data' }).click();
+  fail = false; await reveal(page, page.getByRole('button', {includeHidden:true,  name: 'Retry station data' })); await page.getByRole('button', {includeHidden:true,  name: 'Retry station data' }).click();
   await expect(chart(page)).toHaveText('San Francisco, CA');
 });
 
 test('prediction-only locations render without pretending to have live observations', async ({ page }) => {
-  await page.goto('/'); await page.getByLabel('Show stations', { exact: true }).selectOption('tidepredictions');
-  await station(page, 'TWC0331').click(); await expect(chart(page)).toHaveText('Prediction Harbor, CA');
+  await page.goto('/'); await reveal(page, page.getByLabel('Show stations', { exact: true })); await page.getByLabel('Show stations', { exact: true }).selectOption('tidepredictions');
+  await reveal(page, station(page, 'TWC0331')); await station(page, 'TWC0331').click(); await expect(chart(page)).toHaveText('Prediction Harbor, CA');
   await expect(page.locator('.latest-reading')).toHaveText('No water-level observation available.');
   expect(await page.evaluate(() => chart_graph_partial.series.map(s => s.name))).toEqual(['Predicted high/low events']);
   expect(await page.evaluate(() => chart_graph_partial.series[0].type)).toBe('scatter');
   await expect(page.locator('#weather-charts')).toBeHidden();
-  await page.getByText('View measurements as a table', { exact: true }).click();
+  await reveal(page, page.getByText('View measurements as a table', { exact: true })); await page.getByText('View measurements as a table', { exact: true }).click();
   await expect(page.locator('#measurement-rows')).toContainText('Predicted water level');
   await expect(page.locator('#measurement-rows')).toContainText('High');
 });
@@ -210,10 +211,10 @@ test('prediction-only locations render without pretending to have live observati
 test('every enabled weather product has history, while disabled sensors have no graph', async ({ page }) => {
   await page.goto('/');
   for (const id of ['9414290', '9099064']) {
-    await station(page, id).click();
+    await reveal(page, station(page, id)); await station(page, id).click();
     await expect(page.locator('#weather-charts .highcharts-container')).toHaveCount(4);
     for (const product of ['wind', 'air_temperature', 'air_pressure', 'humidity']) {
-      await expect(page.locator(`#weather-${product} .highcharts-container`)).toBeVisible();
+      await reveal(page, page.locator(`#weather-${product} .highcharts-container`)); await expect(page.locator(`#weather-${product} .highcharts-container`)).toBeVisible();
     }
     await expect(page.locator('#weather-water_temperature')).toHaveCount(0);
     const wind = await page.evaluate(() => {
@@ -233,8 +234,8 @@ test('wind gusts and direction remain graphed when sustained speed is missing', 
     delete payload.weather.wind;
     await route.fulfill({ response, json: payload });
   });
-  await page.goto('/'); await station(page, '9414290').click();
-  await expect(page.locator('#weather-wind .highcharts-container')).toBeVisible();
+  await page.goto('/'); await reveal(page, station(page, '9414290')); await station(page, '9414290').click();
+  await reveal(page, page.locator('#weather-wind .highcharts-container')); await expect(page.locator('#weather-wind .highcharts-container')).toBeVisible();
   expect(await page.evaluate(() => Highcharts.charts.find(c => c?.renderTo.id === 'weather-wind').series[1].getColumn('y')))
     .toEqual([14, null, 14]);
 });
@@ -246,26 +247,26 @@ test('history, units, and time update existing charts without navigation or scro
   await page.route('**/stations/9414290/report?*', async route => {
     reports++; if (hold) await barrier; await route.continue();
   });
-  await page.goto('/'); await station(page, '9414290').click();
+  await page.goto('/'); await reveal(page, station(page, '9414290')); await station(page, '9414290').click();
   await expect(page.locator('#weather-charts .highcharts-container')).toHaveCount(4);
-  await page.locator('#history-hours').scrollIntoViewIfNeeded();
+  await reveal(page, page.locator('#history-hours')); await page.locator('#history-hours').scrollIntoViewIfNeeded();
   const before = await page.evaluate(() => ({ y: scrollY, water: chart_graph_partial.index,
     wind: Highcharts.charts.find(c => c?.renderTo.id === 'weather-wind').index,
     height: document.getElementById('station-charts').offsetHeight }));
   const initialNavigations = navigations;
   hold = true;
-  await page.getByLabel('History', { exact: true }).selectOption('72');
+  await reveal(page, page.getByRole('combobox', {name:'History',  exact: true })); await page.getByRole('combobox', {name:'History',  exact: true }).selectOption('72');
   await expect(page.locator('#report-status')).toContainText('Updating station charts');
   expect(await page.evaluate(() => document.getElementById('station-charts').offsetHeight)).toBe(before.height);
   expect(Math.abs(await page.evaluate(() => scrollY) - before.y)).toBeLessThan(2);
   release(); hold = false;
   await expect(page.locator('#graph-partial .highcharts-subtitle')).toContainText('Past 72 hours');
   await expect(page.locator('#weather-wind .highcharts-subtitle')).toContainText('Past 72 hours');
-  await page.getByLabel('Units', { exact: true }).selectOption('metric');
+  await reveal(page, page.getByLabel('Units', { exact: true })); await page.getByLabel('Units', { exact: true }).selectOption('metric');
   await expect(page.locator('#weather-air_temperature')).toContainText('°C');
   await expect(page.locator('#weather-wind')).toContainText('m/s');
   const previousReports = reports;
-  await page.getByLabel('Time', { exact: true }).selectOption('utc');
+  await reveal(page, page.getByLabel('Time', { exact: true })); await page.getByLabel('Time', { exact: true }).selectOption('utc');
   expect(await page.evaluate(() => chart_graph_partial.options.time.timezone)).toBe('UTC');
   expect(await page.evaluate(() => Highcharts.charts.find(c => c?.renderTo.id === 'weather-wind').options.time.timezone)).toBe('UTC');
   expect(await page.evaluate(() => chart_graph_partial.index)).toBe(before.water);
@@ -283,10 +284,10 @@ test('live refresh preserves chart zoom, hidden series, table state and page pos
     if (request.url().includes('/nearby?')) nearby++;
   });
   await page.goto('/?station=9414290');
-  await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
+  await reveal(page, page.locator('#forecast-water-level .highcharts-container')); await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
   await expect(page.locator('#weather-charts .highcharts-container')).toHaveCount(4);
   await page.locator('#observations-table').evaluate(node => {node.open = true;});
-  await page.getByLabel('History', {exact:true}).scrollIntoViewIfNeeded();
+  await reveal(page, page.getByRole('combobox', {name:'History', exact:true})); await page.getByRole('combobox', {name:'History', exact:true}).scrollIntoViewIfNeeded();
   const before = await page.evaluate(() => {
     const charts = Highcharts.charts.filter(Boolean);
     charts.forEach(chart => {
@@ -315,10 +316,10 @@ test('live updates pause, skip hidden/offline tabs and catch up once on return',
   await page.addInitScript(()=>Object.defineProperty(document,'hidden',{get:()=>Boolean(window.testHidden),configurable:true}));
   let reports=0; page.on('request',r=>{if(r.url().includes('/report?')) reports++;});
   await page.goto('/?station=9099064'); await expect(chart(page)).toHaveText('Duluth, MN');
-  await page.getByLabel('Live updates',{exact:true}).uncheck(); await page.clock.fastForward(6*60000);
+  await reveal(page, page.getByLabel('Live updates',{exact:true})); await page.getByLabel('Live updates',{exact:true}).uncheck(); await page.clock.fastForward(6*60000);
   expect(reports).toBe(1); await expect(page.locator('#live-update-status')).toContainText('paused');
   await page.evaluate(()=>{window.testHidden=true;document.dispatchEvent(new Event('visibilitychange'));});
-  await page.getByLabel('Live updates',{exact:true}).check(); await page.clock.fastForward(6*60000); expect(reports).toBe(1);
+  await reveal(page, page.getByLabel('Live updates',{exact:true})); await page.getByLabel('Live updates',{exact:true}).check(); await page.clock.fastForward(6*60000); expect(reports).toBe(1);
   await context.setOffline(true);
   await page.evaluate(()=>{window.testHidden=false;document.dispatchEvent(new Event('visibilitychange'));});
   await page.clock.fastForward(6*60000); expect(reports).toBe(1);
@@ -326,7 +327,7 @@ test('live updates pause, skip hidden/offline tabs and catch up once on return',
   await expect(page.locator('#station-charts')).not.toHaveAttribute('aria-busy','true');
   await page.evaluate(()=>{document.dispatchEvent(new Event('visibilitychange'));window.dispatchEvent(new Event('online'));});
   expect(reports).toBe(2);
-  await page.getByRole('button',{name:'Close station details'}).click(); await page.clock.fastForward(12*60000); expect(reports).toBe(2);
+  await reveal(page, page.getByRole('button', {includeHidden:true, name:'Close station details'})); await page.getByRole('button', {includeHidden:true, name:'Close station details'}).click(); await page.clock.fastForward(12*60000); expect(reports).toBe(2);
 });
 
 test('a failed automatic refresh retains charts and retries at the normal cadence', async ({page}) => {
@@ -373,21 +374,21 @@ test('a legitimate empty product response clears its previous plot during automa
     if(empty){payload.weather_series.air_temperature=[];delete payload.weather.air_temperature;payload.failed_products=[];payload.warnings=[];}
     await route.fulfill({response,json:payload});
   });
-  await page.goto('/?station=9414290');await expect(page.locator('#weather-air_temperature')).toBeVisible();
+  await page.goto('/?station=9414290');await reveal(page, page.locator('#weather-air_temperature')); await expect(page.locator('#weather-air_temperature')).toBeVisible();
   empty=true;await page.clock.fastForward(6*60000);await expect(page.locator('#weather-air_temperature')).toHaveCount(0);
-  await expect(page.locator('#weather-wind')).toBeVisible();
+  await reveal(page, page.locator('#weather-wind')); await expect(page.locator('#weather-wind')).toBeVisible();
   await expect(page.locator('#station-summary')).not.toContainText('Previous data for those products');
 });
 
 test('automatic optional-product failures keep the previous plots and offer retry', async ({page}) => {
   await page.clock.install(); let fail=false;
   await page.route('**/stations/9414290/context?*',route=>fail?route.fulfill({status:503,json:{error:'Forecast temporarily unavailable.'}}):route.continue());
-  await page.goto('/?station=9414290'); await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
+  await page.goto('/?station=9414290'); await reveal(page, page.locator('#forecast-water-level .highcharts-container')); await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
   const index=await page.evaluate(()=>Highcharts.charts.find(c=>c?.renderTo.id==='forecast-water-level').index); fail=true;
   await page.clock.fastForward(6*60000);
   await expect(page.locator('#station-context')).toContainText('Previous data remain displayed');
   expect(await page.evaluate(()=>Highcharts.charts.find(c=>c?.renderTo.id==='forecast-water-level').index)).toBe(index);
-  await expect(page.getByRole('button',{name:'Retry additional products',exact:true})).toBeVisible();
+  await reveal(page, page.getByRole('button', {includeHidden:true, name:'Retry additional products',exact:true})); await expect(page.getByRole('button', {includeHidden:true, name:'Retry additional products',exact:true})).toBeVisible();
 });
 
 test('partial optional failures retain prior forecast and buoy plots with explicit feedback', async ({page}) => {
@@ -402,8 +403,8 @@ test('partial optional failures retain prior forecast and buoy plots with explic
     if(fail){payload.failed_buoys=payload.buoys.map(b=>b.id);payload.buoys=[];payload.warnings=['46026 temporarily unavailable.'];}
     await route.fulfill({response,json:payload});
   });
-  await page.goto('/?station=9414290');await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
-  await page.locator('#buoy-46026 > summary').click();await expect(page.locator('#buoy-46026-wave_height .highcharts-container')).toBeVisible();
+  await page.goto('/?station=9414290');await reveal(page, page.locator('#forecast-water-level .highcharts-container')); await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
+  await reveal(page, page.locator('#buoy-46026 > summary')); await page.locator('#buoy-46026 > summary').click();await reveal(page, page.locator('#buoy-46026-wave_height .highcharts-container')); await expect(page.locator('#buoy-46026-wave_height .highcharts-container')).toBeVisible();
   const before=await page.evaluate(()=>Highcharts.charts.filter(c=>c&&['forecast-water-level','buoy-46026-wave_height'].includes(c.renderTo.id)).map(c=>({id:c.renderTo.id,index:c.index})));
   fail=true;await page.clock.fastForward(6*60000);
   await expect(page.locator('#buoy-46026 > summary')).toContainText('Previous data (refresh failed)');
@@ -424,8 +425,8 @@ test('successful empty optional products clear old forecast and buoy plots', asy
     if(empty){payload.buoys=[];payload.failed_buoys=[];}
     await route.fulfill({response,json:payload});
   });
-  await page.goto('/?station=9414290');await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
-  await expect(page.locator('#buoy-46026')).toBeVisible();empty=true;await page.clock.fastForward(6*60000);
+  await page.goto('/?station=9414290');await reveal(page, page.locator('#forecast-water-level .highcharts-container')); await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
+  await reveal(page, page.locator('#buoy-46026')); await expect(page.locator('#buoy-46026')).toBeVisible();empty=true;await page.clock.fastForward(6*60000);
   await expect(page.locator('#forecast-water-level')).toHaveCount(0);await expect(page.locator('#buoy-46026')).toHaveCount(0);
 });
 
@@ -434,8 +435,8 @@ test('a delayed automatic response cannot replace a newer selected station', asy
   await page.route('**/stations/9414290/report?*',async route=>{count++;if(count===2) await barrier;await route.continue().catch(()=>{});});
   await page.goto('/?station=9414290'); await expect(chart(page)).toHaveText('San Francisco, CA');
   await page.clock.fastForward(6*60000); await expect.poll(()=>count).toBe(2);
-  await station(page,'9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
-  release(); await expect(page.locator('#station-heading')).toHaveText('Duluth, MN 9099064');
+  await reveal(page, station(page,'9099064')); await station(page,'9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
+  release(); await expect(page.locator('#station-heading')).toHaveText('Duluth, MN');
   await expect(page).toHaveURL(/station=9099064/);
 });
 
@@ -447,17 +448,17 @@ test('station local time updates all charts and shared links without fetching or
   await expect(page.locator('#station-summary')).toContainText('Times: America/Los_Angeles');
   await expect(page.locator('#catalog-status')).toContainText(' UTC');
   const catalog = await page.locator('#catalog-status').innerText();
-  await page.getByLabel('Time', { exact: true }).scrollIntoViewIfNeeded();
+  await reveal(page, page.getByLabel('Time', { exact: true })); await page.getByLabel('Time', { exact: true }).scrollIntoViewIfNeeded();
   const before = await page.evaluate(() => ({ y: scrollY, water: chart_graph_partial.index }));
   const count = reports;
-  await page.getByLabel('Time', { exact: true }).selectOption('utc');
-  await page.getByLabel('Time', { exact: true }).selectOption('station');
+  await reveal(page, page.getByLabel('Time', { exact: true })); await page.getByLabel('Time', { exact: true }).selectOption('utc');
+  await reveal(page, page.getByLabel('Time', { exact: true })); await page.getByLabel('Time', { exact: true }).selectOption('station');
   const zones = await page.evaluate(() => Highcharts.charts.filter(Boolean).map(c => c.options.time.timezone));
   expect(zones.length).toBeGreaterThanOrEqual(5); expect(zones.every(z => z === 'America/Los_Angeles')).toBe(true);
   expect(await page.evaluate(() => chart_graph_partial.index)).toBe(before.water);
   expect(Math.abs(await page.evaluate(() => scrollY) - before.y)).toBeLessThan(2);
   expect(reports).toBe(count); await expect(page).toHaveURL(/zone=station/);
-  await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
+  await reveal(page, station(page, '9099064')); await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
   await expect(page.locator('#station-summary')).toContainText('Times: America/Chicago');
   await expect(page.locator('#catalog-status')).toHaveText(catalog);
 });
@@ -471,7 +472,7 @@ test('missing station time-zone metadata is explicit and does not break shared r
   await expect(page.locator('#display-zone option[value="station"]')).toBeDisabled();
   await expect(page.locator('#display-zone option[value="station"]')).toHaveText('Station local time unavailable (UTC)');
   await expect(page.locator('#station-summary')).toContainText('Times: UTC');
-  await page.getByLabel('Time', { exact: true }).selectOption('local');
+  await reveal(page, page.getByLabel('Time', { exact: true })); await page.getByLabel('Time', { exact: true }).selectOption('local');
   await expect(page.locator('#weather-charts .highcharts-container')).toHaveCount(4);
 });
 
@@ -479,11 +480,11 @@ test('a failed history refresh preserves the existing graphs and scroll position
   let fail = false;
   await page.route('**/stations/9414290/report?*', route => fail ?
     route.fulfill({ status: 503, json: { error: 'NOAA unavailable.' } }) : route.continue());
-  await page.goto('/'); await station(page, '9414290').click();
+  await page.goto('/'); await reveal(page, station(page, '9414290')); await station(page, '9414290').click();
   await expect(page.locator('#weather-charts .highcharts-container')).toHaveCount(4);
-  await page.locator('#history-hours').scrollIntoViewIfNeeded();
+  await reveal(page, page.locator('#history-hours')); await page.locator('#history-hours').scrollIntoViewIfNeeded();
   const before = await page.evaluate(() => ({ y: scrollY, chart: chart_graph_partial.index }));
-  fail = true; await page.getByLabel('History', { exact: true }).selectOption('24');
+  fail = true; await reveal(page, page.getByRole('combobox', {name:'History',  exact: true })); await page.getByRole('combobox', {name:'History',  exact: true }).selectOption('24');
   await expect(page.locator('#report-status')).toContainText('Previous charts are still displayed');
   expect(await page.evaluate(() => chart_graph_partial.index)).toBe(before.chart);
   await expect(page.locator('#weather-charts .highcharts-container')).toHaveCount(4);
@@ -493,17 +494,17 @@ test('a failed history refresh preserves the existing graphs and scroll position
 test('station list still works if the Maps SDK fails to load', async ({ page }) => {
   await page.route('https://maps.googleapis.com/**', route => route.abort());
   await page.goto('/'); await expect(page.locator('#map-status')).toContainText('map is unavailable');
-  await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
+  await reveal(page, station(page, '9099064')); await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
 });
 
 for (const control of ['Find stations near me', 'Center on your location']) {
   test(`${control} sorts nearby stations and centers the map without scrolling`, async ({ context, page }) => {
     await context.grantPermissions(['geolocation']); await context.setGeolocation({ latitude: 46.8, longitude: -92.1 });
     await page.goto('/');
-    const button = page.getByRole('button', { name: control, exact: true });
-    await button.scrollIntoViewIfNeeded();
+    const button = page.getByRole('button', {includeHidden:true,  name: control, exact: true });
+    await reveal(page, button); await button.scrollIntoViewIfNeeded();
     const scroll = await page.evaluate(() => window.scrollY);
-    await button.click();
+    await reveal(page, button); await button.click();
     await expect(page.locator('#location-status')).toContainText('sorted by distance');
     await expect(page.locator('#map-location-status')).toContainText('sorted by distance');
     await expect(page.locator('#station-results button').first()).toHaveAttribute('data-station-id', '9099064');
@@ -525,13 +526,13 @@ for (const state of ['pending', 'completed', 'newer station selection', 'pending
     await page.addInitScript(() => Object.defineProperty(navigator, 'geolocation', {value: {
       getCurrentPosition(success, failure) {window.finishLocation = success; window.failLocation = failure;}
     }}));
-    await page.goto('/'); await expect(station(page, '9414290')).toBeVisible();
-    await page.getByRole('button', {name: 'Find stations near me', exact: true}).click();
+    await page.goto('/'); await reveal(page, station(page, '9414290')); await expect(station(page, '9414290')).toBeVisible();
+    await reveal(page, page.getByRole('button', {includeHidden:true, name: 'Find stations near me', exact: true})); await page.getByRole('button', {includeHidden:true, name: 'Find stations near me', exact: true}).click();
     if (completed) await page.evaluate(() => window.finishLocation({coords: {latitude: 46.8, longitude: -92.1}}));
-    if (newerSelection) await station(page, '9414290').click();
+    if (newerSelection) await reveal(page, station(page, '9414290')); await station(page, '9414290').click();
     release();
-    const control = page.getByRole('button', {name: 'Center on your location', exact: true});
-    await expect(control).toBeVisible();
+    const control = page.getByRole('button', {includeHidden:true, name: 'Center on your location', exact: true});
+    await reveal(page, control); await expect(control).toBeVisible();
     if (state === 'pending newer station selection') {
       await expect(control).toBeDisabled();
       await page.evaluate(() => window.finishLocation({coords: {latitude: 46.8, longitude: -92.1}}));
@@ -562,11 +563,11 @@ test('location requests identify this origin and wait for the existing browser p
       }
     } });
   });
-  await page.goto('/'); await expect(station(page, '9414290')).toBeVisible();
+  await page.goto('/'); await reveal(page, station(page, '9414290')); await expect(station(page, '9414290')).toBeVisible();
   await expect(page.locator('#location-origin')).toHaveText('127.0.0.1:3467');
-  await expect(page.getByRole('button', { name: 'Find stations near me' })).toHaveAttribute('aria-describedby', 'location-details');
+  await expect(page.getByRole('button', {includeHidden:true,  name: 'Find stations near me' })).toHaveAttribute('aria-describedby', 'location-details');
   expect(await page.evaluate(() => window.locationRequests)).toEqual([]);
-  await page.getByRole('button', { name: 'Center on your location', exact: true }).click();
+  await reveal(page, page.getByRole('button', {includeHidden:true,  name: 'Center on your location', exact: true })); await page.getByRole('button', {includeHidden:true,  name: 'Center on your location', exact: true }).click();
   await expect(page.locator('#map-location-status')).toContainText('Requesting location');
   await expect(page.locator('#map-locate')).toBeDisabled();
   await expect(page.locator('#location-status')).toContainText('Requesting location for 127.0.0.1:3467');
@@ -579,7 +580,7 @@ test('location requests identify this origin and wait for the existing browser p
   await expect(page.locator('#map-location-status')).toContainText('was declined');
   await expect(page.locator('#map-locate')).toBeEnabled();
   await expect(page.locator('#locate')).toBeEnabled();
-  await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
+  await reveal(page, station(page, '9099064')); await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
 });
 
 for (const [code, message] of [[2, 'could not be determined'], [3, 'timed out']]) {
@@ -587,22 +588,22 @@ for (const [code, message] of [[2, 'could not be determined'], [3, 'timed out']]
     await page.addInitScript(code => Object.defineProperty(navigator, 'geolocation', { value: {
       getCurrentPosition(success, error) { error({ code }); }
     } }), code);
-    await page.goto('/'); await page.getByRole('button', { name: 'Find stations near me' }).click();
+    await page.goto('/'); await reveal(page, page.getByRole('button', {includeHidden:true,  name: 'Find stations near me' })); await page.getByRole('button', {includeHidden:true,  name: 'Find stations near me' }).click();
     await expect(page.locator('#location-status')).toContainText(message);
     await expect(page.locator('#map-location-status')).toContainText(message);
     await expect(page.locator('#map-locate')).toBeEnabled();
     await expect(page.locator('#locate')).toBeEnabled();
-    await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
+    await reveal(page, station(page, '9099064')); await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
   });
 }
 
 test('browsers without a location API retain search and explain the limitation', async ({ page }) => {
   await page.addInitScript(() => Object.defineProperty(navigator, 'geolocation', { value: undefined }));
-  await page.goto('/'); await page.getByRole('button', { name: 'Find stations near me' }).click();
+  await page.goto('/'); await reveal(page, page.getByRole('button', {includeHidden:true,  name: 'Find stations near me' })); await page.getByRole('button', {includeHidden:true,  name: 'Find stations near me' }).click();
   await expect(page.locator('#location-status')).toContainText('unavailable in this browser or connection');
   await expect(page.locator('#map-location-status')).toContainText('unavailable in this browser or connection');
   await expect(page.locator('#locate')).toBeEnabled();
-  await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
+  await reveal(page, station(page, '9099064')); await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
 });
 
 async function addCommonProductsToDuluth(page) {
@@ -629,18 +630,18 @@ for (const advanced of [false,true]) {
     await addCommonProductsToDuluth(page); await page.goto('/');
     const purple=()=>page.locator(advanced?'.individual-pin.extra-pin':'#full_map img[src*="purple_marker"]');
     await expect(purple()).toHaveCount(1);
-    await page.getByLabel('Highlight product',{exact:true}).selectOption('ofs_water_level');
+    await reveal(page, page.getByLabel('Highlight product',{exact:true})); await page.getByLabel('Highlight product',{exact:true}).selectOption('ofs_water_level');
     await expect(purple()).toHaveCount(2); await expect(page.locator('#highlight-legend')).toHaveText('Purple pin = water-level forecast.');
-    await page.getByLabel('Highlight product',{exact:true}).selectOption('visibility');
+    await reveal(page, page.getByLabel('Highlight product',{exact:true})); await page.getByLabel('Highlight product',{exact:true}).selectOption('visibility');
     await expect(purple()).toHaveCount(1);
-    await page.getByRole('button',{name:'Show matching stations only',exact:true}).click();
+    await reveal(page, page.getByRole('button', {includeHidden:true, name:'Show matching stations only',exact:true})); await page.getByRole('button', {includeHidden:true, name:'Show matching stations only',exact:true}).click();
     await expect(page.locator('#result-count')).toHaveText('1 matching locations');
-    await expect(station(page,'9414290')).toBeVisible(); await expect(station(page,'9099064')).toHaveCount(0);
-    await page.getByLabel('Highlight product',{exact:true}).selectOption('air_gap');
+    await reveal(page, station(page,'9414290')); await expect(station(page,'9414290')).toBeVisible(); await expect(station(page,'9099064')).toHaveCount(0);
+    await reveal(page, page.getByLabel('Highlight product',{exact:true})); await page.getByLabel('Highlight product',{exact:true}).selectOption('air_gap');
     await expect(page.locator('#result-count')).toHaveText('0 matching locations'); await expect(purple()).toHaveCount(0);
-    await page.getByRole('button',{name:'Show matching stations only',exact:true}).click();
+    await reveal(page, page.getByRole('button', {includeHidden:true, name:'Show matching stations only',exact:true})); await page.getByRole('button', {includeHidden:true, name:'Show matching stations only',exact:true}).click();
     await expect(page.locator('#result-count')).toHaveText('2 matching locations'); await expect(purple()).toHaveCount(0);
-    await page.getByLabel('Highlight product',{exact:true}).selectOption('any'); await expect(purple()).toHaveCount(2);
+    await reveal(page, page.getByLabel('Highlight product',{exact:true})); await page.getByLabel('Highlight product',{exact:true}).selectOption('any'); await expect(purple()).toHaveCount(2);
   });
 }
 
@@ -649,9 +650,9 @@ test('shared station links retain product highlighting and matching-only mode', 
   await expect(chart(page)).toHaveText('San Francisco, CA');
   await expect(page.getByLabel('Highlight product',{exact:true})).toHaveValue('visibility');
   await expect(page.getByLabel('Show stations',{exact:true})).toHaveValue('additional');
-  await expect(page.getByRole('button',{name:'Show matching stations only',exact:true})).toHaveAttribute('aria-pressed','true');
+  await expect(page.getByRole('button', {includeHidden:true, name:'Show matching stations only',exact:true})).toHaveAttribute('aria-pressed','true');
   await expect(page.locator('#result-count')).toHaveText('1 matching locations');
-  await page.getByLabel('Time',{exact:true}).selectOption('utc');
+  await reveal(page, page.getByLabel('Time',{exact:true})); await page.getByLabel('Time',{exact:true}).selectOption('utc');
   await expect(page).toHaveURL(/product=visibility/); await expect(page).toHaveURL(/layer=additional/);
 });
 
@@ -660,45 +661,45 @@ test('stations with additional products have purple markers, labels and a discov
   await expect(station(page, '9414290')).toHaveClass(/extra-products/);
   await expect(station(page, '9414290')).toContainText('Additional:');
   await expect(page.locator('.map-legend')).toContainText('Purple pin = specialized sensors');
-  await expect(page.locator('#full_map img[src*="purple_marker"]')).toBeVisible();
-  await page.getByLabel('Show stations', {exact: true}).selectOption('additional');
+  await reveal(page, page.locator('#full_map img[src*="purple_marker"]')); await expect(page.locator('#full_map img[src*="purple_marker"]')).toBeVisible();
+  await reveal(page, page.getByLabel('Show stations', {exact: true})); await page.getByLabel('Show stations', {exact: true}).selectOption('additional');
   await expect(page.locator('#result-count')).toHaveText('1 matching locations');
   await expect(station(page, '9099064')).toHaveCount(0);
 });
 
 test('future planning and 30-day history update in place and retain shareable settings', async ({ page }) => {
-  await page.goto('/?station=9414290'); await expect(page.locator('#future-tides .highcharts-container')).toBeVisible();
-  const control = page.getByLabel('History', {exact: true}); await control.scrollIntoViewIfNeeded();
+  await page.goto('/?station=9414290'); await reveal(page, page.locator('#future-tides .highcharts-container')); await expect(page.locator('#future-tides .highcharts-container')).toBeVisible();
+  const control = page.getByRole('combobox', {name:'History', exact: true}); await reveal(page, control); await control.scrollIntoViewIfNeeded();
   const before = await page.evaluate(() => ({ y: scrollY, chart: chart_graph_partial.index }));
-  await control.selectOption('720');
+  await reveal(page, control); await control.selectOption('720');
   await expect(page.locator('#graph-partial .highcharts-subtitle')).toContainText('Past 720 hours');
-  await page.getByLabel('Plan ahead', {exact: true}).selectOption('720');
+  await reveal(page, page.getByLabel('Plan ahead', {exact: true})); await page.getByLabel('Plan ahead', {exact: true}).selectOption('720');
   await expect(page.locator('#planning-intro')).toContainText('next 30 days');
   await expect(page).toHaveURL(/future_hours=720/);
   expect(await page.evaluate(() => chart_graph_partial.index)).toBe(before.chart);
   expect(Math.abs(await page.evaluate(() => scrollY) - before.y)).toBeLessThan(2);
-  await page.getByLabel('Plan ahead', {exact: true}).selectOption('0');
+  await reveal(page, page.getByLabel('Plan ahead', {exact: true})); await page.getByLabel('Plan ahead', {exact: true}).selectOption('0');
   await expect(page.locator('#future-tides')).toHaveCount(0);
 });
 
 test('observed-minus-predicted graph keeps zero differences and null gaps', async ({ page }) => {
   await page.goto('/?station=9414290');
-  await expect(page.locator('#tide-difference .highcharts-container')).toBeVisible();
+  await reveal(page, page.locator('#tide-difference .highcharts-container')); await expect(page.locator('#tide-difference .highcharts-container')).toBeVisible();
   expect(await page.evaluate(() => Highcharts.charts.find(c => c?.renderTo.id === 'tide-difference').series[0].getColumn('y'))).toEqual([0, null, 0]);
-  await page.getByLabel('Show stations', {exact: true}).selectOption('tidepredictions');
-  await station(page, 'TWC0331').click();
+  await reveal(page, page.getByLabel('Show stations', {exact: true})); await page.getByLabel('Show stations', {exact: true}).selectOption('tidepredictions');
+  await reveal(page, station(page, 'TWC0331')); await station(page, 'TWC0331').click();
   await expect(page.locator('#departure-note')).toContainText('requires matching');
   await expect(page.locator('#tide-difference')).toHaveCount(0);
 });
 
 test('forecast, one-minute observations and flood outlooks are labelled as distinct NOAA products', async ({ page }) => {
   await page.goto('/?station=9414290');
-  await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
-  await expect(page.locator('#one-minute-water-level .highcharts-container')).toBeVisible();
+  await reveal(page, page.locator('#forecast-water-level .highcharts-container')); await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
+  await reveal(page, page.locator('#one-minute-water-level .highcharts-container')); await expect(page.locator('#one-minute-water-level .highcharts-container')).toBeVisible();
   await expect(page.locator('#flood-outlook')).toContainText('12.5%');
   await expect(page.locator('#flood-outlook')).toContainText('above MLLW');
   await expect(page.locator('#context-intro')).toContainText('Model guidance');
-  await station(page, '9099064').click();
+  await reveal(page, station(page, '9099064')); await station(page, '9099064').click();
   await expect(page.locator('#context-intro')).toContainText('No water-level model forecast');
   await expect(page.locator('#forecast-water-level')).toHaveCount(0);
 });
@@ -707,11 +708,11 @@ test('nearby buoy charts show instrument identity, distance and converted measur
   await page.goto('/?station=9414290');
   await expect(page.locator('#buoy-46026 > summary')).toContainText('Offshore test buoy');
   await expect(page.locator('#buoy-46026 > summary')).toContainText('km away');
-  await page.locator('#buoy-46026 > summary').click();
-  await expect(page.locator('#buoy-46026-wave_height .highcharts-container')).toBeVisible();
+  await reveal(page, page.locator('#buoy-46026 > summary')); await page.locator('#buoy-46026 > summary').click();
+  await reveal(page, page.locator('#buoy-46026-wave_height .highcharts-container')); await expect(page.locator('#buoy-46026-wave_height .highcharts-container')).toBeVisible();
   const value = await page.evaluate(() => Highcharts.charts.find(c => c?.renderTo.id === 'buoy-46026-wave_height').series[0].getColumn('y')[0]);
   expect(value).toBeCloseTo(8.2021, 3);
-  await page.getByLabel('Units', {exact: true}).selectOption('metric');
+  await reveal(page, page.getByLabel('Units', {exact: true})); await page.getByLabel('Units', {exact: true}).selectOption('metric');
   await expect.poll(() => page.evaluate(() => Highcharts.charts.find(c => c?.renderTo.id === 'buoy-46026-wave_height')?.yAxis[0].axisTitle.textStr)).toBe('m');
 });
 
@@ -723,8 +724,8 @@ test('failed optional products leave the main report usable and can be retried i
   await expect(chart(page)).toHaveText('San Francisco, CA');
   await expect(page.locator('#context-intro')).toContainText('Forecast service unavailable');
   fail = false; const count = mainRequests;
-  await page.getByRole('button', {name: 'Retry additional products'}).click();
-  await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
+  await reveal(page, page.getByRole('button', {includeHidden:true, name: 'Retry additional products'})); await page.getByRole('button', {includeHidden:true, name: 'Retry additional products'}).click();
+  await reveal(page, page.locator('#forecast-water-level .highcharts-container')); await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
   expect(mainRequests).toBe(count);
 });
 
@@ -747,26 +748,26 @@ test('extra station sensor histories retain their own units and conditional grap
 
 
 test('overlap selection preserves purple products and the one-click discovery filter', async ({page}) => {
-  await page.goto('/'); await expect(page.getByRole('region',{name:'Map',exact:true})).toBeVisible();
+  await page.goto('/'); await reveal(page, page.getByRole('region',{name:'Map',exact:true})); await expect(page.getByRole('region',{name:'Map',exact:true})).toBeVisible();
   await page.evaluate(() => fixtureMap.setZoom(0));
-  await page.locator('#full_map').getByRole('button',{name:'San Francisco, CA 9414290',exact:true}).click();
+  await reveal(page, page.locator('#full_map').getByRole('button', {includeHidden:true, name:'San Francisco, CA 9414290',exact:true})); await page.locator('#full_map').getByRole('button', {includeHidden:true, name:'San Francisco, CA 9414290',exact:true}).click();
   const picker=page.getByRole('dialog',{name:'Choose an overlapping station'});
   await expect(picker.locator('.spread-station.extra-products')).toHaveCount(1);
-  const toggle=page.getByRole('button',{name:'Show matching stations only',exact:true});
-  await toggle.click(); await expect(picker).toHaveCount(0); await expect(toggle).toBeFocused();
+  const toggle=page.getByRole('button', {includeHidden:true, name:'Show matching stations only',exact:true});
+  await reveal(page, toggle); await toggle.click(); await expect(picker).toHaveCount(0); await expect(toggle).toBeFocused();
   await expect(toggle).toHaveAttribute('aria-pressed','true');
   await expect(page.locator('#result-count')).toHaveText('1 matching locations');
-  await expect(page.locator('#full_map img[src*="purple_marker"]')).toBeVisible();
-  await toggle.click(); await expect(page.locator('#result-count')).toHaveText('2 matching locations');
+  await reveal(page, page.locator('#full_map img[src*="purple_marker"]')); await expect(page.locator('#full_map img[src*="purple_marker"]')).toBeVisible();
+  await reveal(page, toggle); await toggle.click(); await expect(page.locator('#result-count')).toHaveText('2 matching locations');
 });
 
 test('new graph tables expose measurements and follow the selected time zone', async ({page}) => {
   await page.goto('/?station=9414290');
-  await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
-  await page.locator('#forecast-water-level-data > summary').click();
+  await reveal(page, page.locator('#forecast-water-level .highcharts-container')); await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
+  await reveal(page, page.locator('#forecast-water-level-data > summary')); await page.locator('#forecast-water-level-data > summary').click();
   await expect(page.locator('#forecast-water-level-data tbody')).toContainText('NOAA OFS model guidance');
   await expect(page.locator('#forecast-water-level-data tbody')).toContainText('ft, MLLW');
-  await page.getByLabel('Time', {exact: true}).selectOption('utc');
+  await reveal(page, page.getByLabel('Time', {exact: true})); await page.getByLabel('Time', {exact: true}).selectOption('utc');
   await expect(page.locator('#forecast-water-level-data caption')).toContainText('Times: UTC');
 });
 
@@ -780,7 +781,7 @@ test('an obsolete optional response cannot paint the newly selected station', as
     finished();
   });
   await page.goto('/?station=9414290'); await expect(chart(page)).toHaveText('San Francisco, CA');
-  await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
+  await reveal(page, station(page, '9099064')); await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
   await expect(page.locator('#context-intro')).toContainText('No water-level model forecast');
   release(); await done;
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -796,9 +797,9 @@ test('hourly forecasts form a line while a missing forecast hour remains a gap',
     await route.fulfill({response, json: payload});
   });
   await page.goto('/?station=9414290');
-  await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
+  await reveal(page, page.locator('#forecast-water-level .highcharts-container')); await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
   expect(await page.evaluate(() => Highcharts.charts.find(c => c?.renderTo.id === 'forecast-water-level').series[0].getColumn('y'))).toEqual([0, 1, null, 3]);
-  await page.locator('#forecast-water-level-data > summary').click();
+  await reveal(page, page.locator('#forecast-water-level-data > summary')); await page.locator('#forecast-water-level-data > summary').click();
   await expect(page.locator('#forecast-water-level-data tbody tr')).toHaveCount(4);
 });
 
@@ -811,20 +812,20 @@ test('optional rerenders preserve expanded table pages, calendar and keyboard fo
   });
   await page.goto('/?station=9414290');
   const details = page.locator('#one-minute-water-level-data');
-  await details.locator('summary').click();
-  const more = details.getByRole('button', {name: 'Show more chart data'});
-  await more.focus(); await page.keyboard.press('Enter');
+  await reveal(page, details.locator('summary')); await details.locator('summary').click();
+  const more = details.getByRole('button', {includeHidden:true, name: 'Show more chart data'});
+  await reveal(page, more); await more.focus(); await page.keyboard.press('Enter');
   await expect(more).toBeFocused();
   await expect(details.locator('tbody tr')).toHaveCount(1000);
   const calendar = page.locator('#planning-events details');
-  await calendar.locator('summary').click();
-  await page.getByLabel('Time', {exact: true}).selectOption('utc');
+  await reveal(page, calendar.locator('summary')); await calendar.locator('summary').click();
+  await reveal(page, page.getByLabel('Time', {exact: true})); await page.getByLabel('Time', {exact: true}).selectOption('utc');
   await expect(details.locator('tbody tr')).toHaveCount(1000);
   await expect(calendar).toHaveAttribute('open', '');
-  await page.locator('#buoy-46026 > summary').click();
+  await reveal(page, page.locator('#buoy-46026 > summary')); await page.locator('#buoy-46026 > summary').click();
   await expect(calendar).toHaveAttribute('open', '');
   await expect(details.locator('tbody tr')).toHaveCount(1000);
-  await more.focus(); await page.keyboard.press('Enter');
+  await reveal(page, more); await more.focus(); await page.keyboard.press('Enter');
   await expect(details.locator('tbody tr')).toHaveCount(1200);
   await expect(details.locator('summary')).toBeFocused();
 });
@@ -834,7 +835,7 @@ test('a failed units refresh clears stale flood context and product links', asyn
     route.fulfill({status: 503, json: {error: 'Context unavailable'}}) : route.continue());
   await page.goto('/?station=9414290');
   await expect(page.locator('#flood-outlook')).toContainText('12.5%');
-  await page.getByLabel('Units', {exact: true}).selectOption('metric');
+  await reveal(page, page.getByLabel('Units', {exact: true})); await page.getByLabel('Units', {exact: true}).selectOption('metric');
   await expect(page.locator('#context-intro')).toContainText('Context unavailable');
   await expect(page.locator('#flood-outlook')).toHaveCount(0);
   await expect(page.locator('#noaa-extra-products')).toHaveCount(0);
@@ -851,16 +852,16 @@ test('main measurement pagination restores final-page focus and resets on statio
   });
   await page.goto('/?station=9414290'); await expect(chart(page)).toHaveText('San Francisco, CA');
   const summary=page.locator('#observations-table > summary'), more=page.locator('#more-measurements');
-  await summary.focus(); await page.keyboard.press('Enter');
+  await reveal(page, summary); await summary.focus(); await page.keyboard.press('Enter');
   await expect(page.locator('#observations-table')).toHaveAttribute('open','');
   await expect(page.locator('#measurement-rows tr')).toHaveCount(1000);
-  await more.focus(); await page.keyboard.press('Enter');
+  await reveal(page, more); await more.focus(); await page.keyboard.press('Enter');
   await expect(page.locator('#measurement-rows tr')).toHaveCount(2000); await expect(more).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(page.locator('#measurement-rows tr')).toHaveCount(2200); await expect(summary).toBeFocused();
-  await station(page,'9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
+  await reveal(page, station(page,'9099064')); await station(page,'9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
   await expect(page.locator('#observations-table')).not.toHaveAttribute('open','');
-  await summary.focus(); await page.keyboard.press('Enter');
+  await reveal(page, summary); await summary.focus(); await page.keyboard.press('Enter');
   await expect(page.locator('#observations-table')).toHaveAttribute('open','');
   await expect(page.locator('#measurement-rows tr')).toHaveCount(1000);
 });
@@ -871,22 +872,22 @@ test('NOAA product disclosures and link focus survive unrelated optional renders
   await page.route('**/stations/9414290/nearby?*', async route => {await barrier; await route.continue();});
   await page.goto('/?station=9414290');
   const details=page.locator('#noaa-extra-products details');
-  await details.locator('summary').click();
-  const link=details.getByRole('link').first(); await link.focus();
-  release(); await expect(page.locator('#buoy-46026 > summary')).toBeVisible();
+  await reveal(page, details.locator('summary')); await details.locator('summary').click();
+  const link=details.getByRole('link').first(); await reveal(page, link); await link.focus();
+  release(); await reveal(page, page.locator('#buoy-46026 > summary')); await expect(page.locator('#buoy-46026 > summary')).toBeVisible();
   await expect(details).toHaveAttribute('open',''); await expect(link).toBeFocused();
-  await page.locator('#buoy-46026 > summary').click();
+  await reveal(page, page.locator('#buoy-46026 > summary')); await page.locator('#buoy-46026 > summary').click();
   await expect(details).toHaveAttribute('open','');
-  await link.focus(); await page.getByLabel('Time',{exact:true}).selectOption('utc');
+  await reveal(page, link); await link.focus(); await reveal(page, page.getByLabel('Time',{exact:true})); await page.getByLabel('Time',{exact:true}).selectOption('utc');
   await expect(details).toHaveAttribute('open','');
 });
 
 
 test('overlapping stations can be searched and closed with Escape without changing zoom', async ({page}) => {
-  await page.goto('/'); await expect(page.getByRole('region',{name:'Map',exact:true})).toBeVisible();
+  await page.goto('/'); await reveal(page, page.getByRole('region',{name:'Map',exact:true})); await expect(page.getByRole('region',{name:'Map',exact:true})).toBeVisible();
   await page.evaluate(() => fixtureMap.setZoom(0));
-  const pin=page.locator('#full_map').getByRole('button',{name:'San Francisco, CA 9414290',exact:true});
-  await pin.focus(); await page.keyboard.press('Enter');
+  const pin=page.locator('#full_map').getByRole('button', {includeHidden:true, name:'San Francisco, CA 9414290',exact:true});
+  await reveal(page, pin); await pin.focus(); await page.keyboard.press('Enter');
   const picker=page.getByRole('dialog',{name:'Choose an overlapping station'});
   await expect(picker.locator('.spread-station').first()).toBeFocused();
   await picker.getByRole('searchbox',{name:'Search overlapping stations'}).fill('9099064');
@@ -894,11 +895,11 @@ test('overlapping stations can be searched and closed with Escape without changi
   await expect(picker.locator('.spread-station')).toContainText('Duluth, MN');
   await page.keyboard.press('Escape'); await expect(picker).toHaveCount(0); await expect(pin).toBeFocused();
   await expect(page.locator('#full_map')).toHaveAttribute('data-zoom','0');
-  await pin.press('Enter'); await expect(picker).toBeVisible();
+  await pin.press('Enter'); await reveal(page, picker); await expect(picker).toBeVisible();
   await page.setViewportSize({width:700,height:500});
   await expect(picker).toHaveCount(0); await expect(pin).toBeFocused();
-  await pin.press('Enter'); await expect(picker).toBeVisible();
-  const search=page.getByLabel('Find a station',{exact:true}); await search.focus();
+  await pin.press('Enter'); await reveal(page, picker); await expect(picker).toBeVisible();
+  const search=page.getByLabel('Find a station',{exact:true}); await reveal(page, search); await search.focus();
   await expect(picker).toHaveCount(0); await expect(search).toBeFocused();
 });
 
@@ -910,11 +911,11 @@ test('dense overlapping stations have bounded radial pages and search reaches ev
     await route.fulfill({response,json:payload});
   });
   await page.goto('/'); await expect(page.locator('#result-count')).toContainText('25 matching');
-  await page.locator('#full_map').getByRole('button',{name:'Harbor 0, CA 9414290',exact:true}).click();
+  await reveal(page, page.locator('#full_map').getByRole('button', {includeHidden:true, name:'Harbor 0, CA 9414290',exact:true})); await page.locator('#full_map').getByRole('button', {includeHidden:true, name:'Harbor 0, CA 9414290',exact:true}).click();
   const picker=page.getByRole('dialog',{name:'Choose an overlapping station'});
   await expect(picker.locator('.spread-station')).toHaveCount(6);
   await expect(picker.getByRole('status')).toHaveText('1–6 of 25');
-  await picker.getByRole('button',{name:'Next',exact:true}).click();
+  await reveal(page, picker.getByRole('button', {includeHidden:true, name:'Next',exact:true})); await picker.getByRole('button', {includeHidden:true, name:'Next',exact:true}).click();
   await expect(picker.getByRole('status')).toHaveText('7–12 of 25');
   await expect(picker.locator('.spread-station').first()).toBeFocused();
   const boxes=await picker.locator('.spread-station').evaluateAll(nodes=>nodes.map(n=>{const b=n.getBoundingClientRect();return{x:b.x,y:b.y,w:b.width,h:b.height};}));
@@ -927,12 +928,12 @@ test('dense overlapping stations have bounded radial pages and search reaches ev
 
 test('an isolated individual pin opens its report and restores focus without zooming', async ({page}) => {
   await page.goto('/');
-  const pin=page.locator('#full_map').getByRole('button',{name:'San Francisco, CA 9414290',exact:true});
-  await pin.focus(); await page.keyboard.press('Enter');
+  const pin=page.locator('#full_map').getByRole('button', {includeHidden:true, name:'San Francisco, CA 9414290',exact:true});
+  await reveal(page, pin); await pin.focus(); await page.keyboard.press('Enter');
   await expect(chart(page)).toHaveText('San Francisco, CA');
   await expect(page.locator('.station-spread')).toHaveCount(0);
   await expect(page.locator('#full_map')).toHaveAttribute('data-zoom','3');
-  await page.getByRole('button',{name:'Close station details'}).click(); await expect(pin).toBeFocused();
+  await reveal(page, page.getByRole('button', {includeHidden:true, name:'Close station details'})); await page.getByRole('button', {includeHidden:true, name:'Close station details'}).click(); await expect(pin).toBeFocused();
 });
 
 test('overlapping pins across the date line remain selectable at the current zoom', async ({page}) => {
@@ -943,7 +944,7 @@ test('overlapping pins across the date line remain selectable at the current zoo
   });
   await page.goto('/'); await expect(page.locator('#result-count')).toContainText('2 matching');
   await page.evaluate(()=>{fixtureMap.setCenter({lat:37,lng:180});fixtureMap.setZoom(8);});
-  await page.locator('#full_map').getByRole('button',{name:'San Francisco, CA 9414290',exact:true}).click();
+  await reveal(page, page.locator('#full_map').getByRole('button', {includeHidden:true, name:'San Francisco, CA 9414290',exact:true})); await page.locator('#full_map').getByRole('button', {includeHidden:true, name:'San Francisco, CA 9414290',exact:true}).click();
   await expect(page.locator('.spread-station')).toHaveCount(2);
   await expect(page.locator('#full_map')).toHaveAttribute('data-zoom','8');
 });
@@ -951,14 +952,14 @@ test('overlapping pins across the date line remain selectable at the current zoo
 
 test('the radial picker stays within the viewport on tall maps and short screens', async ({page}) => {
   await page.setViewportSize({width:390,height:350});
-  await page.goto('/'); await expect(page.getByRole('region',{name:'Map',exact:true})).toBeVisible();
+  await page.goto('/'); await reveal(page, page.getByRole('region',{name:'Map',exact:true})); await expect(page.getByRole('region',{name:'Map',exact:true})).toBeVisible();
   await page.evaluate(()=>fixtureMap.setZoom(0));
-  const pin=page.locator('#full_map').getByRole('button',{name:'San Francisco, CA 9414290',exact:true});
-  await pin.focus();
+  const pin=page.locator('#full_map').getByRole('button', {includeHidden:true, name:'San Francisco, CA 9414290',exact:true});
+  await reveal(page, pin); await pin.focus();
   const before=await page.evaluate(()=>scrollY);
   await page.keyboard.press('Enter');
   const picker=page.getByRole('dialog',{name:'Choose an overlapping station'});
-  await expect(picker).toBeVisible();
+  await reveal(page, picker); await expect(picker).toBeVisible();
   const boxes=await picker.locator('input, button').evaluateAll(nodes=>nodes.filter(n=>!n.disabled).map(n=>{const b=n.getBoundingClientRect();return{top:b.top,bottom:b.bottom,left:b.left,right:b.right};}));
   for(const box of boxes){expect(box.top).toBeGreaterThanOrEqual(0);expect(box.bottom).toBeLessThanOrEqual(350);expect(box.left).toBeGreaterThanOrEqual(0);expect(box.right).toBeLessThanOrEqual(390);}
   expect(await page.evaluate(()=>scrollY)).toBe(before);
@@ -974,7 +975,7 @@ test('five overlapping station choices have separate touch targets on short scre
     await route.fulfill({response,json:payload});
   });
   await page.goto('/'); await expect(page.locator('#result-count')).toContainText('5 matching');
-  await page.locator('#full_map').getByRole('button',{name:'Harbor 0, CA 9414290',exact:true}).click();
+  await reveal(page, page.locator('#full_map').getByRole('button', {includeHidden:true, name:'Harbor 0, CA 9414290',exact:true})); await page.locator('#full_map').getByRole('button', {includeHidden:true, name:'Harbor 0, CA 9414290',exact:true}).click();
   const choices=page.locator('.spread-station'); await expect(choices).toHaveCount(5);
   const boxes=await choices.evaluateAll(nodes=>nodes.map(n=>{const b=n.getBoundingClientRect();return{x:b.x,y:b.y,w:b.width,h:b.height};}));
   for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++)expect(boxes[i].x+boxes[i].w<=boxes[j].x||boxes[j].x+boxes[j].w<=boxes[i].x||boxes[i].y+boxes[i].h<=boxes[j].y||boxes[j].y+boxes[j].h<=boxes[i].y).toBe(true);
@@ -982,12 +983,12 @@ test('five overlapping station choices have separate touch targets on short scre
 
 const openHistory = async (page, first='2020-01-01', last='2020-01-02') => {
   await page.goto('/?station=9414290'); await expect(chart(page)).toHaveText('San Francisco, CA');
-  await page.locator('#historical-explorer > summary').click();
+  await reveal(page, page.locator('#historical-explorer > summary')); await page.locator('#historical-explorer > summary').click();
   await page.getByLabel('Start date (UTC)',{exact:true}).fill(first);
   await page.getByLabel('End date (UTC)',{exact:true}).fill(last);
 };
 const loadHistory = async page => {
-  await page.getByRole('button',{name:'Load historical data',exact:true}).click();
+  await reveal(page, page.getByRole('button', {includeHidden:true, name:'Load historical data',exact:true})); await page.getByRole('button', {includeHidden:true, name:'Load historical data',exact:true}).click();
   await expect(page.locator('#history-status')).toContainText('Historical data loaded.');
 };
 
@@ -995,14 +996,14 @@ test('historical dates load fixed-day charts without reloading, moving the map o
   let navigations=0;page.on('request',r=>{if(r.isNavigationRequest()&&r.frame()===page.mainFrame())navigations++;});
   await openHistory(page);const center=await page.locator('#full_map').getAttribute('data-center');
   const original=await page.evaluate(()=>chart_graph_partial.index);
-  await page.getByRole('button',{name:'Load historical data',exact:true}).scrollIntoViewIfNeeded();
+  await reveal(page, page.getByRole('button', {includeHidden:true, name:'Load historical data',exact:true})); await page.getByRole('button', {includeHidden:true, name:'Load historical data',exact:true}).scrollIntoViewIfNeeded();
   const scroll=await page.evaluate(()=>scrollY);await loadHistory(page);
   await expect(page.locator('#history-caption')).toContainText('2020-01-01 to 2020-01-02 · six minute · MLLW');
   expect(await page.evaluate(()=>scrollY)).toBe(scroll);expect(navigations).toBe(1);
   expect(await page.evaluate(()=>chart_graph_partial.index)).toBe(original);
   await expect(page.locator('#full_map')).toHaveAttribute('data-center',center);
   expect(await page.locator('#history-chart').evaluate(el=>Highcharts.charts.find(c=>c?.renderTo===el).series[0].options.data.some(p=>p[1]===null))).toBe(true);
-  await page.locator('#history-table > summary').click();
+  await reveal(page, page.locator('#history-table > summary')); await page.locator('#history-table > summary').click();
   await expect(page.locator('#history-rows')).toContainText('Missing');
   await expect(page).toHaveURL(/begin_date=2020-01-01/);
 });
@@ -1016,8 +1017,8 @@ test('hourly historical CSV exports all loaded rows and safe metadata, including
     data.predictions=[];data.differences=[];await route.fulfill({json:data});
   });
   await loadHistory(page);await expect(page.locator('#history-caption')).toContainText('hourly');
-  await page.locator('#history-table > summary').click();await expect(page.locator('#history-rows tr')).toHaveCount(500);
-  const downloaded=page.waitForEvent('download');await page.getByRole('button',{name:'Export historical CSV',exact:true}).click();
+  await reveal(page, page.locator('#history-table > summary')); await page.locator('#history-table > summary').click();await expect(page.locator('#history-rows tr')).toHaveCount(500);
+  const downloaded=page.waitForEvent('download');await reveal(page, page.getByRole('button', {includeHidden:true, name:'Export historical CSV',exact:true})); await page.getByRole('button', {includeHidden:true, name:'Export historical CSV',exact:true}).click();
   const download=await downloaded;expect(download.suggestedFilename()).toContain('2020-01-01-2020-03-31-hourly.csv');
   const csv=await require('node:fs/promises').readFile(await download.path(),'utf8');
   expect(csv.split('\r\n').filter(Boolean)).toHaveLength(602);
@@ -1032,8 +1033,8 @@ test('monthly historical means retain month labels across time zones and omit in
   await expect(page.locator('#history-chart .highcharts-title')).toHaveText('Monthly mean water level (MSL)');
   await expect(page.locator('#history-status')).toContainText('no tide predictions or departure calculation');
   await expect(page.locator('#history-difference-chart .highcharts-container')).toHaveCount(0);
-  await page.locator('#history-table > summary').click();await expect(page.locator('#history-rows')).toContainText('2020-01');
-  await page.getByLabel('Time',{exact:true}).selectOption('station');
+  await reveal(page, page.locator('#history-table > summary')); await page.locator('#history-table > summary').click();await expect(page.locator('#history-rows')).toContainText('2020-01');
+  await reveal(page, page.getByLabel('Time',{exact:true})); await page.getByLabel('Time',{exact:true}).selectOption('station');
   await expect(page.locator('#history-rows')).toContainText('2020-01');
   await expect(page.locator('#history-caption')).toContainText('Calendar months (no time zone conversion)');
   const options=await page.locator('#history-chart').evaluate(el=>Highcharts.charts.find(c=>c?.renderTo===el).series[0].options.data);
@@ -1043,21 +1044,21 @@ test('monthly historical means retain month labels across time zones and omit in
 test('invalid historical ranges retain prior charts and prevent exporting mismatched dates', async ({page}) => {
   await openHistory(page);await loadHistory(page);
   await page.getByLabel('End date (UTC)',{exact:true}).fill('2020-03-31');
-  await expect(page.getByRole('button',{name:'Export historical CSV',exact:true})).toBeDisabled();
-  await page.getByLabel('Historical resolution',{exact:true}).selectOption('six_minute');
-  await page.getByRole('button',{name:'Load historical data',exact:true}).click();
+  await expect(page.getByRole('button', {includeHidden:true, name:'Export historical CSV',exact:true})).toBeDisabled();
+  await reveal(page, page.getByLabel('Historical resolution',{exact:true})); await page.getByLabel('Historical resolution',{exact:true}).selectOption('six_minute');
+  await reveal(page, page.getByRole('button', {includeHidden:true, name:'Load historical data',exact:true})); await page.getByRole('button', {includeHidden:true, name:'Load historical data',exact:true}).click();
   await expect(page.locator('#history-status')).toContainText('up to 30 days');
   await expect(page.locator('#history-status')).toContainText('Previous historical charts remain');
   await expect(page.locator('#history-caption')).toContainText('2020-01-01 to 2020-01-02');
-  await expect(page.getByRole('button',{name:'Export historical CSV',exact:true})).toBeDisabled();
+  await expect(page.getByRole('button', {includeHidden:true, name:'Export historical CSV',exact:true})).toBeDisabled();
 });
 
 test('historical requests are cancelled when another station is selected', async ({page}) => {
   let release;const barrier=new Promise(resolve=>{release=resolve;});
   await openHistory(page);
   await page.route('**/stations/9414290/history?*',async route=>{await barrier;await route.continue().catch(()=>{});});
-  await page.getByRole('button',{name:'Load historical data',exact:true}).click();
-  await station(page,'9099064').click();await expect(chart(page)).toHaveText('Duluth, MN');release();
+  await reveal(page, page.getByRole('button', {includeHidden:true, name:'Load historical data',exact:true})); await page.getByRole('button', {includeHidden:true, name:'Load historical data',exact:true}).click();
+  await reveal(page, station(page,'9099064')); await station(page,'9099064').click();await expect(chart(page)).toHaveText('Duluth, MN');release();
   await expect(page.locator('#history-caption')).not.toContainText('San Francisco');
   await expect(page.locator('#history-results')).toHaveAttribute('aria-busy','false');
 });
@@ -1066,24 +1067,24 @@ test('shared historical dates reload and unit changes refresh only the historica
   let requests=0;page.on('request',r=>{if(r.url().includes('/history?'))requests++;});
   await page.goto('/?station=9414290&begin_date=2020-01-01&end_date=2020-03-31&resolution=auto');
   await expect(page.locator('#history-status')).toContainText('Historical data loaded.');expect(requests).toBe(1);
-  await page.getByLabel('Time',{exact:true}).selectOption('utc');expect(requests).toBe(1);
-  await page.getByLabel('Units',{exact:true}).selectOption('metric');
+  await reveal(page, page.getByLabel('Time',{exact:true})); await page.getByLabel('Time',{exact:true}).selectOption('utc');expect(requests).toBe(1);
+  await reveal(page, page.getByLabel('Units',{exact:true})); await page.getByLabel('Units',{exact:true}).selectOption('metric');
   await expect(page.locator('#history-caption')).toContainText('MLLW · m ·');expect(requests).toBe(2);
-  await page.getByRole('button',{name:'Refresh now',exact:true}).click();
+  await reveal(page, page.getByRole('button', {includeHidden:true, name:'Refresh now',exact:true})); await page.getByRole('button', {includeHidden:true, name:'Refresh now',exact:true}).click();
   await expect(page.locator('#station-charts')).not.toHaveAttribute('aria-busy','true');expect(requests).toBe(2);
 });
 
 test('empty and unavailable historical data give clear feedback without breaking current conditions', async ({page}) => {
   await openHistory(page);
   await page.route('**/history?*',route=>route.fulfill({status:503,json:{error:'NOAA is temporarily unavailable.'}}));
-  await page.getByRole('button',{name:'Load historical data',exact:true}).click();
+  await reveal(page, page.getByRole('button', {includeHidden:true, name:'Load historical data',exact:true})); await page.getByRole('button', {includeHidden:true, name:'Load historical data',exact:true}).click();
   await expect(page.locator('#history-status')).toContainText('temporarily unavailable');
   await expect(chart(page)).toHaveText('San Francisco, CA');
-  await expect(page.getByRole('button',{name:'Export historical CSV',exact:true})).toBeDisabled();
+  await expect(page.getByRole('button', {includeHidden:true, name:'Export historical CSV',exact:true})).toBeDisabled();
   await page.unroute('**/history?*');await page.route('**/history?*',async route=>{
     const response=await route.fetch(),data=await response.json();data.observations=[];data.predictions=[];data.differences=[];await route.fulfill({json:data});
   });
-  await page.getByRole('button',{name:'Load historical data',exact:true}).click();
+  await reveal(page, page.getByRole('button', {includeHidden:true, name:'Load historical data',exact:true})); await page.getByRole('button', {includeHidden:true, name:'Load historical data',exact:true}).click();
   await expect(page.locator('#history-status')).toContainText('No historical values');
   await expect(page.locator('#history-chart .highcharts-container')).toHaveCount(0);
 });
@@ -1098,9 +1099,9 @@ test('pending historical requests restart in new units and reject the older unit
   });
   await page.goto('/?station=9414290&begin_date=2020-01-01&end_date=2020-03-31');
   await expect.poll(()=>english).toBe(1);
-  await page.getByLabel('Units',{exact:true}).selectOption('metric');await expect.poll(()=>metric).toBe(1);
+  await reveal(page, page.getByLabel('Units',{exact:true})); await page.getByLabel('Units',{exact:true}).selectOption('metric');await expect.poll(()=>metric).toBe(1);
   await expect(page.locator('#history-caption')).toContainText('MLLW · m ·');release();
-  await expect(page.getByRole('button',{name:'Export historical CSV',exact:true})).toBeEnabled();
+  await expect(page.getByRole('button', {includeHidden:true, name:'Export historical CSV',exact:true})).toBeEnabled();
   await expect(page.locator('#history-caption')).not.toContainText('MLLW · ft ·');
 });
 
@@ -1109,7 +1110,7 @@ test('historical browsing and CSV remain available when current NOAA conditions 
   await page.goto('/?station=9414290&begin_date=2020-01-01&end_date=2020-03-31');
   await expect(page.locator('#report-status')).toContainText('Current conditions unavailable.');
   await expect(page.locator('#history-status')).toContainText('Historical data loaded.');
-  await expect(page.getByRole('button',{name:'Export historical CSV',exact:true})).toBeEnabled();
-  await page.getByLabel('Units',{exact:true}).selectOption('metric');
+  await expect(page.getByRole('button', {includeHidden:true, name:'Export historical CSV',exact:true})).toBeEnabled();
+  await reveal(page, page.getByLabel('Units',{exact:true})); await page.getByLabel('Units',{exact:true}).selectOption('metric');
   await expect(page.locator('#history-caption')).toContainText('MLLW · m ·');
 });
