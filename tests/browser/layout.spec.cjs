@@ -54,3 +54,21 @@ test('panel scrolling and chart ranges survive refresh while tabs remember their
   await page.getByRole('tab',{name:'Now',exact:true}).click();expect(await body.evaluate(n=>n.scrollTop)).toBe(0);
   await page.getByRole('tab',{name:'Tides',exact:true}).click();expect(await body.evaluate(n=>n.scrollTop)).toBe(scroll);
 });
+test('partial refresh warnings remain visible with fresh readings in every report view',async({page})=>{
+  await page.clock.install();let partial=false;
+  await page.route('**/stations/9414290/report?*',async route=>{
+    const response=await route.fetch(),payload=await response.json();
+    if(partial){
+      payload.failed_products=['predictions','weather_series.wind'];payload.predictions=[];payload.weather_series.wind=[];delete payload.weather.wind;
+      payload.warnings=[{product:'predictions',message:'Temporary upstream failure'},{product:'wind',message:'Temporary upstream failure'}];
+    }
+    await route.fulfill({response,json:payload});
+  });
+  await page.goto('/?station=9414290&tab=weather');await expect(page.locator('#weather-wind')).toBeVisible();
+  partial=true;await page.clock.fastForward(6*60000);
+  const warnings=page.locator('#report-warnings');await expect(warnings).toContainText('Previous data for those products remain displayed');
+  await expect(page.locator('#report-status')).toHaveText('Station data loaded.');
+  for(const name of ['Weather','Tides','History','Now']){
+    await page.getByRole('tab',{name,exact:true}).click();await expect(warnings).toBeVisible();await expect(warnings).toContainText('predictions: Temporary upstream failure');
+  }
+});

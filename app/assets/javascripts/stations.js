@@ -219,7 +219,7 @@
     pending?.abort(); const token = ++generation; pending = new AbortController();
     const updating = Boolean(report);
     if (!updating) {
-      clearChart(); byId('station-summary').replaceChildren(); byId('measurement-rows').replaceChildren();
+      clearChart(); byId('station-summary').replaceChildren(); byId('report-warnings').replaceChildren(); byId('measurement-rows').replaceChildren();
       byId('observations-table').hidden = true;
     }
     byId('retry-report').hidden = true;
@@ -356,12 +356,12 @@
     updateStationZone();
     const detailsOpen = byId('station-details')?.open;
     const restoreDetailsFocus = document.activeElement === byId('station-details')?.querySelector('summary');
-    updateUrl(); const summary = byId('station-summary'); summary.replaceChildren();
+    updateUrl(); const summary = byId('station-summary'), warnings = byId('report-warnings'); summary.replaceChildren(); warnings.replaceChildren();
     const latest = report.latest;
     text('report-status', report.stale ? 'No recent observation. Check timestamps before using these data.' : 'Station data loaded.');
-    if (report.retained_products?.length) summary.append(element('p', 'Some products could not be refreshed. Previous data for those products remain displayed; check their timestamps.', 'muted report-warning'));
+    if (report.retained_products?.length) warnings.append(element('p', 'Some products could not be refreshed. Previous data for those products remain displayed; check their timestamps.', 'muted report-warning'));
     if (report.warnings.length) {
-      summary.append(element('p', report.warnings.map(w => `${w.product.replaceAll('_', ' ')}: ${w.message}`).join(' '), 'muted report-warning'));
+      warnings.append(element('p', report.warnings.map(w => `${w.product.replaceAll('_', ' ')}: ${w.message}`).join(' '), 'muted report-warning'));
       byId('retry-report').hidden = false;
     }
     const reading = element('p', '', 'latest-reading');
@@ -372,7 +372,7 @@
     if (latest) {
       const age = element('p', ''); age.id = 'reading-age'; summary.append(age);
       const freshness = element('p', '', 'report-warning'); freshness.id = 'reading-freshness';
-      freshness.setAttribute('role', 'status'); summary.append(freshness); updateFreshness();
+      freshness.setAttribute('role', 'status'); warnings.append(freshness); updateFreshness();
     }
     if (report.datum) summary.append(element('p', `Height reference: ${report.datum} · Times: ${zone()}`, 'muted'));
     if (report.datum === 'IGLD') {

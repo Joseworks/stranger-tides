@@ -359,8 +359,12 @@ test('partial automatic failures retain failed streams while accepting fresh suc
   const before=await page.evaluate(()=>({water:chart_graph_partial.series[0].getColumn('y'),latest:document.querySelector('.latest-reading').textContent,
     wind:Highcharts.charts.find(c=>c?.renderTo.id==='weather-wind').index,
     temp:Highcharts.charts.find(c=>c?.renderTo.id==='weather-air_temperature').series[0].getColumn('y')}));
+  await page.getByRole('tab',{name:'Weather',exact:true}).click();
   partial=true; await page.clock.fastForward(6*60000);
-  await expect(page.locator('#station-summary')).toContainText('Previous data for those products remain displayed');
+  await expect(page.locator('#report-warnings')).toContainText('Previous data for those products remain displayed');
+  await expect(page.locator('#report-warnings')).toBeVisible();
+  await page.getByRole('tab',{name:'Tides',exact:true}).click();
+  await expect(page.locator('#report-warnings')).toBeVisible();
   expect(await page.evaluate(()=>chart_graph_partial.series[0].getColumn('y'))).toEqual(before.water);
   await expect(page.locator('.latest-reading')).toHaveText(before.latest);
   expect(await page.evaluate(()=>Highcharts.charts.find(c=>c?.renderTo.id==='weather-wind').index)).toBe(before.wind);
@@ -377,7 +381,7 @@ test('a legitimate empty product response clears its previous plot during automa
   await page.goto('/?station=9414290');await reveal(page, page.locator('#weather-air_temperature')); await expect(page.locator('#weather-air_temperature')).toBeVisible();
   empty=true;await page.clock.fastForward(6*60000);await expect(page.locator('#weather-air_temperature')).toHaveCount(0);
   await reveal(page, page.locator('#weather-wind')); await expect(page.locator('#weather-wind')).toBeVisible();
-  await expect(page.locator('#station-summary')).not.toContainText('Previous data for those products');
+  await expect(page.locator('#report-warnings')).not.toContainText('Previous data for those products');
 });
 
 test('automatic optional-product failures keep the previous plots and offer retry', async ({page}) => {
@@ -529,7 +533,7 @@ for (const state of ['pending', 'completed', 'newer station selection', 'pending
     await page.goto('/'); await reveal(page, station(page, '9414290')); await expect(station(page, '9414290')).toBeVisible();
     await reveal(page, page.getByRole('button', {includeHidden:true, name: 'Find stations near me', exact: true})); await page.getByRole('button', {includeHidden:true, name: 'Find stations near me', exact: true}).click();
     if (completed) await page.evaluate(() => window.finishLocation({coords: {latitude: 46.8, longitude: -92.1}}));
-    if (newerSelection) await reveal(page, station(page, '9414290')); await station(page, '9414290').click();
+    if (newerSelection) {await reveal(page, station(page, '9414290')); await station(page, '9414290').click();}
     release();
     const control = page.getByRole('button', {includeHidden:true, name: 'Center on your location', exact: true});
     await reveal(page, control); await expect(control).toBeVisible();
@@ -567,6 +571,7 @@ test('location requests identify this origin and wait for the existing browser p
   await expect(page.locator('#location-origin')).toHaveText('127.0.0.1:3467');
   await expect(page.getByRole('button', {includeHidden:true,  name: 'Find stations near me' })).toHaveAttribute('aria-describedby', 'location-details');
   expect(await page.evaluate(() => window.locationRequests)).toEqual([]);
+  await page.getByRole('button', {name:'Close station list',exact:true}).click();
   await reveal(page, page.getByRole('button', {includeHidden:true,  name: 'Center on your location', exact: true })); await page.getByRole('button', {includeHidden:true,  name: 'Center on your location', exact: true }).click();
   await expect(page.locator('#map-location-status')).toContainText('Requesting location');
   await expect(page.locator('#map-locate')).toBeDisabled();
@@ -753,6 +758,7 @@ test('overlap selection preserves purple products and the one-click discovery fi
   await reveal(page, page.locator('#full_map').getByRole('button', {includeHidden:true, name:'San Francisco, CA 9414290',exact:true})); await page.locator('#full_map').getByRole('button', {includeHidden:true, name:'San Francisco, CA 9414290',exact:true}).click();
   const picker=page.getByRole('dialog',{name:'Choose an overlapping station'});
   await expect(picker.locator('.spread-station.extra-products')).toHaveCount(1);
+  await picker.getByRole('button',{name:'Close overlapping stations',exact:true}).click();
   const toggle=page.getByRole('button', {includeHidden:true, name:'Show matching stations only',exact:true});
   await reveal(page, toggle); await toggle.click(); await expect(picker).toHaveCount(0); await expect(toggle).toBeFocused();
   await expect(toggle).toHaveAttribute('aria-pressed','true');
@@ -873,8 +879,8 @@ test('NOAA product disclosures and link focus survive unrelated optional renders
   await page.goto('/?station=9414290');
   const details=page.locator('#noaa-extra-products details');
   await reveal(page, details.locator('summary')); await details.locator('summary').click();
-  const link=details.getByRole('link').first(); await reveal(page, link); await link.focus();
-  release(); await reveal(page, page.locator('#buoy-46026 > summary')); await expect(page.locator('#buoy-46026 > summary')).toBeVisible();
+  const link=details.getByRole('link',{includeHidden:true}).first(); await reveal(page, link); await link.focus();
+  release(); await expect(page.locator('#buoy-46026 > summary')).toBeAttached();
   await expect(details).toHaveAttribute('open',''); await expect(link).toBeFocused();
   await reveal(page, page.locator('#buoy-46026 > summary')); await page.locator('#buoy-46026 > summary').click();
   await expect(details).toHaveAttribute('open','');
@@ -983,7 +989,7 @@ test('five overlapping station choices have separate touch targets on short scre
 
 const openHistory = async (page, first='2020-01-01', last='2020-01-02') => {
   await page.goto('/?station=9414290'); await expect(chart(page)).toHaveText('San Francisco, CA');
-  await reveal(page, page.locator('#historical-explorer > summary')); await page.locator('#historical-explorer > summary').click();
+  await page.getByRole('tab',{name:'History',exact:true}).click();
   await page.getByLabel('Start date (UTC)',{exact:true}).fill(first);
   await page.getByLabel('End date (UTC)',{exact:true}).fill(last);
 };
