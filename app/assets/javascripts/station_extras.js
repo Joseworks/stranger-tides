@@ -55,7 +55,7 @@
       credits: { enabled: false }, series: series.map(s => ({ type: 'line', connectNulls: false, ...s }))
     };
     const existing = charts.get(id);
-    if (existing) existing.update(options, true, true, false);
+    if (existing) window.StationCharts.update(existing, options, state.preserveView);
     else {
       const wrapper = block(parent, `${id}-block`);
       const el = block(wrapper, id); el.className = 'extra-chart'; el.setAttribute('aria-label', title);
@@ -177,16 +177,17 @@
   function render() {
     if (!state) return;
     const active = new Set(); planning(active); context(active); buoys(active);
-    if ([...results.values()].some(value => value.error || value.warnings?.length)) {
+    if ([...results.values()].some(value => value.error || value.refresh_error || value.warnings?.length)) {
       const button = node('button', 'Retry additional products'); button.type = 'button';
       button.addEventListener('click', () => { requests.forEach(r => r.controller.abort()); requests.clear(); results.clear(); window.StationExtras.update(state); });
+      if ([...results.values()].some(value => value.refresh_error)) block(byId('station-context'), 'context-intro').append(node('p', 'Some additional products could not be refreshed. Previous data remain displayed; check their timestamps.', 'muted'));
       block(byId('station-context'), 'context-intro').append(button);
     }
     charts.forEach((chart, id) => {if (!active.has(id)) {chart.destroy(); byId(`${id}-block`)?.remove(); charts.delete(id);}});
   }
   function load(kind, key, url) {
     const old = requests.get(kind); if (old?.key === key) return;
-    old?.controller.abort(); results.delete(kind);
+    old?.controller.abort(); if (!state.preserveView) results.delete(kind);
     const controller = new AbortController(), token = epoch;
     requests.set(kind, {key, controller});
     fetch(url, {signal: controller.signal}).then(async response => {
@@ -195,7 +196,7 @@
     }).then(payload => {
       if (token === epoch && requests.get(kind)?.key === key) {results.set(kind, payload); render();}
     }).catch(error => {
-      if (error.name !== 'AbortError' && token === epoch && requests.get(kind)?.key === key) {results.set(kind, {error: error.message}); render();}
+      if (error.name !== 'AbortError' && token === epoch && requests.get(kind)?.key === key) {results.set(kind, results.has(kind) ? {...results.get(kind), refresh_error: error.message} : {error: error.message}); render();}
     });
   }
   window.StationExtras = {
@@ -207,9 +208,9 @@
     },
     update(value) {
       state = value;
-      const id = encodeURIComponent(state.selected.station_id), units = state.report.units, hours = state.report.hours;
-      load('context', `${id}:${units}`, `/stations/${id}/context?${new URLSearchParams({units})}`);
-      load('nearby', `${id}:${units}:${hours}`, `/stations/${id}/nearby?${new URLSearchParams({units, hours})}`);
+      const id = encodeURIComponent(state.selected.station_id), units = state.report.units, hours = state.report.hours, revision = state.revision;
+      load('context', `${id}:${units}:${revision}`, `/stations/${id}/context?${new URLSearchParams({units})}`);
+      load('nearby', `${id}:${units}:${hours}:${revision}`, `/stations/${id}/nearby?${new URLSearchParams({units, hours})}`);
       render();
     }
   };

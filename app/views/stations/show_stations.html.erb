@@ -41,6 +41,9 @@
       <label>Units <select id="height-units" aria-label="Units"><option value="english">US units</option><option value="metric">Metric</option></select></label>
       <label>Time <select id="display-zone" aria-label="Time"><option value="local">Your local time</option><option value="station" disabled>Station local time</option><option value="utc">UTC</option></select></label>
     </div>
+    <label class="live-updates"><input id="live-updates" type="checkbox" checked aria-describedby="live-update-status"> Live updates</label>
+    <button id="refresh-report" type="button">Refresh now</button>
+    <p id="live-update-status" class="muted">Live updates every 6 minutes while this tab is visible.</p>
     <p id="report-status" role="status" aria-live="polite"></p>
     <button id="retry-report" type="button" hidden>Retry station data</button>
     <div id="station-summary"></div>

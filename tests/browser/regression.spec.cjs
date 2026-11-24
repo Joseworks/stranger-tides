@@ -274,6 +274,94 @@ test('history, units, and time update existing charts without navigation or scro
   expect(navigations).toBe(initialNavigations); expect(reports).toBe(previousReports);
 });
 
+test('live refresh preserves chart zoom, hidden series, table state and page position', async ({page}) => {
+  await page.clock.install();
+  let reports = 0, contexts = 0, nearby = 0;
+  page.on('request', request => {
+    if (request.url().includes('/report?')) reports++;
+    if (request.url().includes('/context?')) contexts++;
+    if (request.url().includes('/nearby?')) nearby++;
+  });
+  await page.goto('/?station=9414290');
+  await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
+  await expect(page.locator('#weather-charts .highcharts-container')).toHaveCount(4);
+  await page.locator('#observations-table').evaluate(node => {node.open = true;});
+  await page.getByLabel('History', {exact:true}).scrollIntoViewIfNeeded();
+  const before = await page.evaluate(() => {
+    const charts = Highcharts.charts.filter(Boolean);
+    charts.forEach(chart => {
+      const axis = chart.xAxis[0], {dataMin, dataMax} = axis.getExtremes();
+      if (dataMax > dataMin) {axis.update({minRange: 0}, false); axis.setExtremes(dataMin + 60000, dataMax - 60000, true, false);}
+    });
+    chart_graph_partial.yAxis[0].setExtremes(.1, .2, true, false);
+    chart_graph_partial.series[1].setVisible(false);
+    Highcharts.charts.find(c=>c?.renderTo.id==='weather-wind').series.find(s=>s.options.id==='gust').setVisible(false);
+    return {scroll:scrollY, charts:charts.map(c=>({id:c.renderTo.id,index:c.index,min:c.xAxis[0].userMin,max:c.xAxis[0].userMax,yMin:c.yAxis[0].userMin,yMax:c.yAxis[0].userMax,
+      visible:c.series.map(s=>s.visible)}))};
+  });
+  await page.clock.fastForward(6 * 60000);
+  await expect.poll(()=>reports).toBe(2); await expect.poll(()=>contexts).toBe(2); await expect.poll(()=>nearby).toBe(2);
+  await expect(page.locator('#station-charts')).not.toHaveAttribute('aria-busy','true');
+  await expect(page.locator('#station-context')).not.toContainText('Loading optional');
+  const after = await page.evaluate(()=>({scroll:scrollY,charts:Highcharts.charts.filter(Boolean).map(c=>({id:c.renderTo.id,index:c.index,
+    min:c.xAxis[0].userMin,max:c.xAxis[0].userMax,yMin:c.yAxis[0].userMin,yMax:c.yAxis[0].userMax,visible:c.series.map(s=>s.visible)}))}));
+  expect(after).toEqual(before);
+  await expect(page.locator('#observations-table')).toHaveJSProperty('open',true);
+  await expect(page.getByLabel('Live updates', {exact:true})).toBeChecked();
+});
+
+test('live updates pause, skip hidden/offline tabs and catch up once on return', async ({page,context}) => {
+  await page.clock.install();
+  await page.addInitScript(()=>Object.defineProperty(document,'hidden',{get:()=>Boolean(window.testHidden),configurable:true}));
+  let reports=0; page.on('request',r=>{if(r.url().includes('/report?')) reports++;});
+  await page.goto('/?station=9099064'); await expect(chart(page)).toHaveText('Duluth, MN');
+  await page.getByLabel('Live updates',{exact:true}).uncheck(); await page.clock.fastForward(6*60000);
+  expect(reports).toBe(1); await expect(page.locator('#live-update-status')).toContainText('paused');
+  await page.evaluate(()=>{window.testHidden=true;document.dispatchEvent(new Event('visibilitychange'));});
+  await page.getByLabel('Live updates',{exact:true}).check(); await page.clock.fastForward(6*60000); expect(reports).toBe(1);
+  await context.setOffline(true);
+  await page.evaluate(()=>{window.testHidden=false;document.dispatchEvent(new Event('visibilitychange'));});
+  await page.clock.fastForward(6*60000); expect(reports).toBe(1);
+  await context.setOffline(false); await expect.poll(()=>reports).toBe(2);
+  await expect(page.locator('#station-charts')).not.toHaveAttribute('aria-busy','true');
+  await page.evaluate(()=>{document.dispatchEvent(new Event('visibilitychange'));window.dispatchEvent(new Event('online'));});
+  expect(reports).toBe(2);
+  await page.getByRole('button',{name:'Close station details'}).click(); await page.clock.fastForward(12*60000); expect(reports).toBe(2);
+});
+
+test('a failed automatic refresh retains charts and retries at the normal cadence', async ({page}) => {
+  await page.clock.install(); let reports=0,fail=false;
+  await page.route('**/stations/9414290/report?*',route=>{reports++;return fail?route.fulfill({status:503,json:{error:'NOAA unavailable.'}}):route.continue();});
+  await page.goto('/?station=9414290'); await expect(chart(page)).toHaveText('San Francisco, CA');
+  const index=await page.evaluate(()=>chart_graph_partial.index); fail=true;
+  await page.clock.fastForward(6*60000); await expect(page.locator('#report-status')).toContainText('Previous charts are still displayed');
+  expect(await page.evaluate(()=>chart_graph_partial.index)).toBe(index); expect(reports).toBe(2);
+  await page.clock.fastForward(60000); expect(reports).toBe(2);
+  fail=false; await page.clock.fastForward(5*60000); await expect.poll(()=>reports).toBe(3);
+  await expect(page.locator('#report-status')).toHaveText('Station data loaded.');
+});
+
+test('automatic optional-product failures keep the previous plots and offer retry', async ({page}) => {
+  await page.clock.install(); let fail=false;
+  await page.route('**/stations/9414290/context?*',route=>fail?route.fulfill({status:503,json:{error:'Forecast temporarily unavailable.'}}):route.continue());
+  await page.goto('/?station=9414290'); await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
+  const index=await page.evaluate(()=>Highcharts.charts.find(c=>c?.renderTo.id==='forecast-water-level').index); fail=true;
+  await page.clock.fastForward(6*60000);
+  await expect(page.locator('#station-context')).toContainText('Previous data remain displayed');
+  expect(await page.evaluate(()=>Highcharts.charts.find(c=>c?.renderTo.id==='forecast-water-level').index)).toBe(index);
+  await expect(page.getByRole('button',{name:'Retry additional products',exact:true})).toBeVisible();
+});
+
+test('a delayed automatic response cannot replace a newer selected station', async ({page}) => {
+  await page.clock.install(); let count=0,release; const barrier=new Promise(resolve=>{release=resolve;});
+  await page.route('**/stations/9414290/report?*',async route=>{count++;if(count===2) await barrier;await route.continue().catch(()=>{});});
+  await page.goto('/?station=9414290'); await expect(chart(page)).toHaveText('San Francisco, CA');
+  await page.clock.fastForward(6*60000); await expect.poll(()=>count).toBe(2);
+  await station(page,'9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
+  release(); await expect(page.locator('#station-heading')).toHaveText('Duluth, MN 9099064');
+  await expect(page).toHaveURL(/station=9099064/);
+});
+
 test('station local time updates all charts and shared links without fetching or scrolling', async ({ page }) => {
   let reports = 0;
   page.on('request', request => { if (request.url().includes('/report?')) reports++; });

@@ -6,7 +6,8 @@
   const weatherCharts = new Map();
   let locationPosition, locationIntent = 0;
   let lastLayer = 'waterlevels';
-  let measurementLimit = 1000;
+  let measurementLimit = 1000, lastFetchAttempt = 0;
+  const REFRESH_INTERVAL = 6 * 60000;
   const extras = station => (station.additional_products || []).length > 0;
   const productUnits = product => window.StationExtras.products(report.units === 'metric')[product]?.[1] || '';
   const byId = id => document.getElementById(id);
@@ -151,7 +152,8 @@
     if (bounds.top >= 0 && bounds.bottom <= window.innerHeight) heading.focus({ preventScroll: true });
     updateUrl(); loadReport();
   }
-  async function loadReport() {
+  async function loadReport({automatic = false} = {}) {
+    lastFetchAttempt = Date.now();
     pending?.abort(); const token = ++generation; pending = new AbortController();
     const updating = Boolean(report);
     if (!updating) {
@@ -168,14 +170,16 @@
       const payload = await response.json();
       if (token !== generation) return;
       if (!response.ok) throw new Error(payload.error || 'Station data is unavailable.');
-      report = payload; renderReport();
+      report = payload; renderReport({automatic});
     } catch (error) {
       if (error.name === 'AbortError' || token !== generation) return;
       text('report-status', `${error.message || 'Station data is unavailable. Please try again.'}${updating ? ' Previous charts are still displayed.' : ''}`);
       byId('retry-report').hidden = false;
-    } finally { if (token === generation) byId('station-charts').removeAttribute('aria-busy'); }
+    } finally {
+      if (token === generation) {pending = null; byId('station-charts').removeAttribute('aria-busy'); updateLiveStatus();}
+    }
   }
-  function renderWeatherCharts() {
+  function renderWeatherCharts(automatic = false) {
     const metric = report.units === 'metric';
     const products = window.StationExtras.products(metric);
     const available = Object.entries(report.weather_series || {}).filter(([product, values]) =>
@@ -195,8 +199,8 @@
         if (gusts.some(point => point[1] !== null)) series.push({ id: 'gust', name: 'Wind gust', data: gusts, connectNulls: false });
         const directions = observedPoints(values, 'direction').filter(point => point[1] !== null);
         if (directions.length) {
-          axes.push({ id: 'direction', title: { text: 'Direction (°)' }, opposite: true, min: 0, max: 360, tickInterval: 90 });
-          series.push({ id: 'direction', name: 'Wind direction', type: 'scatter', yAxis: 'direction',
+          axes.push({ id: 'direction-axis', title: { text: 'Direction (°)' }, opposite: true, min: 0, max: 360, tickInterval: 90 });
+          series.push({ id: 'direction', name: 'Wind direction', type: 'scatter', yAxis: 'direction-axis',
             data: directions, tooltip: { valueSuffix: '°' }, marker: { radius: 2 } });
         }
       }
@@ -208,7 +212,7 @@
         credits: { enabled: false }, series
       };
       const existing = weatherCharts.get(product);
-      if (existing) existing.update(options, true, true, false);
+      if (existing) window.StationCharts.update(existing, options, automatic);
       else {
         const node = document.createElement('div'); node.id = `weather-${product}`;
         node.className = 'weather-chart'; node.dataset.product = product; node.setAttribute('aria-label', `${title} history`);
@@ -228,6 +232,17 @@
       byId('retry-report').hidden = false;
     }
     byId('next-events').replaceChildren(...nodes);
+  }
+  function updateLiveStatus() {
+    const enabled = byId('live-updates').checked;
+    text('live-update-status', !enabled ? 'Live updates paused.' : navigator.onLine === false ?
+      'Live updates paused while offline.' : document.hidden ? 'Live updates paused while this tab is hidden.' :
+      `Live updates every 6 minutes.${report?.fetched_at ? ` Data retrieved ${date(report.fetched_at)}.` : ''}`);
+  }
+  function maybeRefresh({resume = false} = {}) {
+    updateLiveStatus();
+    if (!selected || pending || !byId('live-updates').checked || document.hidden || navigator.onLine === false) return;
+    if (Date.now() - lastFetchAttempt >= (resume ? 60000 : REFRESH_INTERVAL)) loadReport({automatic: true});
   }
   function updateFreshness() {
     updateNextEvents();
@@ -274,7 +289,7 @@
     option.textContent = report?.station_timezone ? `Station local time (${report.station_timezone})` :
       report ? 'Station local time unavailable (UTC)' : 'Station local time';
   }
-  function renderReport() {
+  function renderReport({automatic = false} = {}) {
     updateStationZone();
     updateUrl(); const summary = byId('station-summary'); summary.replaceChildren();
     const latest = report.latest;
@@ -317,14 +332,14 @@
         tooltip: { xDateFormat: '%e %b %Y %H:%M', valueSuffix: ` ${unit()}` },
         credits: { enabled: false }, series
       };
-      if (chart) chart.update(options, true, true, false);
+      if (chart) window.StationCharts.update(chart, options, automatic);
       else chart = Highcharts.chart('graph-partial', options);
       window.chart_graph_partial = chart;
     } else if (chart) {
       chart.destroy(); chart = null; window.chart_graph_partial = null;
     }
-    renderWeatherCharts();
-    window.StationExtras.update({ selected, report, zone, date, unit });
+    renderWeatherCharts(automatic);
+    window.StationExtras.update({ selected, report, zone, date, unit, revision: generation, preserveView: automatic });
     byId('observations-table').hidden = ![report.observations, report.predictions, ...Object.values(report.weather_series || {})].some(values => values.length);
     renderMeasurements();
   }
@@ -386,7 +401,12 @@
       measurementLimit += 1000; renderMeasurements();
       if (byId('more-measurements').hidden) byId('observations-table').querySelector('summary').focus({preventScroll: true});
     });
-    document.addEventListener('visibilitychange', updateFreshness); setInterval(updateFreshness, 60000);
+    byId('live-updates').addEventListener('change', () => maybeRefresh({resume: true}));
+    byId('refresh-report').addEventListener('click', () => loadReport({automatic: true}));
+    document.addEventListener('visibilitychange', () => { updateFreshness(); maybeRefresh({resume: true}); });
+    window.addEventListener('online', () => maybeRefresh({resume: true}));
+    window.addEventListener('offline', updateLiveStatus);
+    setInterval(() => { updateFreshness(); maybeRefresh(); }, 60000);
     byId('share-station').addEventListener('click', async () => {
       try { await navigator.clipboard.writeText(window.location.href); text('report-status', 'Station link copied.'); }
       catch (_) { text('report-status', 'Copy the station link from your address bar.'); }
