@@ -164,7 +164,7 @@
     positionSelectedStation({preserveViewport});
     const heading = byId('station-heading'), bounds = heading.getBoundingClientRect();
     if (bounds.top >= 0 && bounds.bottom <= window.innerHeight) heading.focus({ preventScroll: true });
-    updateUrl(); loadReport();
+    updateUrl(); updateHistory(); loadReport();
   }
   function retainFailedProducts(payload) {
     const compatible = report && ['units', 'datum', 'hours', 'future_hours'].every(key => report[key] === payload[key]);
@@ -382,7 +382,7 @@
     }
     renderWeatherCharts(automatic);
     window.StationExtras.update({ selected, report, zone, date, unit, revision: generation, preserveView: automatic });
-    window.StationHistory.update({selected, report, zone, date});
+    updateHistory();
     byId('observations-table').hidden = ![report.observations, report.predictions, ...Object.values(report.weather_series || {})].some(values => values.length);
     renderMeasurements();
   }
@@ -390,6 +390,9 @@
     generation++; pending?.abort(); spread?.close(); selected = null; report = null; clearChart(); window.StationExtras.reset(); window.StationHistory.reset(); infoWindow?.close();
     byId('station-panel').hidden = true; updateUrl();
     if (savedFocus?.isConnected) savedFocus.focus(); else byId('station-search').focus();
+  }
+  function updateHistory() {
+    if (selected) window.StationHistory.update({selected, units: byId('height-units').value, zone, date});
   }
   function locateStations() {
     const button = byId('locate');
@@ -437,8 +440,8 @@
     byId('more-stations').addEventListener('click', () => { visibleCount += 100; renderResults(); });
     byId('close-station').addEventListener('click', closeStation);
     byId('station-panel').addEventListener('keydown', event => { if (event.key === 'Escape') closeStation(); });
-    for (const id of ['history-hours', 'height-units', 'future-hours']) byId(id).addEventListener('change', () => { updateUrl(); if (selected) { measurementLimit = 1000; loadReport(); } });
-    byId('display-zone').addEventListener('change', () => { if (report) renderReport(); });
+    for (const id of ['history-hours', 'height-units', 'future-hours']) byId(id).addEventListener('change', () => { updateUrl(); if (selected) { measurementLimit = 1000; updateHistory(); loadReport(); } });
+    byId('display-zone').addEventListener('change', () => { if (report) renderReport(); else updateHistory(); });
     byId('retry-report').addEventListener('click', loadReport);
     byId('observations-table').addEventListener('toggle', renderMeasurements);
     byId('more-measurements').addEventListener('click', () => {

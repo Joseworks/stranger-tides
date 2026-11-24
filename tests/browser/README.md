@@ -47,7 +47,7 @@ References: [Playwright API mocking](https://playwright.dev/docs/mock), [browser
 
 ## Station explorer changes
 
-The station explorer replaces the executable `/show_graph` response with the read-only JSON station-report API. Its deterministic suite covers 73 scenarios across four browser configurations (292 CI checks), including null gaps, prediction-only locations, IGLD, retries, delayed-response cancellation, deep links, unit/time changes, search and map failure. Existing Maps and NOAA credentials are never used by this offline suite.
+The station explorer replaces the executable `/show_graph` response with the read-only JSON station-report API. Its deterministic suite covers 75 scenarios across four browser configurations (300 CI checks), including null gaps, prediction-only locations, IGLD, retries, delayed-response cancellation, deep links, unit/time changes, search and map failure. Existing Maps and NOAA credentials are never used by this offline suite.
 
 Hosted checks recognize both the old production interface and the new explorer. They publish the full catalog difference and require staging's observing IDs to match NOAA's current active inventory. Exact production/staging inventory equality is optional via `LIVE_REQUIRE_IDENTICAL_CATALOGS=1`, because adding current stations and prediction locations is the intended feature. Both hosted apps now use the explorer; the legacy-interface comparison remains available for historical baselines.
 
@@ -66,3 +66,5 @@ Live-refresh regressions use a controlled browser clock to cover six-minute poll
 Use the [phone and tablet checklist](../../docs/device-acceptance.md) on real Brave Android and Safari hardware. Record device/OS/browser and the exact staging release, permission origin identity, denial/retry, fullscreen/rotation, radial station selection, and historical CSV download. Automated results never count as a physical-device pass. Keep all 264 existing CI checks as new history regressions are added.
 
 Historical regressions add fixed UTC dates, resolution selection, monthly calendar labels, timezone/unit changes, no reload/map movement/forced scroll, cancellation, empty/failure feedback, and complete CSV downloads including quality/flags, missing/zero/negative values and formula-like text. All 66 previous scenarios remain.
+
+Review regressions also exercise units changing during the first pending historical request and archive access/CSV when current conditions fail. Historical controls initialize from station selection independently of the live-report response.

@@ -1087,3 +1087,29 @@ test('empty and unavailable historical data give clear feedback without breaking
   await expect(page.locator('#history-status')).toContainText('No historical values');
   await expect(page.locator('#history-chart .highcharts-container')).toHaveCount(0);
 });
+
+test('pending historical requests restart in new units and reject the older unit response', async ({page}) => {
+  let release,english=0,metric=0;const barrier=new Promise(resolve=>{release=resolve;});
+  await page.route('**/stations/9414290/history?*',async route=>{
+    const units=new URL(route.request().url()).searchParams.get('units');
+    if(units==='english'){english++;await barrier;}
+    else metric++;
+    await route.continue().catch(()=>{});
+  });
+  await page.goto('/?station=9414290&begin_date=2020-01-01&end_date=2020-03-31');
+  await expect.poll(()=>english).toBe(1);
+  await page.getByLabel('Units',{exact:true}).selectOption('metric');await expect.poll(()=>metric).toBe(1);
+  await expect(page.locator('#history-caption')).toContainText('MLLW · m ·');release();
+  await expect(page.getByRole('button',{name:'Export historical CSV',exact:true})).toBeEnabled();
+  await expect(page.locator('#history-caption')).not.toContainText('MLLW · ft ·');
+});
+
+test('historical browsing and CSV remain available when current NOAA conditions fail', async ({page}) => {
+  await page.route('**/stations/*/report?*',route=>route.fulfill({status:503,json:{error:'Current conditions unavailable.'}}));
+  await page.goto('/?station=9414290&begin_date=2020-01-01&end_date=2020-03-31');
+  await expect(page.locator('#report-status')).toContainText('Current conditions unavailable.');
+  await expect(page.locator('#history-status')).toContainText('Historical data loaded.');
+  await expect(page.getByRole('button',{name:'Export historical CSV',exact:true})).toBeEnabled();
+  await page.getByLabel('Units',{exact:true}).selectOption('metric');
+  await expect(page.locator('#history-caption')).toContainText('MLLW · m ·');
+});

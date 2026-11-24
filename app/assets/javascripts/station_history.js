@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const byId = id => document.getElementById(id), charts = new Map();
-  let state, result, request, version = 0, key, limit = 500, initialized = false;
+  let state, result, request, requestedUnits, version = 0, key, limit = 500, initialized = false;
   const node = (tag, value) => {const el = document.createElement(tag); el.textContent = value; return el;};
   const unit = () => result.units === 'metric' ? 'm' : 'ft';
   const monthly = () => result.window.calendar_months;
@@ -70,7 +70,7 @@
   }
   function parameters() {
     return new URLSearchParams({begin_date: byId('history-start').value, end_date: byId('history-end').value,
-      resolution: byId('history-resolution').value, units: state.report.units});
+      resolution: byId('history-resolution').value, units: state.units});
   }
   function share(params) {
     const url = new URL(location.href);
@@ -80,7 +80,7 @@
   async function load() {
     if (!state) return;
     request?.abort(); const token = ++version, controller = new AbortController(); request = controller;
-    const params = parameters(); key = `${state.selected.station_id}:${params}`;
+    const params = parameters(); key = `${state.selected.station_id}:${params}`; requestedUnits = state.units;
     byId('history-export').disabled = true; byId('history-results').setAttribute('aria-busy','true');
     byId('history-status').textContent = 'Loading fixed-date NOAA water levels…';
     try {
@@ -131,15 +131,15 @@
   }
   window.StationHistory = {
     reset() {
-      version++; request?.abort(); request = null; result = null; key = null; state = null; destroy();
+      version++; request?.abort(); request = null; result = null; key = null; requestedUnits = null; state = null; destroy();
       byId('history-export').disabled = true; byId('history-caption').textContent = ''; byId('history-table').hidden = true;
       byId('history-rows').replaceChildren(); byId('history-status').textContent = 'Choose dates and load historical data.';
       byId('history-results').setAttribute('aria-busy','false');
     },
     update(value) {
-      initialize(); const previousUnits = state?.report.units; state = value;
+      initialize(); state = value;
       if (!key && byId('historical-explorer').open) load();
-      else if (result && previousUnits !== state.report.units) load();
+      else if (key && requestedUnits !== state.units) load();
       else render();
     }
   };
