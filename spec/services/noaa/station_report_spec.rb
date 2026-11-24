@@ -92,6 +92,19 @@ RSpec.describe Noaa::StationReport do
     expect(result[:latest][:value]).to eq(0.0)
     expect(result[:predictions]).to eq([])
     expect(result[:warnings].pluck(:product)).to include('predictions')
+    expect(result[:failed_products]).to contain_exactly('predictions', 'events')
+  end
+
+  it 'identifies a failed weather stream while accepting other successful products' do
+    water_request
+    weather_requests
+    stub_request(:get, /datagetter/)
+      .with(query: base.merge('product' => 'wind')).to_return(status: 503)
+    result = described_class.new(station, client:).call
+    expect(result[:failed_products]).to eq(['weather_series.wind'])
+    expect(result[:weather_series]['wind']).to eq([])
+    expect(result[:weather_series]['air_pressure']).not_to be_empty
+    expect(result[:latest][:value]).to eq(0.0)
   end
 
   it 'raises an upstream error when no data request succeeds' do
@@ -105,7 +118,8 @@ RSpec.describe Noaa::StationReport do
   it 'keeps a legitimate empty response distinct from transport failure' do
     water_request(body: { data: [] })
     result = described_class.new(station, client:).call
-    expect(result).to include(observations: [], latest: nil, weather: {}, warnings: [])
+    expect(result).to include(observations: [], latest: nil, weather: {},
+                              warnings: [], failed_products: [])
   end
 
   it 'requests high/low intervals for subordinate locations without requesting observations' do
@@ -146,6 +160,7 @@ RSpec.describe Noaa::StationReport do
     expect(result[:latest][:value]).to eq(0.0)
     expect(result[:weather]).to eq({})
     expect(result[:warnings].pluck(:product)).to include('weather')
+    expect(result[:failed_products]).to eq(['weather'])
   end
 
   it 'returns full enabled sensor histories even without a catalog weather flag' do

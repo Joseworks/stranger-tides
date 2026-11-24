@@ -2,6 +2,32 @@
 
 module Noaa
   class Series
+    def self.flood_outlook_row(row, now:)
+      return unless row.is_a?(Hash)
+
+      return unless row['date'].is_a?(String)
+
+      date = Date.iso8601(row['date'])
+      likelihood = Float(row['likelihood'], exception: false)
+      threshold = Float(row['threshold'], exception: false)
+      return unless date.between?(now.to_date, now.to_date + 6) &&
+                    likelihood&.finite? && likelihood.between?(0, 100) && threshold&.finite?
+
+      { date: date.iso8601, likelihood:, threshold:, updated: row['updated'].to_s }
+    rescue KeyError, ArgumentError
+      nil
+    end
+
+    def self.specific_gravity(points)
+      points.map do |point|
+        point.merge(value: point[:specific_gravity]&.finite? ? point[:specific_gravity] : nil)
+      end
+    end
+
+    def self.latest(series)
+      series.transform_values { |points| points.rfind { |point| point[:value] } }.compact
+    end
+
     def self.observation(row, product)
       return unless row.is_a?(Hash)
 

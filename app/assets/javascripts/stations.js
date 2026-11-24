@@ -166,6 +166,33 @@
     if (bounds.top >= 0 && bounds.bottom <= window.innerHeight) heading.focus({ preventScroll: true });
     updateUrl(); loadReport();
   }
+  function retainFailedProducts(payload) {
+    const compatible = report && ['units', 'datum', 'hours', 'future_hours'].every(key => report[key] === payload[key]);
+    if (!compatible) return payload;
+    const retained = [], failures = new Set(payload.failed_products || []);
+    for (const field of ['observations', 'predictions', 'future_predictions', 'events']) {
+      if (failures.has(field)) {payload[field] = report[field]; retained.push(field);}
+    }
+    if (failures.has('observations')) {
+      payload.latest = report.latest;
+      payload.stale = !payload.latest || Date.parse(payload.latest.time) < Date.now() - 18 * 60000;
+    }
+    if (failures.has('observations') || failures.has('predictions')) payload.differences = report.differences;
+    if (failures.has('weather')) {
+      payload.weather_series = report.weather_series; payload.weather = report.weather;
+      payload.sensors = report.sensors; retained.push('weather');
+    } else {
+      for (const product of Object.keys(report.weather_series || {})) {
+        const failed = failures.has(`weather_series.${product}`) || (product === 'specific_gravity' && failures.has('weather_series.salinity'));
+        if (!failed) continue;
+        payload.weather_series[product] = report.weather_series[product];
+        if (report.weather[product]) payload.weather[product] = report.weather[product];
+        retained.push(product);
+      }
+    }
+    payload.retained_products = retained;
+    return payload;
+  }
   async function loadReport({automatic = false} = {}) {
     lastFetchAttempt = Date.now();
     pending?.abort(); const token = ++generation; pending = new AbortController();
@@ -184,7 +211,7 @@
       const payload = await response.json();
       if (token !== generation) return;
       if (!response.ok) throw new Error(payload.error || 'Station data is unavailable.');
-      report = payload; renderReport({automatic});
+      report = automatic ? retainFailedProducts(payload) : payload; renderReport({automatic});
     } catch (error) {
       if (error.name === 'AbortError' || token !== generation) return;
       text('report-status', `${error.message || 'Station data is unavailable. Please try again.'}${updating ? ' Previous charts are still displayed.' : ''}`);
@@ -251,7 +278,7 @@
     const enabled = byId('live-updates').checked;
     text('live-update-status', !enabled ? 'Live updates paused.' : navigator.onLine === false ?
       'Live updates paused while offline.' : document.hidden ? 'Live updates paused while this tab is hidden.' :
-      `Live updates every 6 minutes.${report?.fetched_at ? ` Data retrieved ${date(report.fetched_at)}.` : ''}`);
+      `Live updates every 6 minutes.${report?.fetched_at ? ` Last checked ${date(report.fetched_at)}.` : ''}`);
   }
   function maybeRefresh({resume = false} = {}) {
     updateLiveStatus();
@@ -308,6 +335,7 @@
     updateUrl(); const summary = byId('station-summary'); summary.replaceChildren();
     const latest = report.latest;
     text('report-status', report.stale ? 'No recent observation. Check timestamps before using these data.' : 'Station data loaded.');
+    if (report.retained_products?.length) summary.append(element('p', 'Some products could not be refreshed. Previous data for those products remain displayed; check their timestamps.', 'muted report-warning'));
     if (report.warnings.length) {
       summary.append(element('p', report.warnings.map(w => `${w.product.replaceAll('_', ' ')}: ${w.message}`).join(' '), 'muted report-warning'));
       byId('retry-report').hidden = false;

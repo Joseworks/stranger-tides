@@ -9,43 +9,66 @@ module Noaa
       @units = units
       @client = client || Client.new(deadline: Process.clock_gettime(Process::CLOCK_MONOTONIC) + 20)
       @warnings = []
+      @failed_products = []
     end
 
     def call
       @now = Time.current.utc.change(sec: 0)
-      discovery = ProductCatalog.new(client: @client)
-      station = discovery.enrich([@station]).first
-      @warnings << discovery.warning if discovery.warning
+      station = discover
       datum = height_reference
       { station_id: id, units: @units, datum:, fetched_at: @now.iso8601,
         one_minute: if station.fetch('additional_products', []).include?('one_minute_water_level')
-                      optional('One-minute water levels') { one_minute(datum) }
+                      optional('One-minute water levels', product: 'one_minute') do
+                        one_minute(datum)
+                      end
                     else
                       []
                     end,
-        forecast: station['forecast'] ? optional('Water-level forecast') { forecast(datum) } : [],
+        forecast: if station['forecast']
+                    optional('Water-level forecast', product: 'forecast') do
+                      forecast(datum)
+                    end
+                  else
+                    []
+                  end,
         flood_outlook: if station['outlook'] && datum == 'MLLW'
-                         optional('Flood outlook') { flood_outlook }
+                         optional('Flood outlook', product: 'flood_outlook') { flood_outlook }
                        else
                          []
                        end,
-        products: optional('NOAA products') { products }, warnings: @warnings }
+        products: optional('NOAA products', product: 'products') do
+          products
+        end, warnings: @warnings, failed_products: @failed_products.uniq }
     end
 
     private
 
     def id = @station.fetch('station_id')
 
+    def discover
+      discovery = ProductCatalog.new(client: @client)
+      station = discovery.enrich([@station]).first
+      @warnings << discovery.warning if discovery.warning
+      @failed_products.push('forecast', 'flood_outlook') if
+        discovery.failed_sources.include?('station_products')
+      @failed_products << 'one_minute' if discovery.failed_sources.include?('one_minute')
+      station
+    end
+
     def height_reference
       WaterLevelDatum.new(@station, client: @client).call
     rescue NoData, Unavailable => e
+      if e.is_a?(Unavailable)
+        @failed_products.push('datum', 'one_minute', 'forecast', 'flood_outlook')
+      end
       @warnings << "Height reference: #{e.message}"
       nil
     end
 
-    def optional(name)
+    def optional(name, product:)
       yield
     rescue NoData, Unavailable => e
+      @failed_products << product if e.is_a?(Unavailable)
       @warnings << "#{name}: #{e.message}"
       []
     end
@@ -86,41 +109,13 @@ module Noaa
       entries = Array(payload['floodLikelihood']).flat_map do |entry|
         entry.is_a?(Hash) ? Array(entry['NOS minor']) : []
       end
-      rows = entries.filter_map { |row| flood_row(row) }
+      rows = entries.filter_map { |row| Series.flood_outlook_row(row, now: @now) }
       rows.uniq { |row| row[:date] }.sort_by { |row| row[:date] }
     end
 
-    def flood_row(row)
-      return unless row.is_a?(Hash)
-
-      return unless row['date'].is_a?(String)
-
-      date = Date.iso8601(row['date'])
-      likelihood = Float(row['likelihood'], exception: false)
-      threshold = Float(row['threshold'], exception: false)
-      return unless date.between?(@now.to_date, @now.to_date + 6) &&
-                    likelihood&.finite? && likelihood.between?(0, 100) && threshold&.finite?
-
-      { date: date.iso8601, likelihood:, threshold:, updated: row['updated'].to_s }
-    rescue KeyError, ArgumentError
-      nil
-    end
-
     def products
-      payload = @client.get("/mdapi/prod/webapi/stations/#{id}/products.json", {},
-                            expires_in: 1.day)
-      Array(payload['products']).filter_map do |product|
-        next unless product.is_a?(Hash)
-
-        uri = URI.parse(product['value'].to_s)
-        next unless %w[http https].include?(uri.scheme) && uri.userinfo.nil? &&
-                    %w[tidesandcurrents.noaa.gov www.tidesandcurrents.noaa.gov].include?(uri.host)
-
-        uri.scheme = 'https'
-        { name: product['name'].to_s.first(150), url: uri.to_s }
-      rescue URI::InvalidURIError
-        nil
-      end
+      ProductCatalog.links(@client.get("/mdapi/prod/webapi/stations/#{id}/products.json", {},
+                                       expires_in: 1.day)['products'])
     end
   end
 end

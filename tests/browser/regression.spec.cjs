@@ -341,6 +341,44 @@ test('a failed automatic refresh retains charts and retries at the normal cadenc
   await expect(page.locator('#report-status')).toHaveText('Station data loaded.');
 });
 
+test('partial automatic failures retain failed streams while accepting fresh successful data', async ({page}) => {
+  await page.clock.install(); let partial=false;
+  await page.route('**/stations/9414290/report?*',async route=>{
+    const response=await route.fetch(),payload=await response.json();
+    if(partial){
+      payload.failed_products=['observations','weather_series.wind'];
+      payload.observations=[]; payload.latest=null;payload.stale=true;
+      payload.weather_series.wind=[];delete payload.weather.wind;
+      payload.weather_series.air_temperature.forEach(p=>{if(p.value!==null)p.value+=5;});
+      payload.warnings=[{product:'water_level',message:'Temporary upstream failure'},{product:'wind',message:'Temporary upstream failure'}];
+    }
+    await route.fulfill({response,json:payload});
+  });
+  await page.goto('/?station=9414290'); await expect(page.locator('#weather-charts .highcharts-container')).toHaveCount(4);
+  const before=await page.evaluate(()=>({water:chart_graph_partial.series[0].getColumn('y'),latest:document.querySelector('.latest-reading').textContent,
+    wind:Highcharts.charts.find(c=>c?.renderTo.id==='weather-wind').index,
+    temp:Highcharts.charts.find(c=>c?.renderTo.id==='weather-air_temperature').series[0].getColumn('y')}));
+  partial=true; await page.clock.fastForward(6*60000);
+  await expect(page.locator('#station-summary')).toContainText('Previous data for those products remain displayed');
+  expect(await page.evaluate(()=>chart_graph_partial.series[0].getColumn('y'))).toEqual(before.water);
+  await expect(page.locator('.latest-reading')).toHaveText(before.latest);
+  expect(await page.evaluate(()=>Highcharts.charts.find(c=>c?.renderTo.id==='weather-wind').index)).toBe(before.wind);
+  expect(await page.evaluate(()=>Highcharts.charts.find(c=>c?.renderTo.id==='weather-air_temperature').series[0].getColumn('y'))).toEqual(before.temp.map(v=>v===null?null:v+5));
+});
+
+test('a legitimate empty product response clears its previous plot during automatic refresh', async ({page}) => {
+  await page.clock.install();let empty=false;
+  await page.route('**/stations/9414290/report?*',async route=>{
+    const response=await route.fetch(),payload=await response.json();
+    if(empty){payload.weather_series.air_temperature=[];delete payload.weather.air_temperature;payload.failed_products=[];payload.warnings=[];}
+    await route.fulfill({response,json:payload});
+  });
+  await page.goto('/?station=9414290');await expect(page.locator('#weather-air_temperature')).toBeVisible();
+  empty=true;await page.clock.fastForward(6*60000);await expect(page.locator('#weather-air_temperature')).toHaveCount(0);
+  await expect(page.locator('#weather-wind')).toBeVisible();
+  await expect(page.locator('#station-summary')).not.toContainText('Previous data for those products');
+});
+
 test('automatic optional-product failures keep the previous plots and offer retry', async ({page}) => {
   await page.clock.install(); let fail=false;
   await page.route('**/stations/9414290/context?*',route=>fail?route.fulfill({status:503,json:{error:'Forecast temporarily unavailable.'}}):route.continue());
@@ -350,6 +388,45 @@ test('automatic optional-product failures keep the previous plots and offer retr
   await expect(page.locator('#station-context')).toContainText('Previous data remain displayed');
   expect(await page.evaluate(()=>Highcharts.charts.find(c=>c?.renderTo.id==='forecast-water-level').index)).toBe(index);
   await expect(page.getByRole('button',{name:'Retry additional products',exact:true})).toBeVisible();
+});
+
+test('partial optional failures retain prior forecast and buoy plots with explicit feedback', async ({page}) => {
+  await page.clock.install();let fail=false;
+  await page.route('**/stations/9414290/context?*',async route=>{
+    const response=await route.fetch(),payload=await response.json();
+    if(fail){payload.forecast=[];payload.failed_products=['forecast'];payload.warnings=['Water-level forecast temporarily unavailable.'];}
+    await route.fulfill({response,json:payload});
+  });
+  await page.route('**/stations/9414290/nearby?*',async route=>{
+    const response=await route.fetch(),payload=await response.json();
+    if(fail){payload.failed_buoys=payload.buoys.map(b=>b.id);payload.buoys=[];payload.warnings=['46026 temporarily unavailable.'];}
+    await route.fulfill({response,json:payload});
+  });
+  await page.goto('/?station=9414290');await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
+  await page.locator('#buoy-46026 > summary').click();await expect(page.locator('#buoy-46026-wave_height .highcharts-container')).toBeVisible();
+  const before=await page.evaluate(()=>Highcharts.charts.filter(c=>c&&['forecast-water-level','buoy-46026-wave_height'].includes(c.renderTo.id)).map(c=>({id:c.renderTo.id,index:c.index})));
+  fail=true;await page.clock.fastForward(6*60000);
+  await expect(page.locator('#buoy-46026 > summary')).toContainText('Previous data (refresh failed)');
+  await expect(page.locator('#station-context')).toContainText('Previous data remain displayed');
+  expect(await page.evaluate(()=>Highcharts.charts.filter(c=>c&&['forecast-water-level','buoy-46026-wave_height'].includes(c.renderTo.id)).map(c=>({id:c.renderTo.id,index:c.index})))).toEqual(before);
+  await expect(page.locator('#buoy-46026')).toHaveJSProperty('open',true);
+});
+
+test('successful empty optional products clear old forecast and buoy plots', async ({page}) => {
+  await page.clock.install();let empty=false;
+  await page.route('**/stations/9414290/context?*',async route=>{
+    const response=await route.fetch(),payload=await response.json();
+    if(empty){payload.forecast=[];payload.failed_products=[];}
+    await route.fulfill({response,json:payload});
+  });
+  await page.route('**/stations/9414290/nearby?*',async route=>{
+    const response=await route.fetch(),payload=await response.json();
+    if(empty){payload.buoys=[];payload.failed_buoys=[];}
+    await route.fulfill({response,json:payload});
+  });
+  await page.goto('/?station=9414290');await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
+  await expect(page.locator('#buoy-46026')).toBeVisible();empty=true;await page.clock.fastForward(6*60000);
+  await expect(page.locator('#forecast-water-level')).toHaveCount(0);await expect(page.locator('#buoy-46026')).toHaveCount(0);
 });
 
 test('a delayed automatic response cannot replace a newer selected station', async ({page}) => {

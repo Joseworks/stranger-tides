@@ -161,7 +161,7 @@
       const id = `buoy-${buoy.id}`; activeCards.add(id);
       let card = byId(id);
       if (!card) {card = node('details', '', 'buoy-card'); card.id = id; card.append(node('summary', '')); parent.append(card); card.addEventListener('toggle', () => {render(); charts.forEach(c => c.reflow());});}
-      card.querySelector('summary').textContent = `${buoy.name || buoy.id} (${buoy.id}) · ${buoy.distance_km} km away${buoy.stale ? ' · Stale observations' : ''}`;
+      card.querySelector('summary').textContent = `${buoy.name || buoy.id} (${buoy.id}) · ${buoy.distance_km} km away${buoy.stale ? ' · Stale observations' : ''}${buoy.refresh_failed ? ' · Previous data (refresh failed)' : ''}`;
       label(card, `${id}-source`, link('View this instrument at NOAA NDBC', buoy.source_url), node('p', `Latest available measurement: ${state.date(buoy.latest_at)} · Latitude ${buoy.latitude}, longitude ${buoy.longitude}.`, 'muted'));
       const grid = block(card, `${id}-charts`); grid.className = 'extra-grid';
       if (!card.open) return;
@@ -185,16 +185,41 @@
     }
     charts.forEach((chart, id) => {if (!active.has(id)) {chart.destroy(); byId(`${id}-block`)?.remove(); charts.delete(id);}});
   }
+  function retainOptional(kind, payload, preserve) {
+    const previous = results.get(kind);
+    if (!preserve || !previous || previous.units !== payload.units) return payload;
+    const retained = [];
+    if (kind === 'context') {
+      const failures = new Set(payload.failed_products || []);
+      if (failures.has('datum')) payload.datum = previous.datum;
+      for (const product of ['one_minute', 'forecast', 'flood_outlook', 'products']) {
+        if (failures.has(product) && (product === 'products' || payload.datum === previous.datum)) {
+          payload[product] = previous[product]; retained.push(product);
+        }
+      }
+    } else if (kind === 'nearby' && previous.hours === payload.hours) {
+      for (const id of payload.failed_buoys || []) {
+        const buoy = previous.buoys?.find(item => item.id === id);
+        if (buoy && !payload.buoys.some(item => item.id === id)) {
+          payload.buoys.push({...buoy, refresh_failed: true, stale: Date.parse(buoy.latest_at) < Date.now() - 2 * 3600000});
+          retained.push(id);
+        }
+      }
+      payload.buoys.sort((a,b) => a.distance_km - b.distance_km);
+    }
+    if (retained.length) payload.refresh_error = 'Some products could not be refreshed.';
+    return payload;
+  }
   function load(kind, key, url) {
     const old = requests.get(kind); if (old?.key === key) return;
     old?.controller.abort(); if (!state.preserveView) results.delete(kind);
-    const controller = new AbortController(), token = epoch;
+    const controller = new AbortController(), token = epoch, preserve = Boolean(state.preserveView);
     requests.set(kind, {key, controller});
     fetch(url, {signal: controller.signal}).then(async response => {
       if (!response.headers.get('content-type')?.includes('application/json')) throw Error('Optional NOAA data is unavailable.');
       const payload = await response.json(); if (!response.ok) throw Error(payload.error || 'Optional NOAA data is unavailable.'); return payload;
     }).then(payload => {
-      if (token === epoch && requests.get(kind)?.key === key) {results.set(kind, payload); render();}
+      if (token === epoch && requests.get(kind)?.key === key) {results.set(kind, retainOptional(kind, payload, preserve)); render();}
     }).catch(error => {
       if (error.name !== 'AbortError' && token === epoch && requests.get(kind)?.key === key) {results.set(kind, results.has(kind) ? {...results.get(kind), refresh_error: error.message} : {error: error.message}); render();}
     });

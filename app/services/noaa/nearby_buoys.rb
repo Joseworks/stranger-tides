@@ -16,8 +16,10 @@ module Noaa
 
       now = Time.current.utc
       @warnings = []
+      @failed_buoys = []
       buoys = nearby.filter_map { |station| read_buoy(station, now) }
-      { units: @units, hours: @hours, radius_km: 200, buoys:, warnings: @warnings }
+      { units: @units, hours: @hours, radius_km: 200, buoys:, warnings: @warnings,
+        failed_buoys: @failed_buoys }
     end
 
     private
@@ -33,6 +35,7 @@ module Noaa
                     stale: Time.iso8601(latest[:time]) < now - 2.hours,
                     source_url: "https://www.ndbc.noaa.gov/station_page.php?station=#{station[:id]}")
     rescue NoData, Unavailable => e
+      @failed_buoys << station[:id] if e.is_a?(Unavailable)
       @warnings << "#{station[:id]}: #{e.message}"
       nil
     end
