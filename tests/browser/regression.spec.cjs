@@ -528,11 +528,61 @@ test('browsers without a location API retain search and explain the limitation',
   await station(page, '9099064').click(); await expect(chart(page)).toHaveText('Duluth, MN');
 });
 
+async function addCommonProductsToDuluth(page) {
+  await page.route('**/stations.json', async route => {
+    const response=await route.fetch(),payload=await response.json();
+    payload.stations.find(s=>s.station_id==='9099064').additional_products=['one_minute_water_level','ofs_water_level','flood_outlook'];
+    await route.fulfill({response,json:payload});
+  });
+}
+
+test('default highlights distinguish specialized sensors from common additional products', async ({page}) => {
+  await addCommonProductsToDuluth(page); await page.goto('/');
+  await expect(page.getByLabel('Highlight product',{exact:true})).toHaveValue('specialized');
+  await expect(page.locator('#product-status')).toContainText('1 of 2');
+  await expect(station(page,'9414290')).toHaveClass(/extra-products/);
+  await expect(station(page,'9099064')).not.toHaveClass(/extra-products/);
+  await expect(page.locator('#full_map img[src*="purple_marker"]')).toHaveCount(1);
+  await expect(page.locator('#full_map img[src*="orange_marker"]')).toHaveCount(1);
+});
+
+for (const advanced of [false,true]) {
+  test(`${advanced?'advanced':'legacy'} markers update colors for the chosen product and filter matches`, async ({page}) => {
+    if(advanced) await page.addInitScript(()=>{window.useAdvancedMarkersFixture=true;});
+    await addCommonProductsToDuluth(page); await page.goto('/');
+    const purple=()=>page.locator(advanced?'.individual-pin.extra-pin':'#full_map img[src*="purple_marker"]');
+    await expect(purple()).toHaveCount(1);
+    await page.getByLabel('Highlight product',{exact:true}).selectOption('ofs_water_level');
+    await expect(purple()).toHaveCount(2); await expect(page.locator('#highlight-legend')).toHaveText('Purple pin = water-level forecast.');
+    await page.getByLabel('Highlight product',{exact:true}).selectOption('visibility');
+    await expect(purple()).toHaveCount(1);
+    await page.getByRole('button',{name:'Show matching stations only',exact:true}).click();
+    await expect(page.locator('#result-count')).toHaveText('1 matching locations');
+    await expect(station(page,'9414290')).toBeVisible(); await expect(station(page,'9099064')).toHaveCount(0);
+    await page.getByLabel('Highlight product',{exact:true}).selectOption('air_gap');
+    await expect(page.locator('#result-count')).toHaveText('0 matching locations'); await expect(purple()).toHaveCount(0);
+    await page.getByRole('button',{name:'Show matching stations only',exact:true}).click();
+    await expect(page.locator('#result-count')).toHaveText('2 matching locations'); await expect(purple()).toHaveCount(0);
+    await page.getByLabel('Highlight product',{exact:true}).selectOption('any'); await expect(purple()).toHaveCount(2);
+  });
+}
+
+test('shared station links retain product highlighting and matching-only mode', async ({page}) => {
+  await page.goto('/?station=9414290&product=visibility&layer=additional');
+  await expect(chart(page)).toHaveText('San Francisco, CA');
+  await expect(page.getByLabel('Highlight product',{exact:true})).toHaveValue('visibility');
+  await expect(page.getByLabel('Show stations',{exact:true})).toHaveValue('additional');
+  await expect(page.getByRole('button',{name:'Show matching stations only',exact:true})).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('#result-count')).toHaveText('1 matching locations');
+  await page.getByLabel('Time',{exact:true}).selectOption('utc');
+  await expect(page).toHaveURL(/product=visibility/); await expect(page).toHaveURL(/layer=additional/);
+});
+
 test('stations with additional products have purple markers, labels and a discovery filter', async ({ page }) => {
   await page.goto('/'); await expect(page.locator('#result-count')).toContainText('2 matching');
   await expect(station(page, '9414290')).toHaveClass(/extra-products/);
   await expect(station(page, '9414290')).toContainText('Additional:');
-  await expect(page.locator('.map-legend')).toContainText('Purple pin = additional products');
+  await expect(page.locator('.map-legend')).toContainText('Purple pin = specialized sensors');
   await expect(page.locator('#full_map img[src*="purple_marker"]')).toBeVisible();
   await page.getByLabel('Show stations', {exact: true}).selectOption('additional');
   await expect(page.locator('#result-count')).toHaveText('1 matching locations');
@@ -625,7 +675,7 @@ test('overlap selection preserves purple products and the one-click discovery fi
   await page.locator('#full_map').getByRole('button',{name:'San Francisco, CA 9414290',exact:true}).click();
   const picker=page.getByRole('dialog',{name:'Choose an overlapping station'});
   await expect(picker.locator('.spread-station.extra-products')).toHaveCount(1);
-  const toggle=page.getByRole('button',{name:'Show additional products only',exact:true});
+  const toggle=page.getByRole('button',{name:'Show matching stations only',exact:true});
   await toggle.click(); await expect(picker).toHaveCount(0); await expect(toggle).toBeFocused();
   await expect(toggle).toHaveAttribute('aria-pressed','true');
   await expect(page.locator('#result-count')).toHaveText('1 matching locations');

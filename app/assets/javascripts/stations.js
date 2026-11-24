@@ -9,6 +9,13 @@
   let measurementLimit = 1000, lastFetchAttempt = 0;
   const REFRESH_INTERVAL = 6 * 60000;
   const extras = station => (station.additional_products || []).length > 0;
+  const specializedProducts = ['conductivity', 'salinity', 'specific_gravity', 'visibility', 'air_gap'];
+  const highlighted = station => {
+    const product = byId('station-product').value, available = station.additional_products || [];
+    return product === 'any' ? available.length > 0 : product === 'specialized' ?
+      available.some(value => specializedProducts.includes(value)) : available.includes(product);
+  };
+  const highlightedLabel = () => byId('station-product').selectedOptions[0].textContent;
   const productUnits = product => window.StationExtras.products(report.units === 'metric')[product]?.[1] || '';
   const byId = id => document.getElementById(id);
   const text = (id, value) => { byId(id).textContent = value; };
@@ -49,7 +56,9 @@
   function updateUrl() {
     const url = new URL(window.location.href);
     for (const [key, value] of Object.entries({ station: selected?.station_id, hours: byId('history-hours').value,
-      future_hours: byId('future-hours').value, units: byId('height-units').value, zone: byId('display-zone').value })) {
+      future_hours: byId('future-hours').value, units: byId('height-units').value, zone: byId('display-zone').value,
+      product: byId('station-product').value === 'specialized' ? null : byId('station-product').value,
+      layer: byId('station-layer').value === 'waterlevels' ? null : byId('station-layer').value })) {
       if (value) url.searchParams.set(key, value); else url.searchParams.delete(key);
     }
     window.history.replaceState(null, '', url);
@@ -59,12 +68,14 @@
     const layer = byId('station-layer').value;
     if (layer !== 'additional') lastLayer = layer;
     byId('extra-products-toggle').setAttribute('aria-pressed', String(layer === 'additional'));
-    filtered = stations.filter(s => (layer === 'all' || (layer === 'additional' ? extras(s) : capabilities(s).includes(layer))) &&
+    filtered = stations.filter(s => (layer === 'all' || (layer === 'additional' ? highlighted(s) : capabilities(s).includes(layer))) &&
       `${s.station_name} ${s.station_id} ${s.state || ''}`.toLocaleLowerCase().includes(search));
     text('result-count', `${filtered.length} matching locations`);
+    text('highlight-legend', `Purple pin = ${highlightedLabel().toLocaleLowerCase()}.`);
+    text('product-status', `${filtered.filter(highlighted).length} of ${filtered.length} matching stations advertise ${highlightedLabel().toLocaleLowerCase()}. Check reading timestamps for current availability.`);
     byId('station-results').replaceChildren(...filtered.slice(0, visibleCount).map(s => {
       const item = document.createElement('li'); const button = element('button', `${stationLabel(s)} ${s.station_id}`);
-      button.type = 'button'; button.classList.toggle('extra-products', extras(s)); button.dataset.stationId = s.station_id;
+      button.type = 'button'; button.classList.toggle('extra-products', highlighted(s)); button.dataset.stationId = s.station_id;
       button.append(element('small', `${s.state || ''} · ${capabilities(s).includes('waterlevels') ? 'Water-level observations' : 'Prediction / weather location'}`));
       if (extras(s)) button.append(element('small', `Additional: ${s.additional_products.map(p => p.replaceAll('_', ' ')).join(', ')}`, 'extra-label'));
       button.addEventListener('click', () => selectStation(s)); item.append(button); return item;
@@ -82,8 +93,10 @@
       if (!ids.has(id)) {if (marker.setMap) marker.setMap(null); else marker.map = null; markers.delete(id);}
     });
     visible.forEach(station => {
-      if (markers.has(station.station_id)) return;
-      const hasExtras = extras(station), title = `${stationLabel(station)} ${station.station_id}`;
+      const hasExtras = highlighted(station), existing = markers.get(station.station_id);
+      if (existing?.strangerTidesHighlight === hasExtras) return;
+      if (existing) {if (existing.setMap) existing.setMap(null); else existing.map = null;}
+      const title = `${stationLabel(station)} ${station.station_id}`;
       const position = {lat: Number(station.latitude), lng: Number(station.longitude)};
       const advanced = byId('full_map').dataset.mapId && google.maps.marker?.AdvancedMarkerElement;
       let marker;
@@ -96,6 +109,7 @@
           icon: hasExtras ? byId('full_map').dataset.extraMarkerIcon : byId('full_map').dataset.markerIcon});
       }
       marker.addListener('click', () => spread.open(station, filtered));
+      marker.strangerTidesHighlight = hasExtras;
       markers.set(station.station_id, marker);
     });
   }
@@ -124,7 +138,7 @@
       locationControl.append(locate, status);
       map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(locationControl);
       infoWindow = new google.maps.InfoWindow({disableAutoPan: true});
-      spread = window.StationSpread.create({map, host: byId('full_map'), label: stationLabel, extras,
+      spread = window.StationSpread.create({map, host: byId('full_map'), label: stationLabel, extras: highlighted,
         select: station => selectStation(station, {preserveViewport: true})});
       positionSelectedStation();
       if (locationPosition) {map.setCenter(locationPosition); map.setZoom(8);}
@@ -384,12 +398,13 @@
     if (!byId('station-explorer')) return;
     text('location-origin', window.location.host);
     const params = new URL(window.location.href).searchParams;
-    for (const [key, id] of [['hours', 'history-hours'], ['future_hours', 'future-hours'], ['units', 'height-units'], ['zone', 'display-zone']]) {
+    for (const [key, id] of [['hours', 'history-hours'], ['future_hours', 'future-hours'], ['units', 'height-units'], ['zone', 'display-zone'], ['product', 'station-product'], ['layer', 'station-layer']]) {
       const value = params.get(key); if ([...byId(id).options].some(o => o.value === value)) byId(id).value = value;
     }
     byId('station-search').addEventListener('input', () => { visibleCount = 100; renderResults(); });
-    byId('station-layer').addEventListener('change', () => { visibleCount = 100; renderResults(); });
-    byId('extra-products-toggle').addEventListener('click', () => { byId('station-layer').value = byId('station-layer').value === 'additional' ? lastLayer : 'additional'; visibleCount = 100; renderResults(); });
+    byId('station-layer').addEventListener('change', () => { visibleCount = 100; renderResults(); updateUrl(); });
+    byId('station-product').addEventListener('change', () => { visibleCount = 100; renderResults(); updateUrl(); });
+    byId('extra-products-toggle').addEventListener('click', () => { byId('station-layer').value = byId('station-layer').value === 'additional' ? lastLayer : 'additional'; visibleCount = 100; renderResults(); updateUrl(); });
     byId('more-stations').addEventListener('click', () => { visibleCount += 100; renderResults(); });
     byId('close-station').addEventListener('click', closeStation);
     byId('station-panel').addEventListener('keydown', event => { if (event.key === 'Escape') closeStation(); });

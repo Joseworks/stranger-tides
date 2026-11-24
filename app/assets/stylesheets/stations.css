@@ -62,7 +62,7 @@ summary { cursor: pointer; }
 .extra-swatch { border-color: #7541a6; }
 .map-pin.extra-pin { background: #7541a6; }
 #station-results button.extra-products { border-left: 5px solid #7541a6; }
-#station-results .extra-label { color: #63328f; font-weight: 600; }
+#station-results button.extra-products .extra-label { color: #63328f; font-weight: 600; }
 #station-panel { overflow-anchor: none; }
 #planning-charts, #station-context, #nearby-buoys { border-top: 1px solid #d8e2e6; margin-top: 1.5rem; padding-top: .5rem; }
 h2 { font-size: 1.2rem; }

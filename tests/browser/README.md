@@ -47,7 +47,7 @@ References: [Playwright API mocking](https://playwright.dev/docs/mock), [browser
 
 ## Station explorer changes
 
-The station explorer replaces the executable `/show_graph` response with the read-only JSON station-report API. Its deterministic suite covers 53 scenarios across four browser configurations (212 CI checks), including null gaps, prediction-only locations, IGLD, retries, delayed-response cancellation, deep links, unit/time changes, search and map failure. Existing Maps and NOAA credentials are never used by this offline suite.
+The station explorer replaces the executable `/show_graph` response with the read-only JSON station-report API. Its deterministic suite covers 62 scenarios across four browser configurations (248 CI checks), including null gaps, prediction-only locations, IGLD, retries, delayed-response cancellation, deep links, unit/time changes, search and map failure. Existing Maps and NOAA credentials are never used by this offline suite.
 
 Hosted checks recognize both the old production interface and the new explorer. They publish the full catalog difference and require staging's observing IDs to match NOAA's current active inventory. Exact production/staging inventory equality is optional via `LIVE_REQUIRE_IDENTICAL_CATALOGS=1`, because adding current stations and prediction locations is the intended feature. Both hosted apps now use the explorer; the legacy-interface comparison remains available for historical baselines.
 
@@ -58,3 +58,5 @@ Planning/product tests also cover purple station pins and the one-click filter, 
 The radial map tests cover individual legacy/advanced pins, no-zoom selection, Escape/focus restoration, overlap search, dense-group paging and non-overlapping touch targets, date-line wrapping, viewport marker retention, and the purple-product filter. Geographic zoom-to-expand clusters are no longer used.
 
 For real Google Maps radial selection, run `LIVE_REQUIRE_RADIAL=1 npm run test:live`. Before production promotion, use `LIVE_REQUIRE_RADIAL=1 LIVE_RADIAL_TARGET=staging npm run test:live -- --grep radial` to check only staging. These opt-in checks verify named choices, viewport-fit controls, search, live report loading and unchanged map center/zoom on desktop/mobile. The full post-deployment suite includes 12 hosted checks.
+
+Live-refresh regressions use a controlled browser clock to cover six-minute polling, pause/hidden/offline behavior, reconnect catch-up, no duplicate pending requests, cancellation after a newer selection, retained plots on core/optional failures, chart instances/ranges/hidden series and open table/scroll state. Product tests cover specialized-versus-common capabilities, legacy/advanced recoloring, matching-only mode and shared filter links. Catalog health request tests cover fresh, stale, missing and empty saved inventories without NOAA calls.
