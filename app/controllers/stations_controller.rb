@@ -31,6 +31,14 @@ class StationsController < ApplicationController
     render json: Noaa::StationContext.new(station, units: params.fetch(:units, 'english')).call
   end
 
+  def history
+    station = Noaa::Catalog.new.find(params.expect(:id))
+    render json: Noaa::HistoryReport.new(station, begin_date: params[:begin_date],
+                                                  end_date: params[:end_date],
+                                                  resolution: params.fetch(:resolution, 'auto'),
+                                                  units: params.fetch(:units, 'english')).call
+  end
+
   def nearby
     station = Noaa::Catalog.new.find(params.expect(:id))
     render json: Noaa::NearbyBuoys.new(station, units: params.fetch(:units, 'english'),

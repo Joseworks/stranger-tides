@@ -158,7 +158,7 @@
     locationPosition = null; locationIntent++;
     spread?.close();
     measurementLimit = 1000; byId('observations-table').open = false;
-    savedFocus = document.activeElement; selected = station; report = null; window.StationExtras.reset(); updateStationZone();
+    savedFocus = document.activeElement; selected = station; report = null; window.StationExtras.reset(); window.StationHistory.reset(); updateStationZone();
     byId('station-panel').hidden = false; text('station-heading', `${stationLabel(station)} ${station.station_id}`);
     byId('noaa-station-link').href = `https://tidesandcurrents.noaa.gov/stationhome.html?id=${encodeURIComponent(station.station_id)}`;
     positionSelectedStation({preserveViewport});
@@ -382,11 +382,12 @@
     }
     renderWeatherCharts(automatic);
     window.StationExtras.update({ selected, report, zone, date, unit, revision: generation, preserveView: automatic });
+    window.StationHistory.update({selected, report, zone, date});
     byId('observations-table').hidden = ![report.observations, report.predictions, ...Object.values(report.weather_series || {})].some(values => values.length);
     renderMeasurements();
   }
   function closeStation() {
-    generation++; pending?.abort(); spread?.close(); selected = null; report = null; clearChart(); window.StationExtras.reset(); infoWindow?.close();
+    generation++; pending?.abort(); spread?.close(); selected = null; report = null; clearChart(); window.StationExtras.reset(); window.StationHistory.reset(); infoWindow?.close();
     byId('station-panel').hidden = true; updateUrl();
     if (savedFocus?.isConnected) savedFocus.focus(); else byId('station-search').focus();
   }

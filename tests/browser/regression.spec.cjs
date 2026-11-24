@@ -979,3 +979,111 @@ test('five overlapping station choices have separate touch targets on short scre
   const boxes=await choices.evaluateAll(nodes=>nodes.map(n=>{const b=n.getBoundingClientRect();return{x:b.x,y:b.y,w:b.width,h:b.height};}));
   for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++)expect(boxes[i].x+boxes[i].w<=boxes[j].x||boxes[j].x+boxes[j].w<=boxes[i].x||boxes[i].y+boxes[i].h<=boxes[j].y||boxes[j].y+boxes[j].h<=boxes[i].y).toBe(true);
 });
+
+const openHistory = async (page, first='2020-01-01', last='2020-01-02') => {
+  await page.goto('/?station=9414290'); await expect(chart(page)).toHaveText('San Francisco, CA');
+  await page.locator('#historical-explorer > summary').click();
+  await page.getByLabel('Start date (UTC)',{exact:true}).fill(first);
+  await page.getByLabel('End date (UTC)',{exact:true}).fill(last);
+};
+const loadHistory = async page => {
+  await page.getByRole('button',{name:'Load historical data',exact:true}).click();
+  await expect(page.locator('#history-status')).toContainText('Historical data loaded.');
+};
+
+test('historical dates load fixed-day charts without reloading, moving the map or scrolling', async ({page}) => {
+  let navigations=0;page.on('request',r=>{if(r.isNavigationRequest()&&r.frame()===page.mainFrame())navigations++;});
+  await openHistory(page);const center=await page.locator('#full_map').getAttribute('data-center');
+  const original=await page.evaluate(()=>chart_graph_partial.index);
+  await page.getByRole('button',{name:'Load historical data',exact:true}).scrollIntoViewIfNeeded();
+  const scroll=await page.evaluate(()=>scrollY);await loadHistory(page);
+  await expect(page.locator('#history-caption')).toContainText('2020-01-01 to 2020-01-02 · six minute · MLLW');
+  expect(await page.evaluate(()=>scrollY)).toBe(scroll);expect(navigations).toBe(1);
+  expect(await page.evaluate(()=>chart_graph_partial.index)).toBe(original);
+  await expect(page.locator('#full_map')).toHaveAttribute('data-center',center);
+  expect(await page.locator('#history-chart').evaluate(el=>Highcharts.charts.find(c=>c?.renderTo===el).series[0].options.data.some(p=>p[1]===null))).toBe(true);
+  await page.locator('#history-table > summary').click();
+  await expect(page.locator('#history-rows')).toContainText('Missing');
+  await expect(page).toHaveURL(/begin_date=2020-01-01/);
+});
+
+test('hourly historical CSV exports all loaded rows and safe metadata, including nulls and negative numbers', async ({page}) => {
+  await openHistory(page,'2020-01-01','2020-03-31');
+  await page.route('**/stations/9414290/history?*',async route=>{
+    const response=await route.fetch(),data=await response.json();
+    data.station.station_name='=HYPERLINK("https://example.invalid")';
+    data.observations=Array.from({length:601},(_,i)=>({timestamp:Date.UTC(2020,0,1)+i*3600000,time:new Date(Date.UTC(2020,0,1)+i*3600000).toISOString(),value:i===0?-1:i===1?null:0,quality:'v',flags:'0,0'}));
+    data.predictions=[];data.differences=[];await route.fulfill({json:data});
+  });
+  await loadHistory(page);await expect(page.locator('#history-caption')).toContainText('hourly');
+  await page.locator('#history-table > summary').click();await expect(page.locator('#history-rows tr')).toHaveCount(500);
+  const downloaded=page.waitForEvent('download');await page.getByRole('button',{name:'Export historical CSV',exact:true}).click();
+  const download=await downloaded;expect(download.suggestedFilename()).toContain('2020-01-01-2020-03-31-hourly.csv');
+  const csv=await require('node:fs/promises').readFile(await download.path(),'utf8');
+  expect(csv.split('\r\n').filter(Boolean)).toHaveLength(602);
+  expect(csv).toContain('"time_utc_or_month"');expect(csv).toContain('"datum"');
+  expect(csv).toContain('"\'=HYPERLINK(""https://example.invalid"")"');
+  expect(csv).toContain('"2020-01-01T00:00:00.000Z","-1","v","0,0"');
+  expect(csv).toContain('"2020-01-01T01:00:00.000Z","","v","0,0"');
+});
+
+test('monthly historical means retain month labels across time zones and omit invented predictions', async ({page}) => {
+  await openHistory(page,'2020-01-15','2021-12-15');await loadHistory(page);
+  await expect(page.locator('#history-chart .highcharts-title')).toHaveText('Monthly mean water level (MSL)');
+  await expect(page.locator('#history-status')).toContainText('no tide predictions or departure calculation');
+  await expect(page.locator('#history-difference-chart .highcharts-container')).toHaveCount(0);
+  await page.locator('#history-table > summary').click();await expect(page.locator('#history-rows')).toContainText('2020-01');
+  await page.getByLabel('Time',{exact:true}).selectOption('station');
+  await expect(page.locator('#history-rows')).toContainText('2020-01');
+  await expect(page.locator('#history-caption')).toContainText('Calendar months (no time zone conversion)');
+  const options=await page.locator('#history-chart').evaluate(el=>Highcharts.charts.find(c=>c?.renderTo===el).series[0].options.data);
+  expect(options.map(p=>p[1])).toEqual([0,null,3.25]);
+});
+
+test('invalid historical ranges retain prior charts and prevent exporting mismatched dates', async ({page}) => {
+  await openHistory(page);await loadHistory(page);
+  await page.getByLabel('End date (UTC)',{exact:true}).fill('2020-03-31');
+  await expect(page.getByRole('button',{name:'Export historical CSV',exact:true})).toBeDisabled();
+  await page.getByLabel('Historical resolution',{exact:true}).selectOption('six_minute');
+  await page.getByRole('button',{name:'Load historical data',exact:true}).click();
+  await expect(page.locator('#history-status')).toContainText('up to 30 days');
+  await expect(page.locator('#history-status')).toContainText('Previous historical charts remain');
+  await expect(page.locator('#history-caption')).toContainText('2020-01-01 to 2020-01-02');
+  await expect(page.getByRole('button',{name:'Export historical CSV',exact:true})).toBeDisabled();
+});
+
+test('historical requests are cancelled when another station is selected', async ({page}) => {
+  let release;const barrier=new Promise(resolve=>{release=resolve;});
+  await openHistory(page);
+  await page.route('**/stations/9414290/history?*',async route=>{await barrier;await route.continue().catch(()=>{});});
+  await page.getByRole('button',{name:'Load historical data',exact:true}).click();
+  await station(page,'9099064').click();await expect(chart(page)).toHaveText('Duluth, MN');release();
+  await expect(page.locator('#history-caption')).not.toContainText('San Francisco');
+  await expect(page.locator('#history-results')).toHaveAttribute('aria-busy','false');
+});
+
+test('shared historical dates reload and unit changes refresh only the historical data once', async ({page}) => {
+  let requests=0;page.on('request',r=>{if(r.url().includes('/history?'))requests++;});
+  await page.goto('/?station=9414290&begin_date=2020-01-01&end_date=2020-03-31&resolution=auto');
+  await expect(page.locator('#history-status')).toContainText('Historical data loaded.');expect(requests).toBe(1);
+  await page.getByLabel('Time',{exact:true}).selectOption('utc');expect(requests).toBe(1);
+  await page.getByLabel('Units',{exact:true}).selectOption('metric');
+  await expect(page.locator('#history-caption')).toContainText('MLLW · m ·');expect(requests).toBe(2);
+  await page.getByRole('button',{name:'Refresh now',exact:true}).click();
+  await expect(page.locator('#station-charts')).not.toHaveAttribute('aria-busy','true');expect(requests).toBe(2);
+});
+
+test('empty and unavailable historical data give clear feedback without breaking current conditions', async ({page}) => {
+  await openHistory(page);
+  await page.route('**/history?*',route=>route.fulfill({status:503,json:{error:'NOAA is temporarily unavailable.'}}));
+  await page.getByRole('button',{name:'Load historical data',exact:true}).click();
+  await expect(page.locator('#history-status')).toContainText('temporarily unavailable');
+  await expect(chart(page)).toHaveText('San Francisco, CA');
+  await expect(page.getByRole('button',{name:'Export historical CSV',exact:true})).toBeDisabled();
+  await page.unroute('**/history?*');await page.route('**/history?*',async route=>{
+    const response=await route.fetch(),data=await response.json();data.observations=[];data.predictions=[];data.differences=[];await route.fulfill({json:data});
+  });
+  await page.getByRole('button',{name:'Load historical data',exact:true}).click();
+  await expect(page.locator('#history-status')).toContainText('No historical values');
+  await expect(page.locator('#history-chart .highcharts-container')).toHaveCount(0);
+});
