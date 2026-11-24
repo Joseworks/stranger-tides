@@ -498,6 +498,7 @@
     byId('share-station').addEventListener('click', async () => {
       try { await navigator.clipboard.writeText(window.location.href); text('report-status', 'Station link copied.'); }
       catch (_) { text('report-status', 'Copy the station link from your address bar.'); }
+      byId('report-status').classList.remove('quiet-status');
     });
     byId('locate').addEventListener('click', locateStations);
     try {
@@ -506,10 +507,16 @@
       text('catalog-status', payload.status.refreshed_at ? `Catalog refreshed ${date(payload.status.refreshed_at, 'UTC')} UTC${payload.status.stale ? ' · Refresh overdue' : ''}` : 'Saved station inventory · Automatic refresh not yet initialized');
       renderResults();
       if (payload.products_warning) byId('catalog-status').append(element('span', ' · Additional product discovery unavailable; station search remains available.'));
-      if (!stations.length) text('catalog-status', 'No stations are available. Please try again later.');
+      if (!stations.length) {
+        text('catalog-status', 'No stations are available. Please try again later.');
+        text('catalog-alert', 'No stations are available. Please reload to retry.'); byId('catalog-alert').hidden = false;
+      }
       const initial = stations.find(s => s.station_id === params.get('station'));
       if (initial) selectStation(initial);
-    } catch (_) { text('catalog-status', 'The station catalog is unavailable. Please reload to retry.'); }
+    } catch (_) {
+      text('catalog-status', 'The station catalog is unavailable. Please reload to retry.');
+      text('catalog-alert', 'The station catalog is unavailable. Please reload to retry.'); byId('catalog-alert').hidden = false;
+    }
     const key = byId('full_map').dataset.mapsKey;
     if (!key) { text('map-status', 'The map is unavailable. Use the station list to explore data.'); return; }
     const script = document.createElement('script');

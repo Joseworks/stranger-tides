@@ -72,3 +72,21 @@ test('partial refresh warnings remain visible with fresh readings in every repor
     await page.getByRole('tab',{name,exact:true}).click();await expect(warnings).toBeVisible();await expect(warnings).toContainText('predictions: Temporary upstream failure');
   }
 });
+for(const failed of [false,true]){
+  test(`copy-link feedback stays visible when clipboard ${failed?'fails':'succeeds'}`,async({page})=>{
+    await page.addInitScript(failed=>Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async()=>{if(failed)throw new Error('Clipboard declined');}}}),failed);
+    await page.goto('/?station=9414290');await expect(page.locator('.latest-reading')).toContainText('MLLW');
+    await page.getByRole('button',{name:'Copy station link',exact:true}).click();
+    const status=page.locator('#report-status');await expect(status).toHaveText(failed?'Copy the station link from your address bar.':'Station link copied.');
+    expect(await status.evaluate(n=>n.getBoundingClientRect().height)).toBeGreaterThan(10);
+  });
+  test(`catalog ${failed?'failure':'empty response'} is explained with discovery drawers closed`,async({page})=>{
+    await page.route('**/stations.json',async route=>{
+      if(failed)return route.fulfill({status:503,json:{error:'Catalog unavailable'}});
+      const response=await route.fetch(),payload=await response.json();payload.stations=[];await route.fulfill({response,json:payload});
+    });
+    await page.goto('/');await expect(page.getByRole('region',{name:'Map',exact:true})).toBeVisible();
+    await expect(page.locator('#station-filters')).toBeHidden();await expect(page.locator('#station-list')).toBeHidden();
+    await expect(page.locator('#catalog-alert')).toBeVisible();await expect(page.locator('#catalog-alert')).toContainText('Please reload to retry.');
+  });
+}

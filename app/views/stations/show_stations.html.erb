@@ -44,7 +44,7 @@
     <button id="more-stations" type="button" hidden>Show more stations</button>
   </section>
   <section class="map-section" aria-label="Station map">
-    <p id="map-status" class="muted" role="status">Loading map. You can also use the station list.</p>
+    <div class="map-messages"><p id="map-status" class="muted" role="status">Loading map. You can also use the station list.</p><p id="catalog-alert" role="status" hidden></p></div>
     <div id="full_map" data-marker-icon="<%= asset_path('orange_marker.svg') %>"
          data-extra-marker-icon="<%= asset_path('purple_marker.svg') %>"
          data-maps-key="<%= ENV['STRANGER_TIDES_EMBED_MAPS_API_KEY'] %>"
