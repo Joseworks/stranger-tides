@@ -1,0 +1,47 @@
+name: Catalog freshness
+
+on:
+  schedule:
+    - cron: '40 7 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  catalog-health:
+    name: Check production and staging catalog freshness
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Verify saved inventories are fresh
+        shell: python
+        run: |
+          import json
+          import time
+          import urllib.request
+          import urllib.error
+          from datetime import datetime, timezone, timedelta
+
+          failures = []
+          for name, url in [
+              ('production', 'https://www.stranger-tides.com/health/catalog'),
+              ('staging', 'https://stranger-tides-staging.herokuapp.com/health/catalog'),
+          ]:
+              for attempt in range(3):
+                  try:
+                      with urllib.request.urlopen(url, timeout=30) as response:
+                          payload = json.load(response)
+                      refreshed = datetime.fromisoformat(payload['refreshed_at'].replace('Z', '+00:00'))
+                      age = datetime.now(timezone.utc) - refreshed
+                      if payload['status'] != 'ok' or not timedelta(0) <= age <= timedelta(hours=24):
+                          raise ValueError('Catalog is missing or overdue')
+                      print(f'{name}: fresh catalog ({payload["refreshed_at"]})')
+                      break
+                  except (urllib.error.URLError, ValueError, KeyError, TypeError, TimeoutError) as error:
+                      if attempt < 2:
+                          time.sleep(10)
+                      else:
+                          failures.append(name)
+                          print(f'::error::{name}: catalog freshness check failed ({type(error).__name__}). Check the Heroku Scheduler job and refresh logs.')
+          if failures:
+              raise SystemExit('Catalog freshness requires attention: ' + ', '.join(failures))

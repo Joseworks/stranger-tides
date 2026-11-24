@@ -57,6 +57,7 @@ RSpec.describe Noaa::NearbyBuoys do
     result = described_class.new(station, client:).call
     expect(result[:buoys]).to eq([])
     expect(result[:warnings].join).to include('46026')
+    expect(result[:failed_buoys]).to eq(['46026'])
     stub_request(:get, /46026.txt/).to_return(body: 'bad header')
     expect(described_class.new(station, client:).call[:warnings].join).to include('columns')
   end
@@ -64,7 +65,9 @@ RSpec.describe Noaa::NearbyBuoys do
   it 'does not invent values when all columns are missing' do
     stub_request(:get, /46026.txt/).to_return(body:
       "#YY MM DD hh mm WVHT\n# units\n2026 11 14 18 00 MM\n")
-    expect(described_class.new(station, client:).call[:buoys]).to eq([])
+    result = described_class.new(station, client:).call
+    expect(result[:buoys]).to eq([])
+    expect(result[:failed_buoys]).to eq([])
   end
 
   it 'reports corrupt catalogs and network failures explicitly' do

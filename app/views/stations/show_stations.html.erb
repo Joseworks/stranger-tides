@@ -11,9 +11,22 @@
       <option value="waterlevels">Active water-level stations</option>
       <option value="tidepredictions">Tide prediction locations</option>
       <option value="waterlevelsandmet">Water-level &amp; weather stations</option>
-      <option value="additional">Additional products</option>
+      <option value="additional">Matching highlighted product</option>
       <option value="all">All locations</option>
     </select>
+    <label for="station-product">Highlight product</label>
+    <select id="station-product" aria-describedby="product-status">
+      <option value="specialized" selected>Specialized sensors</option>
+      <option value="ofs_water_level">Water-level forecast</option>
+      <option value="flood_outlook">Flood outlook</option>
+      <option value="salinity">Salinity</option>
+      <option value="conductivity">Conductivity</option>
+      <option value="visibility">Visibility</option>
+      <option value="air_gap">Bridge clearance</option>
+      <option value="one_minute_water_level">One-minute water levels</option>
+      <option value="any">Any additional product</option>
+    </select>
+    <p id="product-status" class="muted" aria-live="polite"></p>
     <p id="catalog-status" class="muted" role="status">Loading station catalog…</p>
     <button id="locate" type="button" aria-describedby="location-details">Find stations near me</button>
     <p id="location-details" class="muted">Location request from <span id="location-origin"><%= request.host_with_port %></span> to find nearby stations and center the Google map.</p>
@@ -24,7 +37,7 @@
   </section>
   <section class="map-section" aria-label="Station map">
     <p id="map-status" class="muted" role="status">Loading map. You can also use the station list.</p>
-    <p class="map-legend">Each pin is one station. Tap overlapping pins to spread them out without zooming. <span class="station-swatch" aria-hidden="true"></span> Orange pin = no confirmed extra products. <span class="station-swatch extra-swatch" aria-hidden="true"></span> Purple pin = additional products. <button id="extra-products-toggle" type="button" aria-pressed="false">Show additional products only</button></p>
+    <p class="map-legend">Each pin is one station. Tap overlapping pins to spread them out without zooming. <span class="station-swatch" aria-hidden="true"></span> Orange pin = other stations. <span class="station-swatch extra-swatch" aria-hidden="true"></span> <span id="highlight-legend">Purple pin = specialized sensors.</span> <button id="extra-products-toggle" type="button" aria-pressed="false">Show matching stations only</button></p>
     <div id="full_map" data-marker-icon="<%= asset_path('orange_marker.png') %>"
          data-extra-marker-icon="<%= asset_path('purple_marker.svg') %>"
          data-maps-key="<%= ENV['STRANGER_TIDES_EMBED_MAPS_API_KEY'] %>"
@@ -41,6 +54,9 @@
       <label>Units <select id="height-units" aria-label="Units"><option value="english">US units</option><option value="metric">Metric</option></select></label>
       <label>Time <select id="display-zone" aria-label="Time"><option value="local">Your local time</option><option value="station" disabled>Station local time</option><option value="utc">UTC</option></select></label>
     </div>
+    <label class="live-updates"><input id="live-updates" type="checkbox" checked aria-describedby="live-update-status"> Live updates</label>
+    <button id="refresh-report" type="button">Refresh now</button>
+    <p id="live-update-status" class="muted">Live updates every 6 minutes while this tab is visible.</p>
     <p id="report-status" role="status" aria-live="polite"></p>
     <button id="retry-report" type="button" hidden>Retry station data</button>
     <div id="station-summary"></div>

@@ -22,14 +22,16 @@ module Noaa
       datum = reference
       water = water_data(datum)
       weather_series = weather
-      verify_data_response!
+      raise @transport_error if @transport_error && !@received_data
+
       water.merge(station: @station, datum:, units: @units, hours: @hours,
                   fetched_at: @now.iso8601, future_hours: @future_hours,
                   stale: water[:latest].nil? ||
                     Time.iso8601(water[:latest][:time]) < @now - 18.minutes,
-                  weather: latest_weather(weather_series),
+                  weather: Series.latest(weather_series),
                   station_timezone: StationTimeZone.new(id, client: @client).call,
                   weather_series:, sensors: @sensors || [], warnings: @warnings || [],
+                  failed_products: @failed_products || [],
                   source_url: "https://tidesandcurrents.noaa.gov/stationhome.html?id=#{id}")
     end
 
@@ -40,7 +42,11 @@ module Noaa
     def capable?(type) = @station.fetch('capabilities', []).include?(type)
 
     def water_data(datum)
-      observed = capable?('waterlevels') ? optional_data('water_level', datum:) : []
+      observed = if capable?('waterlevels')
+                   optional_data('water_level', datum:, stream: 'observations')
+                 else
+                   []
+                 end
       predicted = predictions(datum)
       { observations: observed, predictions: predicted,
         future_predictions: future_predictions(datum), events: predictions(datum, future: true),
@@ -53,7 +59,9 @@ module Noaa
       return [] unless capable?('tidepredictions')
 
       interval = (future && events) || @station['prediction_type'] == 'S' ? 'hilo' : nil
-      optional_data('predictions', datum:, interval:, future:)
+      stream = 'predictions'
+      stream = events ? 'events' : 'future_predictions' if future
+      optional_data('predictions', datum:, interval:, future:, stream:)
     end
 
     def future_predictions(datum)
@@ -64,7 +72,7 @@ module Noaa
       WaterLevelDatum.new(@station, client: @client).call
     end
 
-    def optional_data(product, datum: nil, interval: nil, future: false)
+    def optional_data(product, datum: nil, interval: nil, future: false, stream: product)
       params = parameters(product, datum:, interval:, future:)
       payload = @client.get(DATA_PATH, params)
       rows = payload[product == 'predictions' ? 'predictions' : 'data']
@@ -75,7 +83,7 @@ module Noaa
       rows.filter_map { |row| Series.observation(row, product) }.uniq { |point| point[:timestamp] }
           .sort_by { |point| point[:timestamp] }
     rescue NoData, Unavailable => e
-      record_failure(product, e)
+      record_failure(product, e, stream:)
       []
     end
 
@@ -95,30 +103,19 @@ module Noaa
 
       @sensors = Sensors.new(id, client: @client).call
       series = @sensors.select { |sensor| sensor[:enabled] }.pluck(:product).index_with do |product|
-        optional_data(product)
+        optional_data(product, stream: "weather_series.#{product}")
       end
-      if series['salinity']
-        series['specific_gravity'] = series['salinity'].map do |point|
-          point.merge(value: point[:specific_gravity]&.finite? ? point[:specific_gravity] : nil)
-        end
-      end
+      series['specific_gravity'] = Series.specific_gravity(series['salinity']) if series['salinity']
       series
     rescue NoData, Unavailable => e
       record_failure('weather', e)
       {}
     end
 
-    def latest_weather(series)
-      series.transform_values { |points| points.rfind { |point| point[:value] } }.compact
-    end
-
-    def record_failure(product, error)
+    def record_failure(product, error, stream: product)
       @transport_error = error if error.is_a?(Unavailable)
+      (@failed_products ||= []) << stream if error.is_a?(Unavailable)
       (@warnings ||= []) << { product:, message: error.message }
-    end
-
-    def verify_data_response!
-      raise @transport_error if @transport_error && !@received_data
     end
   end
 end

@@ -4,10 +4,26 @@ module Noaa
   # Bulk capability discovery is separate from the immutable station inventory.
   class ProductCatalog
     EXTRA = %w[conductivity salinity specific_gravity visibility air_gap].freeze
-    attr_reader :warning
+    attr_reader :warning, :failed_sources
+
+    def self.links(products)
+      Array(products).filter_map do |product|
+        next unless product.is_a?(Hash)
+
+        uri = URI.parse(product['value'].to_s)
+        next unless %w[http https].include?(uri.scheme) && uri.userinfo.nil? &&
+                    %w[tidesandcurrents.noaa.gov www.tidesandcurrents.noaa.gov].include?(uri.host)
+
+        uri.scheme = 'https'
+        { name: product['name'].to_s.first(150), url: uri.to_s }
+      rescue URI::InvalidURIError
+        nil
+      end
+    end
 
     def initialize(client: Client.new)
       @client = client
+      @failed_sources = []
     end
 
     def enrich(stations)
@@ -30,6 +46,7 @@ module Noaa
       entries.index_by { |row| row['id'] }
     rescue NoData, Unavailable => e
       @warning = e.message
+      @failed_sources << 'station_products'
       {}
     end
 
@@ -56,6 +73,7 @@ module Noaa
       entries.pluck('id')
     rescue NoData, Unavailable => e
       @warning = e.message
+      @failed_sources << 'one_minute'
       []
     end
   end

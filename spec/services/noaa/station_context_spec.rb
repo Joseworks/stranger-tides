@@ -62,6 +62,7 @@ RSpec.describe Noaa::StationContext do
     expect(catalog.enrich([station]).first).to include('station_id' => '9414290',
                                                        'products_checked' => false)
     expect(catalog.warning).to include('temporarily unavailable')
+    expect(catalog.failed_sources).to contain_exactly('one_minute', 'station_products')
   end
 
   it 'rejects incomplete discovery and still accepts catalogs without a matching station' do
@@ -99,6 +100,7 @@ RSpec.describe Noaa::StationContext do
     expect(result[:forecast]).not_to be_empty
     expect(result[:flood_outlook]).to eq([])
     expect(result[:warnings].join).to include('Flood outlook')
+    expect(result[:failed_products]).to eq(['flood_outlook'])
   end
 
   context 'with Great Lakes metadata' do
@@ -144,6 +146,7 @@ RSpec.describe Noaa::StationContext do
     expect(result[:one_minute]).not_to be_empty
     expect(result[:forecast]).to be_empty
     expect(result[:warnings].join).to include('temporarily unavailable')
+    expect(result[:failed_products]).to contain_exactly('forecast', 'flood_outlook')
   end
 
   [503, 200].each do |status|
@@ -153,6 +156,8 @@ RSpec.describe Noaa::StationContext do
       expect(result).to include(datum: nil, one_minute: [], forecast: [], flood_outlook: [])
       expect(result[:products].sole[:name]).to eq('Datums')
       expect(result[:warnings].join).to include('Height reference')
+      expected = status == 503 ? %w[datum one_minute forecast flood_outlook] : []
+      expect(result[:failed_products]).to match_array(expected)
       expect(WebMock).not_to have_requested(:get, /datagetter|htb.json/)
     end
   end
