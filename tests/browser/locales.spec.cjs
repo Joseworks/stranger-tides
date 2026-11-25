@@ -14,6 +14,10 @@ const phrases={
 for(const [locale,label] of Object.entries(phrases))test(`language ${locale} translates reports and preserves source identifiers`,async({page},info)=>{
  await page.goto(`/?locale=${locale}&station=9099064&units=english&zone=station`);
  await expect(page.locator('html')).toHaveAttribute('lang',locale);
+ await expect(page.locator('#language-select')).toHaveValue(locale);
+ await expect(page.locator('.language-flag')).toBeVisible();
+ await expect(page.locator('.language-flag')).toHaveAttribute('src',new RegExp(`flag_${locale==='en'?'gb':locale}`));
+ expect(await page.locator('.language-flag').evaluate(image=>image.complete&&image.naturalWidth>0)).toBe(true);
  await expect(page.locator('#station-search')).toHaveAttribute('placeholder',label.find);
  await expect(page.locator('#station-heading')).toHaveText('Duluth, MN');
  await expect(page.locator('.latest-reading')).toContainText(locale==='en'?'602.18':'602,18');
@@ -35,6 +39,7 @@ test('language switching preserves station, units, time zone and historical date
  await expect(page.locator('#history-status')).toContainText('Historical data loaded.');
  await page.locator('#language-select').selectOption('es');
  await expect(page.locator('html')).toHaveAttribute('lang','es');
+ await expect(page.locator('.language-flag')).toHaveAttribute('src',/flag_es/);
  await expect(page.locator('#history-status')).toContainText('Datos históricos cargados.');
  const params=new URL(page.url()).searchParams;
  expect(params.get('station')).toBe('9414290');expect(params.get('units')).toBe('metric');

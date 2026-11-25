@@ -145,5 +145,7 @@ h1 { overflow-wrap: anywhere; }
 #station-photo figcaption { margin-top: 6px; font-size: .75rem; color: #55717d; }
 
 .brand-row { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; }
-.language-control select { max-width: 115px; font-size: .8rem; }
-@media (max-width: 600px) { .brand-row .brand { font-size: 1.1rem; gap: 6px; } .brand-row .brand-wave { width: 26px; } .language-control select { max-width: 100px; } }
+.language-control { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; }
+.language-flag { width: 24px; height: 16px; border-radius: 2px; }
+.language-control select { max-width: 115px; font-size: .8rem; color: #183b49; background: white; }
+@media (max-width: 600px) { .brand-row { gap: 4px; } .brand-row .brand { font-size: 1.1rem; gap: 6px; } .brand-row .brand-wave { width: 26px; } .language-control { gap: 4px; } .language-flag { width: 20px; height: 14px; } .language-control select { max-width: 92px; } }

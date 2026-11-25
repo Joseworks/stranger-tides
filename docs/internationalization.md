@@ -6,6 +6,8 @@ Independent feature branch `codex/internationalization`, based on main. English 
 
 Use `?locale=en`, `es`, `fr` or `de`. An explicit supported choice is remembered in a host-only, HttpOnly, SameSite=Lax cookie (Secure on HTTPS); the URL takes precedence over the cookie, with English fallback. Language changes preserve station IDs, units, time-zone choice, selected tab and historical dates already encoded in the URL. They perform a deliberate page navigation; measurement/time selectors keep their existing in-place behavior.
 
+The top-right selector pairs the native language name with a small decorative flag (UK, Spain, France or Germany). The name and translated accessible label identify the language; the flag is hidden from screen readers. Flags are local SVG assets and update with the selected locale. The control remains visible at a 320-pixel viewport width.
+
 Rails scopes the locale to each request with `I18n.with_locale`, sets HTML `lang` and Content-Language, and varies responses by Cookie. It never sets a process-wide user locale. Language values are allowlisted before setting cookies or choosing translations.
 
 The four `config/locales/ui.*.yml` dictionaries use literal English source phrases as keys under `messages`, shared by ERB (`ui`) and JavaScript (`AppI18n.t`). Periods inside phrases are not treated as nested keys. Tagged templates use numbered interpolation slots so translations may reorder values. Dictionary content enters the page as escaped application/json and is parsed as data; user/source values are rendered through textContent, not HTML. Unknown upstream diagnostic messages fall back to their original wording.

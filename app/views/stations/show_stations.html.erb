@@ -1,6 +1,6 @@
 <header id="header">
   <div class="brand-row"><a href="<%= root_path(locale: I18n.locale) %>" class="brand"><svg class="brand-wave" viewBox="0 0 44 26" aria-hidden="true"><path d="M2 8C9 0 16 0 23 7S36 14 42 6M2 20C9 12 16 12 23 19S36 26 42 18"/></svg>Stranger Tides</a>
-  <label class="language-control"><span class="sr-only"><%= ui("Language") %></span><select id="language-select" aria-label="<%= ui("Language") %>"><%= options_for_select([['English','en'],['Español','es'],['Français','fr'],['Deutsch','de']], I18n.locale.to_s) %></select></label></div>
+  <label class="language-control"><span class="sr-only"><%= ui("Language") %></span><%= image_tag({ en: 'flag_gb.svg', es: 'flag_es.svg', fr: 'flag_fr.svg', de: 'flag_de.svg' }.fetch(I18n.locale), class: 'language-flag', alt: '', 'aria-hidden': true) %><select id="language-select" aria-label="<%= ui("Language") %>"><%= options_for_select([['English','en'],['Español','es'],['Français','fr'],['Deutsch','de']], I18n.locale.to_s) %></select></label></div>
   <p class="header-caption"><%= ui("Explore NOAA water levels, tide predictions and station conditions through an interactive map.") %></p>
   <p class="header-credit"><%= ui("A Ruby on Rails demonstration by") %> <a href="https://www.joseworks.org" target="_blank" rel="noopener noreferrer">JoseWorks Technologies LLC</a>.</p>
 </header>
