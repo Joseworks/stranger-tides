@@ -24,6 +24,7 @@
   }
   function showView(name, focus = false) {
     if (!views.includes(name)) return;
+    if (byId(`tab-${name}`).hidden) name = 'now';
     const body = byId('station-panel').querySelector('.station-body'), changed = view !== name;
     if (changed) positions.set(view, body.scrollTop);
     view = name;
@@ -56,8 +57,8 @@
     views.forEach(name => {
       const tab = byId(`tab-${name}`); tab.addEventListener('click', () => showView(name));
       tab.addEventListener('keydown', event => {
-        const index = views.indexOf(name);
-        const next = event.key === 'ArrowRight' ? views[(index+1)%4] : event.key === 'ArrowLeft' ? views[(index+3)%4] : event.key === 'Home' ? views[0] : event.key === 'End' ? views[3] : null;
+        const visible = views.filter(value => !byId(`tab-${value}`).hidden), index = visible.indexOf(name);
+        const next = event.key === 'ArrowRight' ? visible[(index+1)%visible.length] : event.key === 'ArrowLeft' ? visible[(index+visible.length-1)%visible.length] : event.key === 'Home' ? visible[0] : event.key === 'End' ? visible.at(-1) : null;
         if (next) {event.preventDefault(); showView(next,true);}
       });
     });

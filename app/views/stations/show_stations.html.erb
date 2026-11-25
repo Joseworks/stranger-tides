@@ -11,6 +11,8 @@
   </div>
   <section id="station-filters" class="discovery drawer" aria-label="Station filters" hidden>
     <div class="drawer-heading"><h2>Filter stations</h2><button type="button" data-close-drawer aria-label="Close filters">×</button></div>
+    <label for="station-network">Station network</label>
+    <select id="station-network"><option value="noaa">United States — NOAA</option><option value="uk">United Kingdom — Environment Agency</option><option value="all">Both networks</option></select>
     <label for="station-layer">Show stations</label>
     <select id="station-layer">
       <option value="waterlevels">Active water-level stations</option>
@@ -50,7 +52,7 @@
          data-extra-marker-icon="<%= asset_path('purple_marker.svg') %>"
          data-maps-key="<%= ENV['STRANGER_TIDES_EMBED_MAPS_API_KEY'] %>"
          data-map-id="<%= ENV['STRANGER_TIDES_MAP_ID'] %>"></div>
-    <details class="map-legend"><summary><span class="station-swatch" aria-hidden="true"></span> Stations <span class="station-swatch extra-swatch" aria-hidden="true"></span> <span id="legend-product">Extra sensors</span></summary><p>Each pin is one station. Tap overlapping pins to spread them out without zooming. Orange pin = other stations. <span id="highlight-legend">Purple pin = specialized sensors.</span></p><button id="extra-products-toggle" type="button" aria-pressed="false">Show matching stations only</button></details>
+    <details class="map-legend"><summary><span class="station-swatch" aria-hidden="true"></span> Stations <span class="station-swatch extra-swatch" aria-hidden="true"></span> <span id="legend-product">Stations with Extra Sensors</span></summary><p>Each pin is one station. Tap overlapping pins to spread them out without zooming. Orange pin = other stations. <span id="highlight-legend">Purple pin = specialized sensors.</span></p><button id="extra-products-toggle" type="button" aria-pressed="false">Show matching stations only</button></details>
   </section>
   <section id="station-panel" aria-labelledby="station-heading" hidden>
     <div class="panel-heading">
@@ -72,7 +74,8 @@
         <details id="station-photo" class="secondary-details"><summary>Station photo</summary><div id="station-photo-content" aria-live="polite"></div></details>
       </section>
       <section id="view-tides" role="tabpanel" aria-labelledby="tab-tides" tabindex="0" hidden>
-        <div class="range-controls"><label>History <select id="history-hours" aria-label="History"><option value="24">24 hours</option><option value="48" selected>48 hours</option><option value="72">72 hours</option><option value="168">7 days</option><option value="720">30 days</option></select></label><label>Plan ahead <select id="future-hours" aria-label="Plan ahead"><option value="0">Off</option><option value="24">24 hours</option><option value="72">3 days</option><option value="168" selected>7 days</option><option value="720">30 days</option></select></label></div>
+        <div class="range-controls"><label>History <select id="history-hours" aria-label="History"><option value="24">24 hours</option><option value="48" selected>48 hours</option><option value="72">72 hours</option><option value="168">7 days</option><option value="672" hidden disabled>28 days</option><option value="720">30 days</option></select></label><label id="planning-control">Plan ahead <select id="future-hours" aria-label="Plan ahead"><option value="0">Off</option><option value="24">24 hours</option><option value="72">3 days</option><option value="168" selected>7 days</option><option value="720">30 days</option></select></label></div>
+        <p id="uk-products-note" class="muted" hidden>Environment Agency provides measured sea levels every 15 minutes, usually delayed by 15–30 minutes. This free service does not provide future tide predictions, weather or station photos.</p>
         <div id="station-charts"><div id="graph-partial" aria-label="Water-level chart"></div></div>
         <details id="planning-products" class="secondary-details"><summary>Future tides &amp; observed difference</summary><section id="planning-charts" aria-label="Tide planning and differences"></section></details>
         <details id="forecast-products" class="secondary-details"><summary>Forecasts &amp; flood context</summary><section id="station-context" aria-label="Forecasts and flood context"></section></details>
@@ -93,6 +96,7 @@
         <label for="history-resolution">Historical resolution</label>
         <select id="history-resolution" aria-describedby="history-help">
           <option value="auto">Automatic</option>
+          <option value="fifteen_minute" hidden disabled>Fifteen-minute (past 28 days)</option>
           <option value="six_minute">Six-minute (up to 30 days)</option>
           <option value="hourly">Verified hourly (up to 365 days)</option>
           <option value="monthly">Verified monthly means (up to 200 years)</option>
@@ -121,4 +125,4 @@
   </section>
   <noscript>JavaScript is needed for the interactive explorer. <a href="https://tidesandcurrents.noaa.gov/map/">Browse NOAA's station map.</a></noscript>
 </main>
-<footer id="site-footer"><p class="station-attribution">Data provided by <a href="https://www.noaa.gov/" target="_blank" rel="noopener noreferrer">NOAA</a>’s <a href="https://oceanservice.noaa.gov/" target="_blank" rel="noopener noreferrer">National Ocean Service</a>, <a href="https://tidesandcurrents.noaa.gov/" target="_blank" rel="noopener noreferrer">Center for Operational Oceanographic Products and Services (CO-OPS)</a>.</p></footer>
+<footer id="site-footer"><p class="station-attribution">Data provided by <a href="https://www.noaa.gov/" target="_blank" rel="noopener noreferrer">NOAA</a>’s <a href="https://oceanservice.noaa.gov/" target="_blank" rel="noopener noreferrer">National Ocean Service</a>, <a href="https://tidesandcurrents.noaa.gov/" target="_blank" rel="noopener noreferrer">Center for Operational Oceanographic Products and Services (CO-OPS)</a>.</p><p id="uk-attribution" hidden>This uses <a href="https://environment.data.gov.uk/flood-monitoring/doc/tidegauge" target="_blank" rel="noopener noreferrer">Environment Agency tide gauge data from the real-time data API (Beta)</a>, under the <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" target="_blank" rel="noopener noreferrer">Open Government Licence</a>.</p></footer>

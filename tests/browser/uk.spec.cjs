@@ -1,0 +1,45 @@
+const {test,expect}=require('@playwright/test');
+const fs=require('node:fs/promises');
+const path=require('node:path');
+test.beforeEach(async({page})=>{
+ page.testErrors=[];page.on('pageerror',e=>page.testErrors.push(e.message));
+ await page.route('https://maps.googleapis.com/**',r=>r.fulfill({path:path.join(__dirname,'maps-fixture.js'),contentType:'application/javascript'}));
+});
+test.afterEach(async({page})=>expect(page.testErrors).toEqual([]));
+test('UK gauges share the map, preserve 15-minute lines and hide unsupported products',async({page})=>{
+ await page.goto('/?network=uk&station=ea-E70039&units=metric');
+ await expect(page.locator('#station-heading')).toHaveText('Lowestoft, UK');
+ await expect(page.locator('.latest-reading')).toContainText('ODN');
+ await expect(page.locator('#station-code')).toHaveText('Environment Agency E70039');
+ await expect(page.locator('#tab-weather')).toBeHidden();
+ await expect(page.locator('#station-photo')).toBeHidden();
+ await expect(page.locator('#uk-attribution')).toBeVisible();
+ await expect(page.locator('#legend-product')).toHaveText('Stations with Extra Sensors');
+ await page.locator('#tab-tides').click();
+ await expect(page.locator('#uk-products-note')).toBeVisible();
+ await expect(page.locator('#planning-control')).toBeHidden();
+ expect(await page.evaluate(()=>chart_graph_partial.series[0].getColumn('y'))).toEqual([-0.3048,0,0.3048]);
+ await page.locator('#history-hours').selectOption('672');
+ await expect(page.locator('#graph-partial .highcharts-subtitle')).toContainText('672 hours');
+ await page.getByRole('button',{name:'Filters',exact:true}).click();
+ await page.getByLabel('Station network',{exact:true}).selectOption('noaa');
+ await page.getByLabel('Find a station',{exact:true}).fill('9414290');
+ await page.locator('#station-results button[data-station-id="9414290"]').click();
+ await expect(page.locator('.latest-reading')).toContainText('MLLW');
+ await expect(page.locator('#tab-weather')).toBeVisible();
+ await page.locator('#tab-now').click();
+ await expect(page.locator('#station-photo')).toBeVisible();
+ await expect(page.locator('#history-hours')).toHaveValue('720');
+});
+test('UK recent dates export CSV and the station timezone remains Europe/London',async({page})=>{
+ await page.goto('/?network=uk&station=ea-E70039&units=metric&zone=station');
+ await expect(page.locator('.latest-reading')).toContainText('ODN');
+ await page.locator('#tab-history').click();
+ await page.locator('#history-form button[type=submit]').click();
+ await expect(page.locator('#history-status')).toContainText('Historical data loaded.');
+ const download=page.waitForEvent('download');await page.locator('#history-export').click();
+ const csv=await fs.readFile(await(await download).path(),'utf8');
+ expect(csv).toContain('fifteen_minute');expect(csv).toContain('ODN');expect(csv).toContain('ea-E70039');
+ await expect(page.locator('#history-caption')).toContainText('Europe/London');
+ await expect(page.locator('#history-resolution option[value="monthly"]')).toBeDisabled();
+});

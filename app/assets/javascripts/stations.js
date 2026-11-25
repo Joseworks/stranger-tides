@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   let stations = [], filtered = [], visibleCount = 100, map, infoWindow, spread, markers = new Map();
-  let selected, report, pending, generation = 0, chart, savedFocus;
+  let selected, report, pending, generation = 0, chart, savedFocus, catalogGeneration = 0;
   const weatherCharts = new Map();
   let locationPosition, locationIntent = 0;
   let lastLayer = 'waterlevels';
@@ -24,6 +24,7 @@
   const zone = () => byId('display-zone').value === 'station' ? report?.station_timezone || 'UTC' :
     byId('display-zone').value === 'utc' ? 'UTC' : Intl.DateTimeFormat().resolvedOptions().timeZone;
   const date = (value, timeZone = zone()) => new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short', timeZone }).format(new Date(value));
+  const isUk = station => station?.provider === 'environment_agency';
   const quality = value => ({ p: 'Preliminary', v: 'Verified' }[value] || 'Quality not provided');
   const unit = () => (report?.units || byId('height-units').value) === 'metric' ? 'm' : 'ft';
   function element(tag, value, className) {
@@ -46,8 +47,8 @@
     const points = [];
     values.forEach((point, index) => {
       const previous = values[index - 1];
-      if (previous && point.timestamp - previous.timestamp > 6 * 60000) {
-        points.push([previous.timestamp + 6 * 60000, null]);
+      if (previous && point.timestamp - previous.timestamp > (report?.interval_minutes || 6) * 60000) {
+        points.push([previous.timestamp + (report?.interval_minutes || 6) * 60000, null]);
       }
       points.push([point.timestamp, numeric(point[field])]);
     });
@@ -57,6 +58,7 @@
     const url = new URL(window.location.href);
     for (const [key, value] of Object.entries({ station: selected?.station_id, hours: byId('history-hours').value,
       future_hours: byId('future-hours').value, units: byId('height-units').value, zone: byId('display-zone').value,
+      network: byId('station-network').value === 'noaa' ? null : byId('station-network').value,
       product: byId('station-product').value === 'specialized' ? null : byId('station-product').value,
       layer: byId('station-layer').value === 'waterlevels' ? null : byId('station-layer').value })) {
       if (value) url.searchParams.set(key, value); else url.searchParams.delete(key);
@@ -72,7 +74,7 @@
       `${s.station_name} ${s.station_id} ${s.state || ''}`.toLocaleLowerCase().includes(search));
     text('result-count', `${filtered.length} matching locations`);
     text('highlight-legend', `Purple pin = ${highlightedLabel().toLocaleLowerCase()}.`);
-    text('legend-product', byId('station-product').value === 'specialized' ? 'Extra sensors' : highlightedLabel());
+    text('legend-product', byId('station-product').value === 'specialized' ? 'Stations with Extra Sensors' : highlightedLabel());
     text('product-status', `${filtered.filter(highlighted).length} of ${filtered.length} matching stations advertise ${highlightedLabel().toLocaleLowerCase()}. Check reading timestamps for current availability.`);
     byId('station-results').replaceChildren(...filtered.slice(0, visibleCount).map(s => {
       const item = document.createElement('li'); const button = element('button', `${stationLabel(s)} ${s.station_id}`);
@@ -159,6 +161,7 @@
       infoWindow = new google.maps.InfoWindow({disableAutoPan: true});
       spread = window.StationSpread.create({map, host: byId('full_map'), label: stationLabel, extras: highlighted,
         select: station => selectStation(station, {preserveViewport: true})});
+      if (byId('station-network').value === 'uk' && !selected) {map.setCenter({lat:55,lng:-3});map.setZoom(5);}
       positionSelectedStation();
       if (locationPosition) {map.setCenter(locationPosition); map.setZoom(8);}
       map.addListener?.('idle', () => renderMarkers());
@@ -179,8 +182,10 @@
     measurementLimit = 1000; byId('observations-table').open = false;
     savedFocus = document.activeElement; selected = station; report = null; window.StationPhotos.reset(station); window.StationExtras.reset(); window.StationHistory.reset(); updateStationZone();
     byId('station-panel').hidden = false; text('station-heading', stationLabel(station));
-    text('station-code', `NOAA ${station.station_id}`); window.StationLayout.selected(station);
-    byId('noaa-station-link').href = `https://tidesandcurrents.noaa.gov/stationhome.html?id=${encodeURIComponent(station.station_id)}`;
+    configureProvider(station);
+    text('station-code', `${isUk(station) ? 'Environment Agency' : 'NOAA'} ${station.source_id || station.station_id}`); window.StationLayout.selected(station);
+    byId('noaa-station-link').href = isUk(station) ? station.source_url : `https://tidesandcurrents.noaa.gov/stationhome.html?id=${encodeURIComponent(station.station_id)}`;
+    byId('noaa-station-link').textContent = isUk(station) ? 'View this station at Environment Agency' : 'View this station at NOAA';
     positionSelectedStation({preserveViewport});
     updateSelectedMarkers();
     const heading = byId('station-heading'), bounds = heading.getBoundingClientRect();
@@ -196,7 +201,7 @@
     }
     if (failures.has('observations')) {
       payload.latest = report.latest;
-      payload.stale = !payload.latest || Date.parse(payload.latest.time) < Date.now() - 18 * 60000;
+      payload.stale = !payload.latest || Date.parse(payload.latest.time) < Date.now() - (report?.stale_after_minutes || 18) * 60000;
     }
     if (failures.has('observations') || failures.has('predictions')) payload.differences = report.differences;
     if (failures.has('weather')) {
@@ -224,7 +229,7 @@
     }
     byId('retry-report').hidden = true;
     byId('station-charts').setAttribute('aria-busy', 'true');
-    text('report-status', updating ? 'Updating station charts…' : 'Loading NOAA station data…');
+    text('report-status', updating ? 'Updating station charts…' : isUk(selected) ? 'Loading Environment Agency station data…' : 'Loading NOAA station data…');
     byId('report-status').classList.remove('quiet-status');
     try {
       const params = new URLSearchParams({ hours: byId('history-hours').value, future_hours: byId('future-hours').value, units: byId('height-units').value });
@@ -312,7 +317,7 @@
     if (!report?.latest || !byId('reading-age')) return;
     const age = Math.max(0, Math.floor((Date.now() - Date.parse(report.latest.time)) / 60000));
     text('reading-age', `Observed ${date(report.latest.time)} · ${age} minutes ago`);
-    const stale = Date.parse(report.latest.time) < Date.now() - 18 * 60000;
+    const stale = Date.parse(report.latest.time) < Date.now() - (report?.stale_after_minutes || 18) * 60000;
     byId('reading-freshness').hidden = !stale;
     text('reading-freshness', stale ? 'This observation is now stale. Check timestamps before using these data.' : '');
   }
@@ -375,6 +380,8 @@
       freshness.setAttribute('role', 'status'); warnings.append(freshness); updateFreshness();
     }
     if (report.datum) summary.append(element('p', `Height reference: ${report.datum} · Times: ${zone()}`, 'muted'));
+    if (isUk(selected)) summary.append(element('p', report.datum === 'ODN' ? 'Sea-level elevation relative to Ordnance Datum Newlyn (ODN), not height above the seabed or predicted tide. Measurements are 15-minute means; quality is not supplied by this feed.' : 'Sea level relative to the station local datum. Measurements are 15-minute means; quality is not supplied by this feed.', 'datum-explanation'));
+    if (isUk(selected) && selected.source_status === 'not supplied') summary.append(element('p', 'The catalog does not supply an operating status for this gauge. Use the observation timestamp to check current availability.', 'muted'));
     if (report.datum === 'IGLD') {
       summary.append(element('p', 'Lake-surface elevation relative to the International Great Lakes Datum (IGLD), rather than tide height. The variation below shows how much the water rose and fell during the selected period.', 'datum-explanation'));
     }
@@ -404,7 +411,7 @@
     if (series.length) {
       const options = {
         chart: { type: 'line', animation: false }, title: { text: stationLabel(selected) },
-        subtitle: { text: `Past ${report.hours} hours · Source: NOAA CO-OPS` }, time: { timezone: zone() },
+        subtitle: { text: `Past ${report.hours} hours · Source: ${report.source_name || 'NOAA CO-OPS'}` }, time: { timezone: zone() },
         xAxis: { type: 'datetime' }, yAxis: { title: { text: `${report.datum === 'IGLD' ? 'Lake-level elevation' : 'Water level'} (${unit()}, ${report.datum})` } },
         tooltip: { xDateFormat: '%e %b %Y %H:%M', valueSuffix: ` ${unit()}` },
         credits: { enabled: false }, series
@@ -467,13 +474,51 @@
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 });
     } catch (_) { finish('Location is unavailable. Try again or search by name or state.'); }
   }
+  function configureProvider(station) {
+    const uk = isUk(station);
+    for (const id of ['planning-control', 'planning-products', 'forecast-products', 'station-photo', 'tab-weather']) byId(id).hidden = uk;
+    byId('uk-products-note').hidden = !uk;
+    const hours = byId('history-hours');
+    for (const option of hours.options) {
+      if (['672','720'].includes(option.value)) option.hidden = option.disabled = uk ? option.value === '720' : option.value === '672';
+    }
+    if (uk && hours.value === '720') hours.value = '672';
+    if (!uk && hours.value === '672') hours.value = '720';
+  }
+  async function loadCatalog(initialId) {
+    const token = ++catalogGeneration, network = byId('station-network').value;
+    try {
+      const response = await fetch(network === 'noaa' ? '/stations.json' : `/stations.json?${new URLSearchParams({network})}`);
+      if (!response.ok) throw Error('Catalog unavailable');
+      const payload = await response.json(); if (token !== catalogGeneration) return;
+      stations = payload.stations; byId('catalog-alert').hidden = true;
+      byId('uk-attribution').hidden = network === 'noaa';
+      text('catalog-status', payload.status.refreshed_at ? `Catalog refreshed ${date(payload.status.refreshed_at, 'UTC')} UTC${payload.status.stale ? ' · Refresh overdue' : ''}` : 'Saved station inventory · Automatic refresh not yet initialized');
+      if (payload.products_warning) byId('catalog-status').append(element('span', ' · Additional product discovery unavailable; station search remains available.'));
+      if (payload.network_warnings?.length) {text('catalog-alert', payload.network_warnings.join(' ') + ' Available networks remain usable.'); byId('catalog-alert').hidden = false;}
+      renderResults();
+      if (!stations.length) {
+        text('catalog-status', 'No stations are available. Please try again later.');
+        text('catalog-alert', 'No stations are available. Please reload to retry.'); byId('catalog-alert').hidden = false;
+      }
+      const initial = stations.find(station => station.station_id === initialId);
+      if (initial) selectStation(initial);
+      if (network === 'uk' && !selected && map) {map.setCenter({lat:55,lng:-3});map.setZoom(5);}
+    } catch (_) {
+      if (token !== catalogGeneration) return;
+      text('catalog-status', 'The station catalog is unavailable. Please reload to retry.');
+      text('catalog-alert', 'The station catalog is unavailable. Please reload to retry.'); byId('catalog-alert').hidden = false;
+    }
+  }
   async function start() {
     if (!byId('station-explorer')) return;
     text('location-origin', window.location.host);
     const params = new URL(window.location.href).searchParams;
-    for (const [key, id] of [['hours', 'history-hours'], ['future_hours', 'future-hours'], ['units', 'height-units'], ['zone', 'display-zone'], ['product', 'station-product'], ['layer', 'station-layer']]) {
+    for (const [key, id] of [['hours', 'history-hours'], ['future_hours', 'future-hours'], ['units', 'height-units'], ['zone', 'display-zone'], ['product', 'station-product'], ['layer', 'station-layer'], ['network', 'station-network']]) {
       const value = params.get(key); if ([...byId(id).options].some(o => o.value === value)) byId(id).value = value;
     }
+    if (params.get('station')?.startsWith('ea-') && byId('station-network').value === 'noaa') byId('station-network').value = 'uk';
+    byId('station-network').addEventListener('change', () => {updateUrl(); loadCatalog();});
     byId('station-search').addEventListener('input', () => { visibleCount = 100; renderResults(); });
     byId('station-layer').addEventListener('change', () => { visibleCount = 100; renderResults(); updateUrl(); });
     byId('station-product').addEventListener('change', () => { visibleCount = 100; renderResults(); updateUrl(); });
@@ -501,22 +546,7 @@
       byId('report-status').classList.remove('quiet-status');
     });
     byId('locate').addEventListener('click', locateStations);
-    try {
-      const response = await fetch('/stations.json'); if (!response.ok) throw new Error('Catalog unavailable');
-      const payload = await response.json(); stations = payload.stations;
-      text('catalog-status', payload.status.refreshed_at ? `Catalog refreshed ${date(payload.status.refreshed_at, 'UTC')} UTC${payload.status.stale ? ' · Refresh overdue' : ''}` : 'Saved station inventory · Automatic refresh not yet initialized');
-      renderResults();
-      if (payload.products_warning) byId('catalog-status').append(element('span', ' · Additional product discovery unavailable; station search remains available.'));
-      if (!stations.length) {
-        text('catalog-status', 'No stations are available. Please try again later.');
-        text('catalog-alert', 'No stations are available. Please reload to retry.'); byId('catalog-alert').hidden = false;
-      }
-      const initial = stations.find(s => s.station_id === params.get('station'));
-      if (initial) selectStation(initial);
-    } catch (_) {
-      text('catalog-status', 'The station catalog is unavailable. Please reload to retry.');
-      text('catalog-alert', 'The station catalog is unavailable. Please reload to retry.'); byId('catalog-alert').hidden = false;
-    }
+    await loadCatalog(params.get('station'));
     const key = byId('full_map').dataset.mapsKey;
     if (!key) { text('map-status', 'The map is unavailable. Use the station list to explore data.'); return; }
     const script = document.createElement('script');
