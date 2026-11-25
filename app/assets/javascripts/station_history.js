@@ -1,17 +1,18 @@
 /* global Highcharts */
 (() => {
   'use strict';
+  const tr = (...args) => window.AppI18n.t(...args);
   const byId = id => document.getElementById(id), charts = new Map();
   let state, result, request, requestedUnits, version = 0, key, limit = 500, initialized = false;
-  const node = (tag, value) => {const el = document.createElement(tag); el.textContent = value; return el;};
+  const node = (tag, value) => {const el = document.createElement(tag); el.textContent = tr(value); return el;};
   const unit = () => result.units === 'metric' ? 'm' : 'ft';
   const monthly = () => result.window.calendar_months;
   const stamp = point => monthly() ? point.period : state.date(point.time);
-  const observedName = () => monthly() ? 'Monthly mean water level (MSL)' : result.window.resolution === 'hourly' ? 'Verified hourly water level' : 'Observed water level';
+  const observedName = () => monthly() ? tr('Monthly mean water level (MSL)') : result.window.resolution === 'hourly' ? tr('Verified hourly water level') : tr('Observed water level');
   const datasets = () => [
     {name: observedName(), product: result.window.product, values: result.observations},
-    {name: 'Tide prediction', product: 'predictions', values: result.predictions},
-    {name: 'Observed minus predicted', product: 'observed_minus_predicted', values: result.differences}
+    {name: tr('Tide prediction'), product: 'predictions', values: result.predictions},
+    {name: tr('Observed minus predicted'), product: 'observed_minus_predicted', values: result.differences}
   ];
   function destroy() {charts.forEach(c => c.destroy()); charts.clear();}
   function points(values) {
@@ -30,7 +31,7 @@
     if (!series.some(s => s.data.some(p => p[1] !== null))) {charts.get(id)?.destroy(); charts.delete(id); return;}
     const options = {
       chart: {animation: false, height: 330}, title: {text: title},
-      subtitle: {text: `${result.window.begin_date} to ${result.window.end_date} · ${result.datum} · NOAA CO-OPS`},
+      subtitle: {text: tr`${result.window.begin_date} to ${result.window.end_date} · ${result.datum} · NOAA CO-OPS`},
       time: {timezone: monthly() ? 'UTC' : state.zone()}, xAxis: {type: 'datetime'},
       yAxis: {title: {text: `${unit()}${id === 'history-chart' ? `, ${result.datum}` : ''}`}},
       tooltip: {xDateFormat: monthly() ? '%B %Y' : '%e %b %Y %H:%M', valueSuffix: ` ${unit()}`},
@@ -45,26 +46,26 @@
     const rows = datasets().flatMap(d => d.values.map(point => ({...d, point}))).sort((a,b) => a.point.timestamp - b.point.timestamp);
     byId('history-rows').replaceChildren(...rows.slice(0,limit).map(({name, point}) => {
       const tr = node('tr','');
-      [stamp(point), name, point.value === null ? 'Missing' : `${point.value} ${unit()}`,
-        `${point.quality === 'v' ? 'Verified' : point.quality === 'p' ? 'Preliminary' : 'Not provided'} / ${point.flags || 'Not provided'}`].forEach(value => tr.append(node('td',value)));
+      [stamp(point), name, point.value === null ? tr('Missing') : `${point.value} ${unit()}`,
+        `${point.quality === 'v' ? tr('Verified') : point.quality === 'p' ? tr('Preliminary') : tr('Not provided')} / ${point.flags || tr('Not provided')}`].forEach(value => tr.append(node('td',value)));
       return tr;
     }));
-    byId('history-page').textContent = `Showing ${Math.min(limit, rows.length)} of ${rows.length} measurements. CSV includes all loaded rows, including gaps and flags.`;
+    byId('history-page').textContent = tr`Showing ${Math.min(limit, rows.length)} of ${rows.length} measurements. CSV includes all loaded rows, including gaps and flags.`;
     byId('history-more').hidden = rows.length <= limit;
   }
   function render() {
     if (!result) return;
     const station = state.selected;
     const label = station.state && !station.station_name.endsWith(`, ${station.state}`) ? `${station.station_name}, ${station.state}` : station.station_name;
-    byId('history-caption').textContent = `${label} · ${result.window.begin_date} to ${result.window.end_date} · ${result.window.resolution.replaceAll('_',' ')} · ${result.datum} · ${unit()} · ${monthly() ? 'Calendar months (no time zone conversion)' : `Dates bounded in UTC; timestamps shown in ${state.zone()}`}. Historical data do not auto-refresh.`;
+    byId('history-caption').textContent = tr`${label} · ${result.window.begin_date} to ${result.window.end_date} · ${result.window.resolution.replaceAll('_',' ')} · ${result.datum} · ${unit()} · ${monthly() ? tr('Calendar months (no time zone conversion)') : tr`Dates bounded in UTC; timestamps shown in ${state.zone()}`}. Historical data do not auto-refresh.`;
     byId('history-table-caption').textContent = byId('history-caption').textContent;
     const subordinate = state.selected.prediction_type === 'S';
     draw('history-chart', observedName(), [
       {name: observedName(), data: points(result.observations)},
-      {name: subordinate ? 'Predicted high/low events' : 'Tide prediction', type: subordinate ? 'scatter' : 'line',
+      {name: subordinate ? tr('Predicted high/low events') : tr('Tide prediction'), type: subordinate ? 'scatter' : 'line',
         data: subordinate ? result.predictions.map(p => [p.timestamp, p.value]) : points(result.predictions)}
     ]);
-    draw('history-difference-chart', 'Historical observed minus predicted', [{name: 'Observed minus predicted', data: points(result.differences)}]);
+    draw('history-difference-chart', tr('Historical observed minus predicted'), [{name: tr('Observed minus predicted'), data: points(result.differences)}]);
     byId('history-table').hidden = !datasets().some(d => d.values.length);
     table();
   }
@@ -82,18 +83,18 @@
     request?.abort(); const token = ++version, controller = new AbortController(); request = controller;
     const params = parameters(); key = `${state.selected.station_id}:${params}`; requestedUnits = state.units;
     byId('history-export').disabled = true; byId('history-results').setAttribute('aria-busy','true');
-    byId('history-status').textContent = 'Loading fixed-date NOAA water levels…';
+    byId('history-status').textContent = tr('Loading fixed-date NOAA water levels…');
     try {
       const response = await fetch(`/stations/${encodeURIComponent(state.selected.station_id)}/history?${params}`, {signal: controller.signal});
-      if (!response.headers.get('content-type')?.includes('application/json')) throw Error('Historical data are unavailable. Try again.');
+      if (!response.headers.get('content-type')?.includes('application/json')) throw Error(tr('Historical data are unavailable. Try again.'));
       const payload = await response.json(); if (token !== version) return;
-      if (!response.ok) throw Error(payload.error || 'Historical data are unavailable.');
+      if (!response.ok) throw Error(payload.error || tr('Historical data are unavailable.'));
       result = payload; destroy(); limit = 500; share(params); render();
       const present = datasets().some(d => d.values.some(p => p.value !== null));
-      byId('history-status').textContent = `${present ? 'Historical data loaded.' : 'No historical values are available for these dates and resolution.'}${payload.warnings.length ? ` ${payload.warnings.map(w => `${w.product}: ${w.message}`).join(' ')}` : ''}${monthly() ? ' Monthly means have no tide predictions or departure calculation.' : ''}`;
+      byId('history-status').textContent = `${present ? tr('Historical data loaded.') : tr('No historical values are available for these dates and resolution.')}${payload.warnings.length ? ` ${payload.warnings.map(w => `${w.product}: ${w.message}`).join(' ')}` : ''}${monthly() ? tr(' Monthly means have no tide predictions or departure calculation.') : ''}`;
       byId('history-export').disabled = !datasets().some(d => d.values.length);
     } catch (error) {
-      if (error.name !== 'AbortError' && token === version) byId('history-status').textContent = `${error.message}${result ? ' Previous historical charts remain; CSV is disabled until a successful load.' : ''}`;
+      if (error.name !== 'AbortError' && token === version) byId('history-status').textContent = `${error.message}${result ? tr(' Previous historical charts remain; CSV is disabled until a successful load.') : ''}`;
     } finally {
       if (token === version) {request = null; byId('history-results').setAttribute('aria-busy','false');}
     }
@@ -126,14 +127,14 @@
     byId('history-more').addEventListener('click', () => {limit += 500; table();});
     ['history-start','history-end','history-resolution'].forEach(id => byId(id).addEventListener('input', () => {
       request?.abort(); version++; request = null; byId('history-results').setAttribute('aria-busy','false');
-      byId('history-export').disabled = true; byId('history-status').textContent = 'Dates or resolution changed. Load historical data to apply them.';
+      byId('history-export').disabled = true; byId('history-status').textContent = tr('Dates or resolution changed. Load historical data to apply them.');
     }));
   }
   window.StationHistory = {
     reset() {
       version++; request?.abort(); request = null; result = null; key = null; requestedUnits = null; state = null; destroy();
       byId('history-export').disabled = true; byId('history-caption').textContent = ''; byId('history-table').hidden = true;
-      byId('history-rows').replaceChildren(); byId('history-status').textContent = 'Choose dates and load historical data.';
+      byId('history-rows').replaceChildren(); byId('history-status').textContent = tr('Choose dates and load historical data.');
       byId('history-results').setAttribute('aria-busy','false');
     },
     update(value) {

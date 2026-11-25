@@ -1,6 +1,6 @@
 const { defineConfig, devices } = require('@playwright/test');
 module.exports = defineConfig({
-  testDir: './tests/browser', testMatch: ['regression.spec.cjs', 'layout.spec.cjs'],
+  testDir: './tests/browser', testMatch: ['regression.spec.cjs', 'layout.spec.cjs', 'locales.spec.cjs'],
   outputDir: 'test-results/regression',
   fullyParallel: false, workers: 1, retries: 0,
   reporter: [['list'], ['html', { outputFolder: 'playwright-report/regression', open: 'never' }]],

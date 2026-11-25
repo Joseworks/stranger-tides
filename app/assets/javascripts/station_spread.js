@@ -1,9 +1,10 @@
 /* global google */
 (() => {
   'use strict';
+  const tr = (...args) => window.AppI18n.t(...args);
   const position = station => ({lat: Number(station.latitude), lng: Number(station.longitude)});
   const element = (tag, text, className) => {
-    const node = document.createElement(tag); node.textContent = text;
+    const node = document.createElement(tag); node.textContent = tr(text);
     if (className) node.className = className;
     return node;
   };
@@ -46,12 +47,12 @@
         nearby.sort((a, b) => a.station_id === b.station_id ? 0 : a.station_id === station.station_id ? -1 : b.station_id === station.station_id ? 1 : label(a).localeCompare(label(b)));
         root = element('section', '', 'station-spread');
         const current = root;
-        root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', 'Choose an overlapping station');
+        root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', tr('Choose an overlapping station'));
         const header = element('div', '', 'spread-header');
         const search = document.createElement('input'); search.type = 'search';
-        search.placeholder = `Search ${nearby.length} overlapping stations`;
-        search.setAttribute('aria-label', 'Search overlapping stations');
-        const dismiss = element('button', '×'); dismiss.type = 'button'; dismiss.setAttribute('aria-label', 'Close overlapping stations');
+        search.placeholder = tr`Search ${nearby.length} overlapping stations`;
+        search.setAttribute('aria-label', tr('Search overlapping stations'));
+        const dismiss = element('button', '×'); dismiss.type = 'button'; dismiss.setAttribute('aria-label', tr('Close overlapping stations'));
         dismiss.addEventListener('click', () => close(true)); header.append(search, dismiss);
         const area = element('div', '', 'spread-area');
         const footer = element('div', '', 'spread-footer');
@@ -85,7 +86,7 @@
           const pageSize = radius >= 89 ? 6 : radius >= 45 && radius * 2 >= buttonWidth + 2 ? 4 : radius >= 23 ? 2 : 1;
           const shown = matches.slice(page * pageSize, (page + 1) * pageSize);
           previous.disabled = page === 0; next.disabled = (page + 1) * pageSize >= matches.length;
-          status.textContent = matches.length ? `${page * pageSize + 1}–${Math.min((page + 1) * pageSize, matches.length)} of ${matches.length}` : 'No matching stations';
+          status.textContent = matches.length ? tr`${page * pageSize + 1}–${Math.min((page + 1) * pageSize, matches.length)} of ${matches.length}` : tr('No matching stations');
           area.replaceChildren();
           const mapBounds = host.getBoundingClientRect(), pickerBounds = current.getBoundingClientRect();
           const origin = {x: anchor.x + mapBounds.left - pickerBounds.left,
@@ -106,7 +107,7 @@
             const button = element('button', '', `spread-station${extras(s) ? ' extra-products' : ''}`);
             button.append(element('span', label(s)), element('small', s.station_id));
             button.type = 'button'; button.dataset.stationId = s.station_id;
-            button.setAttribute('aria-label', `${label(s)} ${s.station_id}${extras(s) ? ' · Additional products' : ''}`);
+            button.setAttribute('aria-label', `${label(s)} ${s.station_id}${extras(s) ? tr(' · Additional products') : ''}`);
             button.title = `${label(s)} ${s.station_id}`;
             button.style.left = `${x}px`; button.style.top = `${y}px`; button.style.width = `${buttonWidth}px`;
             button.addEventListener('click', () => {close(true); select(s);}); area.append(button);

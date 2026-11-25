@@ -53,10 +53,15 @@ class StationsController < ApplicationController
   private
 
   def no_data(error)
-    render json: { error: error.message }, status: :unprocessable_content
+    render json: { error: translated_error(error) }, status: :unprocessable_content
   end
 
   def unavailable(error)
-    render json: { error: error.message }, status: :service_unavailable
+    render json: { error: translated_error(error) }, status: :service_unavailable
+  end
+
+  def translated_error(error)
+    I18n.t('messages', locale: @app_locale || :en,
+                       default: {})[error.message.to_sym] || error.message
   end
 end

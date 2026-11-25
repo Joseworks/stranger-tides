@@ -1,6 +1,7 @@
 /* global google, Highcharts */
 (() => {
   'use strict';
+  const tr = (...args) => window.AppI18n.t(...args);
   let stations = [], filtered = [], visibleCount = 100, map, infoWindow, spread, markers = new Map();
   let selected, report, pending, generation = 0, chart, savedFocus;
   const weatherCharts = new Map();
@@ -18,16 +19,16 @@
   const highlightedLabel = () => byId('station-product').selectedOptions[0].textContent;
   const productUnits = product => window.StationExtras.products(report.units === 'metric')[product]?.[1] || '';
   const byId = id => document.getElementById(id);
-  const text = (id, value) => { byId(id).textContent = value; };
+  const text = (id, value) => { byId(id).textContent = tr(value); };
   const capabilities = station => station.capabilities || ['waterlevels'];
   const stationLabel = station => station.state && !station.station_name.endsWith(`, ${station.state}`) ? `${station.station_name}, ${station.state}` : station.station_name;
   const zone = () => byId('display-zone').value === 'station' ? report?.station_timezone || 'UTC' :
     byId('display-zone').value === 'utc' ? 'UTC' : Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const date = (value, timeZone = zone()) => new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short', timeZone }).format(new Date(value));
-  const quality = value => ({ p: 'Preliminary', v: 'Verified' }[value] || 'Quality not provided');
+  const date = (value, timeZone = zone()) => new Intl.DateTimeFormat(window.AppI18n.locale, { dateStyle: 'medium', timeStyle: 'short', timeZone }).format(new Date(value));
+  const quality = value => ({ p: tr('Preliminary'), v: tr('Verified') }[value] || tr('Quality not provided'));
   const unit = () => (report?.units || byId('height-units').value) === 'metric' ? 'm' : 'ft';
   function element(tag, value, className) {
-    const node = document.createElement(tag); node.textContent = value;
+    const node = document.createElement(tag); node.textContent = tr(value);
     if (className) node.className = className;
     return node;
   }
@@ -70,14 +71,14 @@
     byId('extra-products-toggle').setAttribute('aria-pressed', String(layer === 'additional'));
     filtered = stations.filter(s => (layer === 'all' || (layer === 'additional' ? highlighted(s) : capabilities(s).includes(layer))) &&
       `${s.station_name} ${s.station_id} ${s.state || ''}`.toLocaleLowerCase().includes(search));
-    text('result-count', `${filtered.length} matching locations`);
-    text('highlight-legend', `Purple pin = ${highlightedLabel().toLocaleLowerCase()}.`);
-    text('legend-product', byId('station-product').value === 'specialized' ? 'Extra sensors' : highlightedLabel());
-    text('product-status', `${filtered.filter(highlighted).length} of ${filtered.length} matching stations advertise ${highlightedLabel().toLocaleLowerCase()}. Check reading timestamps for current availability.`);
+    text('result-count', tr`${filtered.length} matching locations`);
+    text('highlight-legend', tr`Purple pin = ${highlightedLabel().toLocaleLowerCase()}.`);
+    text('legend-product', byId('station-product').value === 'specialized' ? tr('Stations with Extra Sensors') : highlightedLabel());
+    text('product-status', tr`${filtered.filter(highlighted).length} of ${filtered.length} matching stations advertise ${highlightedLabel().toLocaleLowerCase()}. Check reading timestamps for current availability.`);
     byId('station-results').replaceChildren(...filtered.slice(0, visibleCount).map(s => {
       const item = document.createElement('li'); const button = element('button', `${stationLabel(s)} ${s.station_id}`);
       button.type = 'button'; button.classList.toggle('extra-products', highlighted(s)); button.dataset.stationId = s.station_id;
-      button.append(element('small', `${s.state || ''} · ${capabilities(s).includes('waterlevels') ? 'Water-level observations' : 'Prediction / weather location'}`));
+      button.append(element('small', `${s.state || ''} · ${capabilities(s).includes('waterlevels') ? tr('Water-level observations') : tr('Prediction / weather location')}`));
       if (extras(s)) button.append(element('small', `Additional: ${s.additional_products.map(p => p.replaceAll('_', ' ')).join(', ')}`, 'extra-label'));
       button.addEventListener('click', () => selectStation(s)); item.append(button); return item;
     }));
@@ -138,7 +139,7 @@
         ...(byId('full_map').dataset.mapId ? { mapId: byId('full_map').dataset.mapId } : {}) });
       const locationControl = element('div', '', 'map-location-control');
       const locate = element('button', '');
-      locate.setAttribute('aria-label', 'Center on your location');
+      locate.setAttribute('aria-label', tr('Center on your location'));
       const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       icon.setAttribute('viewBox', '0 0 24 24'); icon.setAttribute('width', '24'); icon.setAttribute('height', '24');
       icon.setAttribute('aria-hidden', 'true'); icon.setAttribute('focusable', 'false');
@@ -148,7 +149,7 @@
       const center = document.createElementNS(icon.namespaceURI, 'circle');
       center.setAttribute('cx', '12'); center.setAttribute('cy', '12'); center.setAttribute('r', '3'); center.setAttribute('fill', 'currentColor');
       icon.append(target, center); locate.append(icon);
-      locate.id = 'map-locate'; locate.type = 'button'; locate.title = 'Center on your location';
+      locate.id = 'map-locate'; locate.type = 'button'; locate.title = tr('Center on your location');
       locate.disabled = byId('locate').disabled;
       locate.setAttribute('aria-describedby', 'location-details map-location-status');
       locate.addEventListener('click', locateStations);
@@ -163,9 +164,9 @@
       if (locationPosition) {map.setCenter(locationPosition); map.setZoom(8);}
       map.addListener?.('idle', () => renderMarkers());
       byId('map-status').hidden = true; renderMarkers(true);
-    } catch (_) { text('map-status', 'The map is unavailable. Use the station list to explore data.'); }
+    } catch (_) { text('map-status', tr('The map is unavailable. Use the station list to explore data.')); }
   };
-  window.gm_authFailure = () => { byId('map-status').hidden = false; text('map-status', 'The map is unavailable. Use the station list to explore data.'); };
+  window.gm_authFailure = () => { byId('map-status').hidden = false; text('map-status', tr('The map is unavailable. Use the station list to explore data.')); };
   function positionSelectedStation({preserveViewport = false} = {}) {
     if (!map || !selected) return;
     const position = { lat: Number(selected.latitude), lng: Number(selected.longitude) };
@@ -179,7 +180,7 @@
     measurementLimit = 1000; byId('observations-table').open = false;
     savedFocus = document.activeElement; selected = station; report = null; window.StationPhotos.reset(station); window.StationExtras.reset(); window.StationHistory.reset(); updateStationZone();
     byId('station-panel').hidden = false; text('station-heading', stationLabel(station));
-    text('station-code', `NOAA ${station.station_id}`); window.StationLayout.selected(station);
+    text('station-code', tr`NOAA ${station.station_id}`); window.StationLayout.selected(station);
     byId('noaa-station-link').href = `https://tidesandcurrents.noaa.gov/stationhome.html?id=${encodeURIComponent(station.station_id)}`;
     positionSelectedStation({preserveViewport});
     updateSelectedMarkers();
@@ -224,19 +225,19 @@
     }
     byId('retry-report').hidden = true;
     byId('station-charts').setAttribute('aria-busy', 'true');
-    text('report-status', updating ? 'Updating station charts…' : 'Loading NOAA station data…');
+    text('report-status', updating ? tr('Updating station charts…') : tr('Loading NOAA station data…'));
     byId('report-status').classList.remove('quiet-status');
     try {
       const params = new URLSearchParams({ hours: byId('history-hours').value, future_hours: byId('future-hours').value, units: byId('height-units').value });
       const response = await fetch(`/stations/${encodeURIComponent(selected.station_id)}/report?${params}`, { signal: pending.signal });
-      if (!response.headers.get('content-type')?.includes('application/json')) throw new Error('Station data is unavailable. Please try again.');
+      if (!response.headers.get('content-type')?.includes('application/json')) throw new Error(tr('Station data is unavailable. Please try again.'));
       const payload = await response.json();
       if (token !== generation) return;
-      if (!response.ok) throw new Error(payload.error || 'Station data is unavailable.');
+      if (!response.ok) throw new Error(payload.error || tr('Station data is unavailable.'));
       report = automatic ? retainFailedProducts(payload) : payload; renderReport({automatic});
     } catch (error) {
       if (error.name === 'AbortError' || token !== generation) return;
-      text('report-status', `${error.message || 'Station data is unavailable. Please try again.'}${updating ? ' Previous charts are still displayed.' : ''}`);
+      text('report-status', `${error.message || tr('Station data is unavailable. Please try again.')}${updating ? tr(' Previous charts are still displayed.') : ''}`);
       byId('retry-report').hidden = false;
     } finally {
       if (token === generation) {pending = null; byId('station-charts').removeAttribute('aria-busy'); updateLiveStatus();}
@@ -259,17 +260,17 @@
       const axes = [{ id: 'measurement', title: { text: `${title} (${units})` } }];
       if (product === 'wind') {
         const gusts = observedPoints(values, 'gust');
-        if (gusts.some(point => point[1] !== null)) series.push({ id: 'gust', name: 'Wind gust', data: gusts, connectNulls: false });
+        if (gusts.some(point => point[1] !== null)) series.push({ id: 'gust', name: tr('Wind gust'), data: gusts, connectNulls: false });
         const directions = observedPoints(values, 'direction').filter(point => point[1] !== null);
         if (directions.length) {
-          axes.push({ id: 'direction-axis', title: { text: 'Direction (°)' }, opposite: true, min: 0, max: 360, tickInterval: 90 });
-          series.push({ id: 'direction', name: 'Wind direction', type: 'scatter', yAxis: 'direction-axis',
+          axes.push({ id: 'direction-axis', title: { text: tr('Direction (°)') }, opposite: true, min: 0, max: 360, tickInterval: 90 });
+          series.push({ id: 'direction', name: tr('Wind direction'), type: 'scatter', yAxis: 'direction-axis',
             data: directions, tooltip: { valueSuffix: '°' }, marker: { radius: 2 } });
         }
       }
       const options = {
         chart: { type: 'line', animation: false, height: 300 }, title: { text: title },
-        subtitle: { text: `Past ${report.hours} hours · ${stationLabel(selected)}` }, time: { timezone: zone() },
+        subtitle: { text: tr`Past ${report.hours} hours · ${stationLabel(selected)}` }, time: { timezone: zone() },
         xAxis: { type: 'datetime' }, yAxis: axes,
         tooltip: { xDateFormat: '%e %b %Y %H:%M', valueSuffix: ` ${units}` },
         credits: { enabled: false }, series
@@ -278,7 +279,7 @@
       if (existing) window.StationCharts.update(existing, options, automatic);
       else {
         const node = document.createElement('div'); node.id = `weather-${product}`;
-        node.className = 'weather-chart'; node.dataset.product = product; node.setAttribute('aria-label', `${title} history`);
+        node.className = 'weather-chart'; node.dataset.product = product; node.setAttribute('aria-label', tr`${title} history`);
         byId('weather-charts').append(node); weatherCharts.set(product, Highcharts.chart(node, options));
       }
     });
@@ -288,19 +289,19 @@
     const next = report.events.filter(point => point.value !== null && Date.parse(point.time) >= Date.now());
     const nodes = ['H', 'L'].flatMap(type => {
       const event = next.find(point => point.type === type);
-      return event ? [element('p', `Next predicted ${type === 'H' ? 'high' : 'low'}: ${date(event.time)} · ${event.value.toFixed(2)} ${unit()}`)] : [];
+      return event ? [element('p', tr`Next predicted ${type === 'H' ? tr('high') : tr('low')}: ${date(event.time)} · ${window.AppI18n.number(event.value, 2)} ${unit()}`)] : [];
     });
     if (report.events.length && !nodes.length) {
-      nodes.push(element('p', 'Upcoming predictions have passed. Refresh station data for the next events.', 'muted'));
+      nodes.push(element('p', tr('Upcoming predictions have passed. Refresh station data for the next events.'), 'muted'));
       byId('retry-report').hidden = false;
     }
     byId('next-events').replaceChildren(...nodes);
   }
   function updateLiveStatus() {
     const enabled = byId('live-updates').checked;
-    text('live-update-status', !enabled ? 'Live updates paused.' : navigator.onLine === false ?
-      'Live updates paused while offline.' : document.hidden ? 'Live updates paused while this tab is hidden.' :
-      `Live updates every 6 minutes.${report?.fetched_at ? ` Last checked ${date(report.fetched_at)}.` : ''}`);
+    text('live-update-status', !enabled ? tr('Live updates paused.') : navigator.onLine === false ?
+      tr('Live updates paused while offline.') : document.hidden ? tr('Live updates paused while this tab is hidden.') :
+      tr`Live updates every 6 minutes.${report?.fetched_at ? tr` Last checked ${date(report.fetched_at)}.` : ''}`);
   }
   function maybeRefresh({resume = false} = {}) {
     updateLiveStatus();
@@ -311,25 +312,25 @@
     updateNextEvents();
     if (!report?.latest || !byId('reading-age')) return;
     const age = Math.max(0, Math.floor((Date.now() - Date.parse(report.latest.time)) / 60000));
-    text('reading-age', `Observed ${date(report.latest.time)} · ${age} minutes ago`);
+    text('reading-age', tr`Observed ${date(report.latest.time)} · ${age} minutes ago`);
     const stale = Date.parse(report.latest.time) < Date.now() - 18 * 60000;
     byId('reading-freshness').hidden = !stale;
-    text('reading-freshness', stale ? 'This observation is now stale. Check timestamps before using these data.' : '');
+    text('reading-freshness', stale ? tr('This observation is now stale. Check timestamps before using these data.') : '');
   }
   function renderMeasurements() {
     if (!report || !byId('observations-table').open) return;
     const products = [
-      { name: 'Observed water level', values: report.observations, units: unit() },
-      { name: 'Predicted water level', values: report.predictions, units: unit(), predicted: true },
-      { name: 'Future tide prediction', values: report.future_predictions || [], units: unit(), predicted: true },
-      { name: 'Observed minus predicted', values: report.differences || [], units: unit() },
+      { name: tr('Observed water level'), values: report.observations, units: unit() },
+      { name: tr('Predicted water level'), values: report.predictions, units: unit(), predicted: true },
+      { name: tr('Future tide prediction'), values: report.future_predictions || [], units: unit(), predicted: true },
+      { name: tr('Observed minus predicted'), values: report.differences || [], units: unit() },
       ...Object.entries(report.weather_series || {}).map(([product, values]) => ({
-        name: product.replaceAll('_', ' '), values, units: productUnits(product)
+        name: tr(product.replaceAll('_', ' ')), values, units: productUnits(product)
       })),
       ...['gust', 'direction'].flatMap(field => {
         const values = report.weather_series?.wind || [];
         return values.some(point => numeric(point[field]) !== null) ? [{
-          name: field === 'gust' ? 'Wind gust' : 'Wind direction',
+          name: field === 'gust' ? tr('Wind gust') : tr('Wind direction'),
           units: field === 'direction' ? '°' : report.units === 'metric' ? 'm/s' : 'knots',
           values: values.map(point => ({ ...point, value: numeric(point[field]) }))
         }] : [];
@@ -337,20 +338,20 @@
     ];
     const rows = products.flatMap(product => product.values.map(point => ({ ...product, point })))
       .sort((a, b) => a.point.timestamp - b.point.timestamp);
-    text('measurement-page', `Showing ${Math.min(rows.length, measurementLimit)} of ${rows.length} measurements.`);
+    text('measurement-page', tr`Showing ${Math.min(rows.length, measurementLimit)} of ${rows.length} measurements.`);
     byId('more-measurements').hidden = rows.length <= measurementLimit;
     byId('measurement-rows').replaceChildren(...rows.slice(0, measurementLimit).map(({ name, units, predicted, point }) => {
       const row = document.createElement('tr');
-      const event = predicted ? ({ H: 'High', L: 'Low' }[point.type] || 'Prediction') : quality(point.quality);
-      row.append(element('td', date(point.time)), element('td', name), element('td', point.value === null ? 'Missing' : `${point.value} ${units}`), element('td', event));
+      const event = predicted ? ({ H: tr('High'), L: tr('Low') }[point.type] || tr('Prediction')) : quality(point.quality);
+      row.append(element('td', date(point.time)), element('td', name), element('td', point.value === null ? tr('Missing') : `${point.value} ${units}`), element('td', event));
       return row;
     }));
   }
   function updateStationZone() {
     const option = byId('display-zone').querySelector('option[value="station"]');
     option.disabled = !report?.station_timezone;
-    option.textContent = report?.station_timezone ? `Station local time (${report.station_timezone})` :
-      report ? 'Station local time unavailable (UTC)' : 'Station local time';
+    option.textContent = report?.station_timezone ? tr`Station local time (${report.station_timezone})` :
+      report ? tr('Station local time unavailable (UTC)') : tr('Station local time');
   }
   function renderReport({automatic = false} = {}) {
     updateStationZone();
@@ -358,54 +359,54 @@
     const restoreDetailsFocus = document.activeElement === byId('station-details')?.querySelector('summary');
     updateUrl(); const summary = byId('station-summary'), warnings = byId('report-warnings'); summary.replaceChildren(); warnings.replaceChildren();
     const latest = report.latest;
-    text('report-status', report.stale ? 'No recent observation. Check timestamps before using these data.' : 'Station data loaded.');
-    if (report.retained_products?.length) warnings.append(element('p', 'Some products could not be refreshed. Previous data for those products remain displayed; check their timestamps.', 'muted report-warning'));
+    text('report-status', report.stale ? tr('No recent observation. Check timestamps before using these data.') : tr('Station data loaded.'));
+    if (report.retained_products?.length) warnings.append(element('p', tr('Some products could not be refreshed. Previous data for those products remain displayed; check their timestamps.'), 'muted report-warning'));
     if (report.warnings.length) {
-      warnings.append(element('p', report.warnings.map(w => `${w.product.replaceAll('_', ' ')}: ${w.message}`).join(' '), 'muted report-warning'));
+      warnings.append(element('p', report.warnings.map(w => `${tr(w.product.replaceAll('_', ' '))}: ${tr(w.message)}`).join(' '), 'muted report-warning'));
       byId('retry-report').hidden = false;
     }
     const reading = element('p', '', 'latest-reading');
     if (latest) {
-      reading.append(element('strong', `${latest.value.toFixed(2)} ${unit()}`), document.createTextNode(' '), element('span', `above ${report.datum} · ${quality(latest.quality)}`));
-    } else reading.textContent = 'No water-level observation available.';
+      reading.append(element('strong', `${window.AppI18n.number(latest.value, 2)} ${unit()}`), document.createTextNode(' '), element('span', tr`above ${report.datum} · ${quality(latest.quality)}`));
+    } else reading.textContent = tr('No water-level observation available.');
     summary.append(reading);
     if (latest) {
       const age = element('p', ''); age.id = 'reading-age'; summary.append(age);
       const freshness = element('p', '', 'report-warning'); freshness.id = 'reading-freshness';
       freshness.setAttribute('role', 'status'); warnings.append(freshness); updateFreshness();
     }
-    if (report.datum) summary.append(element('p', `Height reference: ${report.datum} · Times: ${zone()}`, 'muted'));
+    if (report.datum) summary.append(element('p', tr`Height reference: ${report.datum} · Times: ${zone()}`, 'muted'));
     if (report.datum === 'IGLD') {
-      summary.append(element('p', 'Lake-surface elevation relative to the International Great Lakes Datum (IGLD), rather than tide height. The variation below shows how much the water rose and fell during the selected period.', 'datum-explanation'));
+      summary.append(element('p', tr('Lake-surface elevation relative to the International Great Lakes Datum (IGLD), rather than tide height. The variation below shows how much the water rose and fell during the selected period.'), 'datum-explanation'));
     }
     const heights = report.observations.map(p => p.value).filter(v => v !== null);
-    if (heights.length) summary.append(element('p', `Observed ${report.hours}-hour range: ${Math.min(...heights).toFixed(2)}–${Math.max(...heights).toFixed(2)} ${unit()} · Variation ${(Math.max(...heights) - Math.min(...heights)).toFixed(2)} ${unit()}`));
+    if (heights.length) summary.append(element('p', tr`Observed ${report.hours}-hour range: ${window.AppI18n.number(Math.min(...heights), 2)}–${window.AppI18n.number(Math.max(...heights), 2)} ${unit()} · Variation ${window.AppI18n.number(Math.max(...heights) - Math.min(...heights), 2)} ${unit()}`));
     const events = document.createElement('div'); events.id = 'next-events'; summary.append(events); updateNextEvents();
     Object.entries(report.weather).forEach(([product, reading]) => {
       const units = productUnits(product);
-      const wind = product === 'wind' ? `${reading.direction ? ` · direction ${reading.direction}°` : ''}${reading.gust ? ` · gust ${reading.gust} ${units}` : ''}` : '';
-      summary.append(element('p', `${product.replaceAll('_', ' ')}: ${reading.value} ${units}${wind} · ${date(reading.time)}`));
+      const wind = product === 'wind' ? `${reading.direction ? tr` · direction ${reading.direction}°` : ''}${reading.gust ? tr` · gust ${reading.gust} ${units}` : ''}` : '';
+      summary.append(element('p', `${tr(product.replaceAll('_', ' '))}: ${reading.value} ${units}${wind} · ${date(reading.time)}`));
     });
     (report.sensors || []).filter(sensor => !sensor.enabled).forEach(sensor => {
-      summary.append(element('p', `${sensor.name}: sensor disabled${sensor.message ? ` · ${sensor.message}` : ''}`, 'muted'));
+      summary.append(element('p', tr`${sensor.name}: sensor disabled${sensor.message ? ` · ${sensor.message}` : ''}`, 'muted'));
     });
     const details = document.createElement('details'); details.id = 'station-details';
     details.open = Boolean(detailsOpen);
-    details.append(element('summary', 'Station details & sensor status'));
+    details.append(element('summary', tr('Station details & sensor status')));
     [...summary.children].filter(node => !node.matches('.latest-reading, #reading-age, #reading-freshness, #next-events, .report-warning')).forEach(node => details.append(node));
     summary.append(details);
     if (restoreDetailsFocus) details.querySelector('summary').focus({preventScroll:true});
     if (!report.stale && !report.warnings.length) byId('report-status').classList.add('quiet-status');
-    const series = [ ['Observed water level', report.observations], ['Predicted water level', report.predictions] ]
+    const series = [ [tr('Observed water level'), report.observations], [tr('Predicted water level'), report.predictions] ]
       .filter(([, values]) => values.some(point => point.value !== null))
-      .map(([name, values]) => ({ name: name === 'Predicted water level' && selected.prediction_type === 'S' ? 'Predicted high/low events' : name,
-        type: name === 'Predicted water level' && selected.prediction_type === 'S' ? 'scatter' : 'line',
-        data: name === 'Observed water level' ? observedPoints(values) : values.map(point => [point.timestamp, point.value]), connectNulls: false }));
+      .map(([name, values]) => ({ name: name === tr('Predicted water level') && selected.prediction_type === 'S' ? tr('Predicted high/low events') : name,
+        type: name === tr('Predicted water level') && selected.prediction_type === 'S' ? 'scatter' : 'line',
+        data: name === tr('Observed water level') ? observedPoints(values) : values.map(point => [point.timestamp, point.value]), connectNulls: false }));
     if (series.length) {
       const options = {
         chart: { type: 'line', animation: false }, title: { text: stationLabel(selected) },
-        subtitle: { text: `Past ${report.hours} hours · Source: NOAA CO-OPS` }, time: { timezone: zone() },
-        xAxis: { type: 'datetime' }, yAxis: { title: { text: `${report.datum === 'IGLD' ? 'Lake-level elevation' : 'Water level'} (${unit()}, ${report.datum})` } },
+        subtitle: { text: tr`Past ${report.hours} hours · Source: NOAA CO-OPS` }, time: { timezone: zone() },
+        xAxis: { type: 'datetime' }, yAxis: { title: { text: `${report.datum === 'IGLD' ? tr('Lake-level elevation') : tr('Water level')} (${unit()}, ${report.datum})` } },
         tooltip: { xDateFormat: '%e %b %Y %H:%M', valueSuffix: ` ${unit()}` },
         credits: { enabled: false }, series
       };
@@ -447,25 +448,25 @@
       }
     };
     if (!window.isSecureContext || !navigator.geolocation) {
-      update('Location is unavailable in this browser or connection. Search by name or state.'); return;
+      update(tr('Location is unavailable in this browser or connection. Search by name or state.')); return;
     }
     const finish = message => update(message);
     const intent = ++locationIntent;
-    update(`Requesting location for ${window.location.host}…`, true);
+    update(tr`Requesting location for ${window.location.host}…`, true);
     try {
       navigator.geolocation.getCurrentPosition(position => {
-        if (intent !== locationIntent) {finish('Location found. Keeping your selected station in view.'); return;}
+        if (intent !== locationIntent) {finish(tr('Location found. Keeping your selected station in view.')); return;}
         const { latitude: lat, longitude: lng } = position.coords;
         locationPosition = {lat, lng};
         stations.sort((a, b) => distance(a, lat, lng) - distance(b, lat, lng)); renderResults();
-        map?.setCenter({ lat, lng }); map?.setZoom(8); finish('Stations sorted by distance from you.');
+        map?.setCenter({ lat, lng }); map?.setZoom(8); finish(tr('Stations sorted by distance from you.'));
       }, error => finish(({
-        1: `Location access for ${window.location.host} was declined. You can allow it in your browser's site settings.`,
-        2: 'Your location could not be determined. Try again or search by name or state.',
-        3: 'Finding your location timed out. Try again or search by name or state.'
-      })[error.code] || 'Location is unavailable. Try again or search by name or state.'),
+        1: tr`Location access for ${window.location.host} was declined. You can allow it in your browser's site settings.`,
+        2: tr('Your location could not be determined. Try again or search by name or state.'),
+        3: tr('Finding your location timed out. Try again or search by name or state.')
+      })[error.code] || tr('Location is unavailable. Try again or search by name or state.')),
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 });
-    } catch (_) { finish('Location is unavailable. Try again or search by name or state.'); }
+    } catch (_) { finish(tr('Location is unavailable. Try again or search by name or state.')); }
   }
   async function start() {
     if (!byId('station-explorer')) return;
@@ -496,31 +497,31 @@
     window.addEventListener('offline', updateLiveStatus);
     setInterval(() => { updateFreshness(); maybeRefresh(); }, 60000);
     byId('share-station').addEventListener('click', async () => {
-      try { await navigator.clipboard.writeText(window.location.href); text('report-status', 'Station link copied.'); }
-      catch (_) { text('report-status', 'Copy the station link from your address bar.'); }
+      try { await navigator.clipboard.writeText(window.location.href); text('report-status', tr('Station link copied.')); }
+      catch (_) { text('report-status', tr('Copy the station link from your address bar.')); }
       byId('report-status').classList.remove('quiet-status');
     });
     byId('locate').addEventListener('click', locateStations);
     try {
-      const response = await fetch('/stations.json'); if (!response.ok) throw new Error('Catalog unavailable');
+      const response = await fetch('/stations.json'); if (!response.ok) throw new Error(tr('Catalog unavailable'));
       const payload = await response.json(); stations = payload.stations;
-      text('catalog-status', payload.status.refreshed_at ? `Catalog refreshed ${date(payload.status.refreshed_at, 'UTC')} UTC${payload.status.stale ? ' · Refresh overdue' : ''}` : 'Saved station inventory · Automatic refresh not yet initialized');
+      text('catalog-status', payload.status.refreshed_at ? tr`Catalog refreshed ${date(payload.status.refreshed_at, 'UTC')} UTC${payload.status.stale ? tr(' · Refresh overdue') : ''}` : tr('Saved station inventory · Automatic refresh not yet initialized'));
       renderResults();
-      if (payload.products_warning) byId('catalog-status').append(element('span', ' · Additional product discovery unavailable; station search remains available.'));
+      if (payload.products_warning) byId('catalog-status').append(element('span', tr(' · Additional product discovery unavailable; station search remains available.')));
       if (!stations.length) {
-        text('catalog-status', 'No stations are available. Please try again later.');
-        text('catalog-alert', 'No stations are available. Please reload to retry.'); byId('catalog-alert').hidden = false;
+        text('catalog-status', tr('No stations are available. Please try again later.'));
+        text('catalog-alert', tr('No stations are available. Please reload to retry.')); byId('catalog-alert').hidden = false;
       }
       const initial = stations.find(s => s.station_id === params.get('station'));
       if (initial) selectStation(initial);
     } catch (_) {
-      text('catalog-status', 'The station catalog is unavailable. Please reload to retry.');
-      text('catalog-alert', 'The station catalog is unavailable. Please reload to retry.'); byId('catalog-alert').hidden = false;
+      text('catalog-status', tr('The station catalog is unavailable. Please reload to retry.'));
+      text('catalog-alert', tr('The station catalog is unavailable. Please reload to retry.')); byId('catalog-alert').hidden = false;
     }
     const key = byId('full_map').dataset.mapsKey;
-    if (!key) { text('map-status', 'The map is unavailable. Use the station list to explore data.'); return; }
+    if (!key) { text('map-status', tr('The map is unavailable. Use the station list to explore data.')); return; }
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?${new URLSearchParams({ key, callback: 'initMap', loading: 'async', ...(byId('full_map').dataset.mapId ? { libraries: 'marker' } : {}) })}`;
+    script.src = `https://maps.googleapis.com/maps/api/js?${new URLSearchParams({ key, callback: 'initMap', loading: 'async', language: window.AppI18n.locale, ...(byId('full_map').dataset.mapId ? { libraries: 'marker' } : {}) })}`;
     script.async = true; script.onerror = window.gm_authFailure; document.head.append(script);
   }
   function distance(station, lat, lng) {
