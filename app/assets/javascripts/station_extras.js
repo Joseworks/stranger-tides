@@ -77,7 +77,7 @@
       const header = node('tr', ''); [tr('Time'), tr('Product'), tr('Value')].forEach(t => {const th = node('th', t); th.scope = 'col'; header.append(th);});
       const head = node('thead', ''); head.append(header); table.append(head);
       const tbody = node('tbody', ''); rows.slice(0, limit).forEach(p => {
-        const tr = node('tr', ''); [state.date(p.time), p.name, p.value === null ? tr('Missing') : `${p.value} ${units}`].forEach(t => tr.append(node('td', t))); tbody.append(tr);
+        const row = node('tr', ''); [state.date(p.time), p.name, p.value === null ? tr('Missing') : `${p.value} ${units}`].forEach(t => row.append(node('td', t))); tbody.append(row);
       }); table.append(tbody); const scroll = node('div', '', 'table-scroll'); scroll.append(table); body.append(scroll);
       body.append(node('p', tr`Showing ${Math.min(rows.length, limit)} of ${rows.length} measurements.`, 'muted'));
       if (rows.length > limit) {const button = node('button', tr('Show more chart data')); button.type = 'button'; button.addEventListener('click', () => {limit += 500; details.dataset.limit = limit; fill(); (body.querySelector('button') || details.querySelector('summary')).focus({preventScroll: true});}); body.append(button);}

@@ -45,10 +45,10 @@
     if (!result || !byId('history-table').open) return;
     const rows = datasets().flatMap(d => d.values.map(point => ({...d, point}))).sort((a,b) => a.point.timestamp - b.point.timestamp);
     byId('history-rows').replaceChildren(...rows.slice(0,limit).map(({name, point}) => {
-      const tr = node('tr','');
+      const row = node('tr','');
       [stamp(point), name, point.value === null ? tr('Missing') : `${point.value} ${unit()}`,
-        `${point.quality === 'v' ? tr('Verified') : point.quality === 'p' ? tr('Preliminary') : tr('Not provided')} / ${point.flags || tr('Not provided')}`].forEach(value => tr.append(node('td',value)));
-      return tr;
+        `${point.quality === 'v' ? tr('Verified') : point.quality === 'p' ? tr('Preliminary') : tr('Not provided')} / ${point.flags || tr('Not provided')}`].forEach(value => row.append(node('td',value)));
+      return row;
     }));
     byId('history-page').textContent = tr`Showing ${Math.min(limit, rows.length)} of ${rows.length} measurements. CSV includes all loaded rows, including gaps and flags.`;
     byId('history-more').hidden = rows.length <= limit;

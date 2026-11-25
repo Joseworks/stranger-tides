@@ -12,6 +12,12 @@ const phrases={
  de:{find:'Station suchen',tides:'Gezeiten',weather:'Wetter',history:'Verlauf',observed:'Beobachteter Wasserstand',loaded:'Historische Daten geladen.'}
 };
 for(const [locale,label] of Object.entries(phrases))test(`language ${locale} translates reports and preserves source identifiers`,async({page},info)=>{
+ const missing={en:'Missing',es:'Sin dato',fr:'Manquant',de:'Fehlend'}[locale];
+ await page.route('**/stations/9414290/context?*',async route=>{
+  const response=await route.fetch(),payload=await response.json(),start=Date.now();
+  payload.forecast=[0,1,3].map(hour=>({timestamp:start+hour*3600000,value:hour}));
+  await route.fulfill({response,json:payload});
+ });
  await page.goto(`/?locale=${locale}&station=9099064&units=english&zone=station`);
  await expect(page.locator('html')).toHaveAttribute('lang',locale);
  await expect(page.locator('#language-select')).toHaveValue(locale);
@@ -29,10 +35,19 @@ for(const [locale,label] of Object.entries(phrases))test(`language ${locale} tra
  await page.locator('#history-start').fill('2020-01-01');await page.locator('#history-end').fill('2020-01-02');
  await page.locator('#history-form button[type=submit]').click();
  await expect(page.locator('#history-status')).toContainText(label.loaded);
+ await page.locator('#history-table > summary').click();
+ await expect(page.locator('#history-rows')).toContainText(missing);
  const download=page.waitForEvent('download');await page.locator('#history-export').click();
  expect((await download).suggestedFilename()).toContain('9099064');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.screenshot({path:info.outputPath(`language-${locale}.png`)});
+ await page.goto(`/?locale=${locale}&station=9414290`);
+ await expect(page.locator('#station-heading')).toHaveText('San Francisco, CA');
+ await page.getByRole('tab',{name:label.tides,exact:true}).click();
+ await page.locator('#forecast-products > summary').click();
+ await expect(page.locator('#forecast-water-level .highcharts-container')).toBeVisible();
+ await page.locator('#forecast-water-level-data > summary').click();
+ await expect(page.locator('#forecast-water-level-data tbody')).toContainText(missing);
 });
 test('language switching preserves station, units, time zone and historical dates',async({page})=>{
  await page.goto('/?locale=en&station=9414290&units=metric&zone=station&begin_date=2020-01-01&end_date=2020-01-02');
