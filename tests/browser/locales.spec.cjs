@@ -50,6 +50,10 @@ test('language switching preserves station, units, time zone and historical date
 test('German labels fit a narrow phone without hiding footer or language control',async({page})=>{
  await page.setViewportSize({width:320,height:568});await page.goto('/?locale=de');
  await expect(page.locator('#language-select')).toBeInViewport();await expect(page.getByRole('contentinfo')).toBeInViewport();
+ const control=await page.locator('.language-control').boundingBox();
+ const brand=await page.locator('.brand').boundingBox();
+ expect(control.x+control.width).toBe(306);expect(control.y).toBe(10);
+ expect(brand.x+brand.width).toBeLessThan(control.x);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.locator('#station-search').fill('9414290');await page.locator('#station-results button[data-station-id="9414290"]').click();
  await page.locator('#expand-station').click();const panel=await page.locator('#station-panel').boundingBox();
