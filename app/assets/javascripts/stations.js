@@ -106,6 +106,11 @@
       if (advanced) {
         const content = element('button', '●', `map-pin individual-pin${hasExtras ? ' extra-pin' : ''}`);
         content.type = 'button'; content.setAttribute('aria-label', title);
+        if (isUk(station)) {
+          content.classList.add('country-pin');
+          const flag = document.createElement('img'); flag.src = markerUrl(station); flag.alt = '';
+          flag.setAttribute('aria-hidden', 'true'); content.replaceChildren(flag);
+        }
         marker = new google.maps.marker.AdvancedMarkerElement({map, position, title, content, zIndex: hasExtras ? 1000 : 1});
       } else {
         marker = new google.maps.Marker({map, position, title, optimized: false, zIndex: hasExtras ? 1000 : 1,
@@ -118,9 +123,19 @@
     });
     updateSelectedMarkers();
   }
+  function markerUrl(station) {
+    const data = byId('full_map').dataset;
+    return isUk(station) ? (highlighted(station) ? data.ukExtraMarkerIcon : data.ukMarkerIcon) :
+      highlighted(station) ? data.extraMarkerIcon : data.markerIcon;
+  }
   function markerIcon(station) {
+    if (isUk(station)) {
+      const size = station.station_id === selected?.station_id ? 40 : 30;
+      return {url: markerUrl(station), scaledSize: new google.maps.Size(size, size * 1.3),
+        anchor: new google.maps.Point(size / 2, size * 1.3)};
+    }
     const size = station.station_id === selected?.station_id ? 36 : 24;
-    return {url: highlighted(station) ? byId('full_map').dataset.extraMarkerIcon : byId('full_map').dataset.markerIcon,
+    return {url: markerUrl(station),
       scaledSize: new google.maps.Size(size, size), anchor: new google.maps.Point(size / 2, size / 2)};
   }
   function updateSelectedMarkers() {

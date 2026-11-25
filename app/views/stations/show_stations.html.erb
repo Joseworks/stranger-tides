@@ -50,9 +50,11 @@
     <div class="map-messages"><p id="map-status" class="muted" role="status">Loading map. You can also use the station list.</p><p id="catalog-alert" role="status" hidden></p></div>
     <div id="full_map" data-marker-icon="<%= asset_path('orange_marker.svg') %>"
          data-extra-marker-icon="<%= asset_path('purple_marker.svg') %>"
+         data-uk-marker-icon="<%= asset_path('uk_marker.svg') %>"
+         data-uk-extra-marker-icon="<%= asset_path('uk_extra_marker.svg') %>"
          data-maps-key="<%= ENV['STRANGER_TIDES_EMBED_MAPS_API_KEY'] %>"
          data-map-id="<%= ENV['STRANGER_TIDES_MAP_ID'] %>"></div>
-    <details class="map-legend"><summary><span class="station-swatch" aria-hidden="true"></span> Stations <span class="station-swatch extra-swatch" aria-hidden="true"></span> <span id="legend-product">Stations with Extra Sensors</span></summary><p>Each pin is one station. Tap overlapping pins to spread them out without zooming. Orange pin = other stations. <span id="highlight-legend">Purple pin = specialized sensors.</span></p><button id="extra-products-toggle" type="button" aria-pressed="false">Show matching stations only</button></details>
+    <details class="map-legend"><summary><span class="station-swatch" aria-hidden="true"></span> Stations <span class="station-swatch extra-swatch" aria-hidden="true"></span> <span id="legend-product">Stations with Extra Sensors</span></summary><p>Each pin is one station. Tap overlapping pins to spread them out without zooming. Orange pin = other stations. <span id="highlight-legend">Purple pin = specialized sensors.</span> Union flag pins mark UK Environment Agency gauges.</p><button id="extra-products-toggle" type="button" aria-pressed="false">Show matching stations only</button></details>
   </section>
   <section id="station-panel" aria-labelledby="station-heading" hidden>
     <div class="panel-heading">

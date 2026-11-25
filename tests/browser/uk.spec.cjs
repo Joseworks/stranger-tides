@@ -6,6 +6,25 @@ test.beforeEach(async({page})=>{
  await page.route('https://maps.googleapis.com/**',r=>r.fulfill({path:path.join(__dirname,'maps-fixture.js'),contentType:'application/javascript'}));
 });
 test.afterEach(async({page})=>expect(page.testErrors).toEqual([]));
+for(const advanced of [false,true])test(`UK flag pins work with ${advanced?'advanced':'legacy'} markers and keep station selection`,async({page})=>{
+ if(advanced)await page.addInitScript(()=>{window.useAdvancedMarkersFixture=true;});
+ await page.goto('/?network=uk&units=metric');
+ const pin=page.getByRole('button',{name:'Lowestoft, UK ea-E70039',exact:true});
+ await expect(pin.locator('img')).toHaveAttribute('src',/uk_marker/);
+ expect(await pin.locator('img').evaluate(image=>image.complete&&image.naturalWidth>0)).toBe(true);
+ const zoom=await page.locator('#full_map').getAttribute('data-zoom');
+ await pin.click();await expect(page.locator('#station-heading')).toHaveText('Lowestoft, UK');
+ expect(await page.locator('#full_map').getAttribute('data-zoom')).toBe(zoom);
+ if(advanced)await expect(pin).toHaveCSS('height','52px');
+ await page.getByRole('button',{name:'Filters',exact:true}).click();
+ await page.getByLabel('Station network',{exact:true}).selectOption('noaa');
+ await page.getByLabel('Find a station',{exact:true}).fill('9414290');
+ await page.locator('#station-results button[data-station-id="9414290"]').click();
+ await expect(page.locator('#station-heading')).toHaveText('San Francisco, CA');
+ await expect(page.locator('#full_map img[src*="uk_marker"]')).toHaveCount(0);
+ if(advanced)await expect(page.locator('#full_map .country-pin')).toHaveCount(0);
+ else await expect(page.getByRole('button',{name:'San Francisco, CA 9414290',exact:true}).locator('img')).toHaveAttribute('src',/purple_marker|orange_marker/);
+});
 test('UK gauges share the map, preserve 15-minute lines and hide unsupported products',async({page})=>{
  await page.goto('/?network=uk&station=ea-E70039&units=metric');
  await expect(page.locator('#station-heading')).toHaveText('Lowestoft, UK');

@@ -1,5 +1,7 @@
 # Free UK tide gauges
 
+UK gauges use locally drawn Union flag map pins. The orange/purple outer pin still communicates the selected extra-product filter. Both Google Maps marker renderers use the same flag assets; selection enlarges the pin without changing its geographic anchor. NOAA markers retain their existing appearance, including stations in California (`CA`). Canadian stations are not integrated by this branch.
+
 Branch: `codex/uk-tide-gauges`. No API key, subscription, paid dependency, database migration or catalog publication is needed. Production remains unchanged until separately reviewed and deployed.
 
 Open Filters → Station network → United Kingdom — Environment Agency (or Both networks). UK links use `?network=uk&station=ea-E70039`. NOAA remains the default network. Provider-prefixed UK IDs avoid collisions with NOAA IDs. The shared map, nearby sorting, radial picker, Now/Tides/History panels, unit/time controls, tables and CSV export work with UK observations. The legend reads “Stations” and “Stations with Extra Sensors”.
