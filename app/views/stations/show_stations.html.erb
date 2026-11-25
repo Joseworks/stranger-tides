@@ -1,6 +1,7 @@
 <header id="header">
   <a href="/" class="brand"><svg class="brand-wave" viewBox="0 0 44 26" aria-hidden="true"><path d="M2 8C9 0 16 0 23 7S36 14 42 6M2 20C9 12 16 12 23 19S36 26 42 18"/></svg>Stranger Tides</a>
-  <p class="header-caption">NOAA water levels, tide predictions &amp; station conditions</p>
+  <p class="header-caption">Explore NOAA water levels, tide predictions and station conditions through an interactive map.</p>
+  <p class="header-credit">A Ruby on Rails demonstration by <a href="https://www.joseworks.org" target="_blank" rel="noopener noreferrer">JoseWorks Technologies LLC</a>.</p>
 </header>
 <main id="station-explorer">
   <div class="explorer-toolbar" aria-label="Station search and map tools">
@@ -115,7 +116,7 @@
       </details>
     <details id="observations-table"><summary>View measurements as a table</summary><div class="table-scroll"><table><caption>Station observations and predictions</caption><thead><tr><th scope="col">Time</th><th scope="col">Product</th><th scope="col">Value</th><th scope="col">Quality / event</th></tr></thead><tbody id="measurement-rows"></tbody></table></div><p id="measurement-page" class="muted"></p><button id="more-measurements" type="button" hidden>Show more measurements</button></details>
     <p><a id="noaa-station-link" target="_blank" rel="noopener noreferrer">View this station at NOAA</a> · <button id="share-station" type="button">Copy station link</button></p>
-    <p class="muted">Source: NOAA CO-OPS. Demonstration only; not for navigation. Predictions and observations are different products.</p>
+    <footer class="muted"><p class="station-attribution">Data provided by NOAA’s National Ocean Service, Center for Operational Oceanographic Products and Services (CO-OPS).</p><p>Demonstration only; not for navigation. Predictions and observations are different products.</p></footer>
     </div>
   </section>
   <noscript>JavaScript is needed for the interactive explorer. <a href="https://tidesandcurrents.noaa.gov/map/">Browse NOAA's station map.</a></noscript>

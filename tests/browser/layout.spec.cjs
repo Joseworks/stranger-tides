@@ -9,9 +9,11 @@ const select=async page=>{await page.getByLabel('Find a station',{exact:true}).f
 test('map-first home keeps search and map visible with filters and results tucked away',async({page})=>{
   await page.goto('/');await expect(page.getByRole('region',{name:'Map',exact:true})).toBeVisible();
   await expect(page.locator('#station-list')).toBeHidden();await expect(page.locator('#station-filters')).toBeHidden();
-  const caption=page.locator('.header-caption');await expect(caption).toHaveText('NOAA water levels, tide predictions & station conditions');await expect(caption).toBeVisible();
+  const caption=page.locator('.header-caption');await expect(caption).toHaveText('Explore NOAA water levels, tide predictions and station conditions through an interactive map.');await expect(caption).toBeVisible();
+  await expect(page.locator('.header-credit')).toHaveText('A Ruby on Rails demonstration by JoseWorks Technologies LLC.');
+  await expect(page.getByRole('link',{name:'JoseWorks Technologies LLC',exact:true})).toHaveAttribute('href','https://www.joseworks.org');
   const brandBox=await page.locator('.brand').boundingBox(),captionBox=await caption.boundingBox();expect(captionBox.y).toBeGreaterThanOrEqual(brandBox.y+brandBox.height);
-  const bounds=await page.locator('#full_map').boundingBox(),size=page.viewportSize();expect(bounds.y).toBeLessThan(150);expect(bounds.height).toBeGreaterThan(size.height*.5);
+  const bounds=await page.locator('#full_map').boundingBox(),tools=await page.locator('.explorer-toolbar').boundingBox(),size=page.viewportSize();expect(bounds.y).toBeCloseTo(tools.y+tools.height,0);expect(bounds.height).toBeGreaterThan(size.height*.5);
   await page.getByRole('button',{name:'Filters',exact:true}).click();await expect(page.getByLabel('Highlight product',{exact:true})).toBeVisible();
   await page.getByRole('button',{name:'List',exact:true}).click();await expect(page.locator('#station-filters')).toBeHidden();await expect(page.locator('#station-list')).toBeVisible();
   await page.getByRole('button',{name:'Close station list',exact:true}).click();await expect(page.getByRole('button',{name:'List',exact:true})).toBeFocused();
@@ -21,6 +23,7 @@ test('compact station summary opens beside or below the map and tabs reflow char
   await expect(page.getByRole('tab',{name:'Now',exact:true})).toHaveAttribute('aria-selected','true');
   await expect(page.locator('#view-tides')).toBeHidden();await expect(page.locator('#view-weather')).toBeHidden();
   await expect(page.locator('#station-heading')).toHaveText('San Francisco, CA');await expect(page.locator('#station-code')).toHaveText('NOAA 9414290');
+  await expect(page.locator('.station-attribution')).toHaveText('Data provided by NOAA’s National Ocean Service, Center for Operational Oceanographic Products and Services (CO-OPS).');
   const map=await page.locator('#full_map').boundingBox(),panel=await page.locator('#station-panel').boundingBox();
   if(page.viewportSize().width>=900)expect(panel.x).toBeGreaterThan(map.x+map.width-2);else expect(panel.y).toBeGreaterThan(map.y+map.height-2);
   await page.getByRole('tab',{name:'Tides',exact:true}).click();await expect(page.locator('#graph-partial .highcharts-container')).toBeVisible();
@@ -37,7 +40,7 @@ test('tabs support arrow keys, sharing and a historical deep link',async({page})
 test('drawers close with Escape and short-screen panel expansion keeps the map reachable',async({page})=>{
   await page.goto('/');await page.getByRole('button',{name:'Filters',exact:true}).click();await page.getByLabel('Show stations',{exact:true}).focus();await page.keyboard.press('Escape');
   await expect(page.locator('#station-filters')).toBeHidden();await expect(page.getByRole('button',{name:'Filters',exact:true})).toBeFocused();await select(page);
-  if(page.viewportSize().width<900){await page.getByRole('button',{name:'Expand station panel',exact:true}).click();await expect(page.getByRole('button',{name:'Collapse station panel',exact:true})).toHaveAttribute('aria-expanded','true');await expect(page.getByRole('button',{name:'Center on your location',exact:true})).toBeVisible();}
+  if(page.viewportSize().width<900){await page.setViewportSize({width:320,height:568});await page.getByRole('button',{name:'Expand station panel',exact:true}).click();await expect(page.getByRole('button',{name:'Collapse station panel',exact:true})).toHaveAttribute('aria-expanded','true');await expect(page.getByRole('button',{name:'Center on your location',exact:true})).toBeVisible();const panel=await page.locator('#station-panel').boundingBox();expect(panel.y+panel.height).toBeLessThanOrEqual(page.viewportSize().height);}
   await page.getByRole('button',{name:'Close station details',exact:true}).click();await expect(page.locator('#station-panel')).toBeHidden();
 });
 test('automatic updates preserve an open station detail and its focus in the compact panel',async({page})=>{
