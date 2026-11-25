@@ -14,6 +14,8 @@ a { color: #076f77; }
 .brand-wave { width: 36px; height: 24px; fill: none; stroke: #25c7c2; stroke-width: 4; stroke-linecap: round; }
 .header-caption, .header-credit { margin: 0; font-size: .8rem; color: #d2e7e9; }
 .header-credit a { color: inherit; font-weight: 650; text-underline-offset: .15em; }
+#site-footer { flex: 0 0 auto; padding: 8px 18px; border-top: 1px solid var(--border); background: white; color: #55717d; font-size: .75rem; }
+#site-footer p { margin: 0; }
 #station-explorer { position: relative; flex: 1; min-height: 0; display: grid; grid-template: 70px minmax(0, 1fr) / minmax(0, 1fr); overflow-anchor: none; }
 .explorer-toolbar { display: flex; align-items: center; gap: 10px; padding: 10px 18px; grid-column: 1 / -1; background: #083442; z-index: 5; }
 .search-field { flex: 1; max-width: 620px; display: flex; align-items: center; background: white; border-radius: 9px; padding-left: 12px; border: 1px solid #b9cbd1; }
@@ -98,7 +100,7 @@ th, td { padding: 7px; border-bottom: 1px solid var(--border); }
   .explorer-toolbar { padding: 8px 10px; gap: 6px; }
   .explorer-toolbar > button { font-size: .8rem; padding: 6px 9px; }
   .search-field { min-width: 0; } #station-search { font-size: .9rem; padding: 8px; }
-  .has-station { grid-template: 66px minmax(100px, 1fr) minmax(210px, 46%) / minmax(0,1fr) !important; }
+  .has-station { grid-template: 66px minmax(70px, 1fr) minmax(210px, 46%) / minmax(0,1fr) !important; }
   .has-station.panel-expanded { grid-template-rows: 66px minmax(70px, .28fr) minmax(210px, .72fr) !important; }
   #station-panel { grid-row: 3; grid-column: 1; border-radius: 16px 16px 0 0; border-top: 1px solid var(--border); }
   #expand-station { display: block; } .panel-heading { padding: 10px 14px 5px; } h1 { font-size: 1.1rem; }

@@ -12,6 +12,8 @@ test('map-first home keeps search and map visible with filters and results tucke
   const caption=page.locator('.header-caption');await expect(caption).toHaveText('Explore NOAA water levels, tide predictions and station conditions through an interactive map.');await expect(caption).toBeVisible();
   await expect(page.locator('.header-credit')).toHaveText('A Ruby on Rails demonstration by JoseWorks Technologies LLC.');
   await expect(page.getByRole('link',{name:'JoseWorks Technologies LLC',exact:true})).toHaveAttribute('href','https://www.joseworks.org');
+  const footer=page.getByRole('contentinfo');await expect(footer).toContainText('Data provided by NOAA’s National Ocean Service');
+  await expect(footer).toBeInViewport();expect(await footer.evaluate(n=>n.closest('#station-panel'))).toBeNull();
   const brandBox=await page.locator('.brand').boundingBox(),captionBox=await caption.boundingBox();expect(captionBox.y).toBeGreaterThanOrEqual(brandBox.y+brandBox.height);
   const bounds=await page.locator('#full_map').boundingBox(),tools=await page.locator('.explorer-toolbar').boundingBox(),size=page.viewportSize();expect(bounds.y).toBeCloseTo(tools.y+tools.height,0);expect(bounds.height).toBeGreaterThan(size.height*.5);
   await page.getByRole('button',{name:'Filters',exact:true}).click();await expect(page.getByLabel('Highlight product',{exact:true})).toBeVisible();
@@ -42,6 +44,7 @@ test('drawers close with Escape and short-screen panel expansion keeps the map r
   await expect(page.locator('#station-filters')).toBeHidden();await expect(page.getByRole('button',{name:'Filters',exact:true})).toBeFocused();await select(page);
   if(page.viewportSize().width<900){await page.setViewportSize({width:320,height:568});await page.getByRole('button',{name:'Expand station panel',exact:true}).click();await expect(page.getByRole('button',{name:'Collapse station panel',exact:true})).toHaveAttribute('aria-expanded','true');await expect(page.getByRole('button',{name:'Center on your location',exact:true})).toBeVisible();const panel=await page.locator('#station-panel').boundingBox();expect(panel.y+panel.height).toBeLessThanOrEqual(page.viewportSize().height);}
   await page.getByRole('button',{name:'Close station details',exact:true}).click();await expect(page.locator('#station-panel')).toBeHidden();
+  const footer=await page.getByRole('contentinfo').boundingBox();expect(footer.y+footer.height).toBeLessThanOrEqual(page.viewportSize().height);
 });
 test('automatic updates preserve an open station detail and its focus in the compact panel',async({page})=>{
   await page.clock.install();let reports=0;page.on('request',r=>{if(r.url().includes('/report?'))reports++;});
