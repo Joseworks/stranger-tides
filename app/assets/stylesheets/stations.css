@@ -9,7 +9,7 @@ button:disabled { opacity: .6; }
 [hidden] { display: none !important; }
 a { color: #076f77; }
 .sr-only, .quiet-status { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-#header { flex: 0 0 auto; padding: 12px 24px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; background: #083442; color: white; }
+#header { position: relative; flex: 0 0 auto; padding: 12px 24px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; background: #083442; color: white; }
 .brand { display: inline-flex; align-items: center; gap: 10px; color: white; font-size: 1.45rem; font-weight: 750; text-decoration: none; }
 .brand-wave { width: 36px; height: 24px; fill: none; stroke: #25c7c2; stroke-width: 4; stroke-linecap: round; }
 .header-caption, .header-credit { margin: 0; font-size: .8rem; color: #d2e7e9; }
@@ -143,3 +143,11 @@ h1 { overflow-wrap: anywhere; }
 #station-photo figure { margin: 12px 0 8px; }
 #station-photo img { display: block; width: 100%; height: 180px; object-fit: contain; background: #edf3f4; border-radius: 8px; }
 #station-photo figcaption { margin-top: 6px; font-size: .75rem; color: #55717d; }
+
+.brand-row { display: flex; width: 100%; min-height: 44px; padding-right: 56px; align-items: center; gap: 8px; }
+.language-control { position: absolute; top: 12px; right: 24px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; width: 48px; height: 44px; border-radius: 4px; cursor: pointer; }
+.language-control::after { content: ''; width: 5px; height: 5px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); margin-top: -3px; }
+.language-control:focus-within { outline: 2px solid white; outline-offset: 2px; }
+.language-flag { width: 24px; height: 16px; border-radius: 2px; }
+.language-control select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; color: #183b49; background: white; }
+@media (max-width: 600px) { .brand-row { gap: 4px; } .brand-row .brand { font-size: 1.1rem; gap: 6px; } .brand-row .brand-wave { width: 26px; } .language-control { top: 10px; right: 14px; } }

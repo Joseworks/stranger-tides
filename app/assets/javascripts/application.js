@@ -14,6 +14,7 @@
 //= require jquery_ujs
 //= require highcharts/highcharts
 //= require highcharts/highcharts-more
+//= require app_i18n
 //= require station_charts
 //= require station_layout
 //= require station_photos
