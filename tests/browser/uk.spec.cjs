@@ -6,6 +6,21 @@ test.beforeEach(async({page})=>{
  await page.route('https://maps.googleapis.com/**',r=>r.fulfill({path:path.join(__dirname,'maps-fixture.js'),contentType:'application/javascript'}));
 });
 test.afterEach(async({page})=>expect(page.testErrors).toEqual([]));
+test('UK network and source identity survive a language change',async({page})=>{
+ await page.goto('/?network=uk&station=ea-E70039&units=metric&zone=station&locale=en');
+ await expect(page.locator('#station-heading')).toHaveText('Lowestoft, UK');
+ await page.locator('#language-select').selectOption('fr');
+ await expect(page.locator('html')).toHaveAttribute('lang','fr');
+ await expect(page.locator('#station-heading')).toHaveText('Lowestoft, UK');
+ await expect(page.locator('#station-network')).toHaveValue('uk');
+ await expect(page.locator('.language-flag')).toHaveAttribute('src',/flag_fr/);
+ await expect(page.locator('#full_map img[src*="uk_marker"]')).toHaveCount(1);
+ await page.locator('#tab-tides').click();
+ await expect(page.locator('#uk-products-note')).toContainText('niveaux marins');
+ await expect(page.locator('#graph-partial .highcharts-subtitle')).toContainText('Environment Agency');
+ await expect(page.locator('#uk-attribution')).toBeVisible();
+ expect(new URL(page.url()).searchParams.get('zone')).toBe('station');
+});
 for(const advanced of [false,true])test(`UK flag pins work with ${advanced?'advanced':'legacy'} markers and keep station selection`,async({page})=>{
  if(advanced)await page.addInitScript(()=>{window.useAdvancedMarkersFixture=true;});
  await page.goto('/?network=uk&units=metric');

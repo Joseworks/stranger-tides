@@ -1,6 +1,7 @@
 /* global Highcharts */
 (() => {
   'use strict';
+  const tr = (...args) => window.AppI18n.t(...args);
   const byId = id => document.getElementById(id), views = ['now','tides','weather','history'];
   let view = 'now', drawer, lastStation;
   const positions = new Map();
@@ -66,7 +67,7 @@
     byId('expand-station').addEventListener('click', () => {
       const expanded = byId('station-explorer').classList.toggle('panel-expanded');
       byId('expand-station').setAttribute('aria-expanded',String(expanded));
-      byId('expand-station').setAttribute('aria-label',expanded ? 'Collapse station panel' : 'Expand station panel');
+      byId('expand-station').setAttribute('aria-label',expanded ? tr('Collapse station panel') : tr('Expand station panel'));
       byId('expand-station').textContent = expanded ? '⌄' : '⌃'; reflow();
     });
     window.addEventListener('resize',reflow);
@@ -81,7 +82,7 @@
     },
     closed() {
       closeDrawer(); byId('station-explorer').classList.remove('has-station','panel-expanded');
-      byId('expand-station').setAttribute('aria-expanded','false'); byId('expand-station').setAttribute('aria-label','Expand station panel');
+      byId('expand-station').setAttribute('aria-expanded','false'); byId('expand-station').setAttribute('aria-label',tr('Expand station panel'));
       byId('expand-station').textContent = '⌃'; lastStation = null; positions.clear(); reflow();
     }
   };

@@ -1,130 +1,131 @@
 <header id="header">
-  <a href="/" class="brand"><svg class="brand-wave" viewBox="0 0 44 26" aria-hidden="true"><path d="M2 8C9 0 16 0 23 7S36 14 42 6M2 20C9 12 16 12 23 19S36 26 42 18"/></svg>Stranger Tides</a>
-  <p class="header-caption">Explore NOAA water levels, tide predictions and station conditions through an interactive map.</p>
-  <p class="header-credit">A Ruby on Rails demonstration by <a href="https://www.joseworks.org" target="_blank" rel="noopener noreferrer">JoseWorks Technologies LLC</a>.</p>
+  <div class="brand-row"><a href="<%= root_path(locale: I18n.locale) %>" class="brand"><svg class="brand-wave" viewBox="0 0 44 26" aria-hidden="true"><path d="M2 8C9 0 16 0 23 7S36 14 42 6M2 20C9 12 16 12 23 19S36 26 42 18"/></svg>Stranger Tides</a>
+  <label class="language-control"><span class="sr-only"><%= ui("Language") %></span><%= image_tag({ en: 'flag_gb.svg', es: 'flag_es.svg', fr: 'flag_fr.svg', de: 'flag_de.svg' }.fetch(I18n.locale), class: 'language-flag', alt: '', 'aria-hidden': true) %><select id="language-select" aria-label="<%= ui("Language") %>"><%= options_for_select([['English','en'],['Español','es'],['Français','fr'],['Deutsch','de']], I18n.locale.to_s) %></select></label></div>
+  <p class="header-caption"><%= ui("Explore NOAA water levels, tide predictions and station conditions through an interactive map.") %></p>
+  <p class="header-credit"><%= ui("A Ruby on Rails demonstration by") %> <a href="https://www.joseworks.org" target="_blank" rel="noopener noreferrer">JoseWorks Technologies LLC</a>.</p>
 </header>
 <main id="station-explorer">
-  <div class="explorer-toolbar" aria-label="Station search and map tools">
-    <div class="search-field"><label for="station-search" class="sr-only">Find a station</label><span aria-hidden="true">⌕</span><input id="station-search" type="search" placeholder="Find a station" autocomplete="off" aria-controls="station-results"></div>
-    <button id="toggle-filters" type="button" aria-expanded="false" aria-controls="station-filters"><span aria-hidden="true">☷</span> Filters</button>
-    <button id="toggle-list" type="button" aria-expanded="false" aria-controls="station-list"><span aria-hidden="true">☰</span> List</button>
+  <div class="explorer-toolbar" aria-label="<%= ui("Station search and map tools") %>">
+    <div class="search-field"><label for="station-search" class="sr-only"><%= ui("Find a station") %></label><span aria-hidden="true">⌕</span><input id="station-search" type="search" placeholder="<%= ui("Find a station") %>" autocomplete="off" aria-controls="station-results"></div>
+    <button id="toggle-filters" type="button" aria-expanded="false" aria-controls="station-filters"><span aria-hidden="true">☷</span> <%= ui("Filters") %></button>
+    <button id="toggle-list" type="button" aria-expanded="false" aria-controls="station-list"><span aria-hidden="true">☰</span> <%= ui("List") %></button>
   </div>
-  <section id="station-filters" class="discovery drawer" aria-label="Station filters" hidden>
-    <div class="drawer-heading"><h2>Filter stations</h2><button type="button" data-close-drawer aria-label="Close filters">×</button></div>
-    <label for="station-network">Station network</label>
-    <select id="station-network"><option value="noaa">United States — NOAA</option><option value="uk">United Kingdom — Environment Agency</option><option value="all">Both networks</option></select>
-    <label for="station-layer">Show stations</label>
+  <section id="station-filters" class="discovery drawer" aria-label="<%= ui("Station filters") %>" hidden>
+    <div class="drawer-heading"><h2><%= ui("Filter stations") %></h2><button type="button" data-close-drawer aria-label="<%= ui("Close filters") %>">×</button></div>
+    <label for="station-network"><%= ui("Station network") %></label>
+    <select id="station-network"><option value="noaa"><%= ui("United States — NOAA") %></option><option value="uk"><%= ui("United Kingdom — Environment Agency") %></option><option value="all"><%= ui("Both networks") %></option></select>
+    <label for="station-layer"><%= ui("Show stations") %></label>
     <select id="station-layer">
-      <option value="waterlevels">Active water-level stations</option>
-      <option value="tidepredictions">Tide prediction locations</option>
-      <option value="waterlevelsandmet">Water-level &amp; weather stations</option>
-      <option value="additional">Matching highlighted product</option>
-      <option value="all">All locations</option>
+      <option value="waterlevels"><%= ui("Active water-level stations") %></option>
+      <option value="tidepredictions"><%= ui("Tide prediction locations") %></option>
+      <option value="waterlevelsandmet"><%= ui("Water-level & weather stations") %></option>
+      <option value="additional"><%= ui("Matching highlighted product") %></option>
+      <option value="all"><%= ui("All locations") %></option>
     </select>
-    <label for="station-product">Highlight product</label>
+    <label for="station-product"><%= ui("Highlight product") %></label>
     <select id="station-product" aria-describedby="product-status">
-      <option value="specialized" selected>Specialized sensors</option>
-      <option value="ofs_water_level">Water-level forecast</option>
-      <option value="flood_outlook">Flood outlook</option>
-      <option value="salinity">Salinity</option>
-      <option value="conductivity">Conductivity</option>
-      <option value="visibility">Visibility</option>
-      <option value="air_gap">Bridge clearance</option>
-      <option value="one_minute_water_level">One-minute water levels</option>
-      <option value="any">Any additional product</option>
+      <option value="specialized" selected><%= ui("Specialized sensors") %></option>
+      <option value="ofs_water_level"><%= ui("Water-level forecast") %></option>
+      <option value="flood_outlook"><%= ui("Flood outlook") %></option>
+      <option value="salinity"><%= ui("Salinity") %></option>
+      <option value="conductivity"><%= ui("Conductivity") %></option>
+      <option value="visibility"><%= ui("Visibility") %></option>
+      <option value="air_gap"><%= ui("Bridge clearance") %></option>
+      <option value="one_minute_water_level"><%= ui("One-minute water levels") %></option>
+      <option value="any"><%= ui("Any additional product") %></option>
     </select>
     <p id="product-status" class="muted" aria-live="polite"></p>
-    <p id="catalog-status" class="muted" role="status">Loading station catalog…</p>
-    <p class="muted">Purple marks the selected product; orange marks other stations.</p>
+    <p id="catalog-status" class="muted" role="status"><%= ui("Loading station catalog…") %></p>
+    <p class="muted"><%= ui("Purple marks the selected product; orange marks other stations.") %></p>
   </section>
-  <section id="station-list" class="discovery drawer" aria-label="Find stations" hidden>
-    <div class="drawer-heading"><h2>Stations</h2><button type="button" data-close-drawer aria-label="Close station list">×</button></div>
-    <button id="locate" type="button" aria-describedby="location-details">Find stations near me</button>
-    <p id="location-details" class="muted">Location request from <span id="location-origin"><%= request.host_with_port %></span> to find nearby stations and center the Google map.</p>
+  <section id="station-list" class="discovery drawer" aria-label="<%= ui("Find stations") %>" hidden>
+    <div class="drawer-heading"><h2><%= ui("Stations") %></h2><button type="button" data-close-drawer aria-label="<%= ui("Close station list") %>">×</button></div>
+    <button id="locate" type="button" aria-describedby="location-details"><%= ui("Find stations near me") %></button>
+    <p id="location-details" class="muted"><%= ui("Location request from") %> <span id="location-origin"><%= request.host_with_port %></span> <%= ui("to find nearby stations and center the Google map.") %></p>
     <p id="location-status" class="muted" role="status"></p>
     <p id="result-count" aria-live="polite"></p>
-    <ul id="station-results" aria-label="Station results"></ul>
-    <button id="more-stations" type="button" hidden>Show more stations</button>
+    <ul id="station-results" aria-label="<%= ui("Station results") %>"></ul>
+    <button id="more-stations" type="button" hidden><%= ui("Show more stations") %></button>
   </section>
-  <section class="map-section" aria-label="Station map">
-    <div class="map-messages"><p id="map-status" class="muted" role="status">Loading map. You can also use the station list.</p><p id="catalog-alert" role="status" hidden></p></div>
+  <section class="map-section" aria-label="<%= ui("Station map") %>">
+    <div class="map-messages"><p id="map-status" class="muted" role="status"><%= ui("Loading map. You can also use the station list.") %></p><p id="catalog-alert" role="status" hidden></p></div>
     <div id="full_map" data-marker-icon="<%= asset_path('orange_marker.svg') %>"
          data-extra-marker-icon="<%= asset_path('purple_marker.svg') %>"
          data-uk-marker-icon="<%= asset_path('uk_marker.svg') %>"
          data-uk-extra-marker-icon="<%= asset_path('uk_extra_marker.svg') %>"
          data-maps-key="<%= ENV['STRANGER_TIDES_EMBED_MAPS_API_KEY'] %>"
          data-map-id="<%= ENV['STRANGER_TIDES_MAP_ID'] %>"></div>
-    <details class="map-legend"><summary><span class="station-swatch" aria-hidden="true"></span> Stations <span class="station-swatch extra-swatch" aria-hidden="true"></span> <span id="legend-product">Stations with Extra Sensors</span></summary><p>Each pin is one station. Tap overlapping pins to spread them out without zooming. Orange pin = other stations. <span id="highlight-legend">Purple pin = specialized sensors.</span> Union flag pins mark UK Environment Agency gauges.</p><button id="extra-products-toggle" type="button" aria-pressed="false">Show matching stations only</button></details>
+    <details class="map-legend"><summary><span class="station-swatch" aria-hidden="true"></span> <%= ui("Stations") %> <span class="station-swatch extra-swatch" aria-hidden="true"></span> <span id="legend-product"><%= ui("Stations with Extra Sensors") %></span></summary><p><%= ui("Each pin is one station. Tap overlapping pins to spread them out without zooming. Orange pin = other stations.") %> <span id="highlight-legend"><%= ui("Purple pin = specialized sensors.") %></span> <%= ui("Union flag pins mark UK Environment Agency gauges.") %></p><button id="extra-products-toggle" type="button" aria-pressed="false"><%= ui("Show matching stations only") %></button></details>
   </section>
   <section id="station-panel" aria-labelledby="station-heading" hidden>
     <div class="panel-heading">
-      <div><h1 id="station-heading" tabindex="-1" aria-live="polite">Station details</h1><p id="station-code" class="muted"></p></div>
-      <div class="panel-actions"><button id="expand-station" type="button" aria-expanded="false" aria-label="Expand station panel">⌃</button><button id="close-station" type="button" aria-label="Close station details">×</button></div>
+      <div><h1 id="station-heading" tabindex="-1" aria-live="polite"><%= ui("Station details") %></h1><p id="station-code" class="muted"></p></div>
+      <div class="panel-actions"><button id="expand-station" type="button" aria-expanded="false" aria-label="<%= ui("Expand station panel") %>">⌃</button><button id="close-station" type="button" aria-label="<%= ui("Close station details") %>">×</button></div>
     </div>
-    <div class="station-tabs" role="tablist" aria-label="Station report views">
-      <button type="button" id="tab-now" role="tab" aria-selected="true" aria-controls="view-now" data-view="now">Now</button>
-      <button type="button" id="tab-tides" role="tab" aria-selected="false" aria-controls="view-tides" tabindex="-1" data-view="tides">Tides</button>
-      <button type="button" id="tab-weather" role="tab" aria-selected="false" aria-controls="view-weather" tabindex="-1" data-view="weather">Weather</button>
-      <button type="button" id="tab-history" role="tab" aria-selected="false" aria-controls="view-history" tabindex="-1" data-view="history">History</button>
+    <div class="station-tabs" role="tablist" aria-label="<%= ui("Station report views") %>">
+      <button type="button" id="tab-now" role="tab" aria-selected="true" aria-controls="view-now" data-view="now"><%= ui("Now") %></button>
+      <button type="button" id="tab-tides" role="tab" aria-selected="false" aria-controls="view-tides" tabindex="-1" data-view="tides"><%= ui("Tides") %></button>
+      <button type="button" id="tab-weather" role="tab" aria-selected="false" aria-controls="view-weather" tabindex="-1" data-view="weather"><%= ui("Weather") %></button>
+      <button type="button" id="tab-history" role="tab" aria-selected="false" aria-controls="view-history" tabindex="-1" data-view="history"><%= ui("History") %></button>
     </div>
     <div class="station-body">
-      <p id="report-status" role="status" aria-live="polite"></p><button id="retry-report" type="button" hidden>Retry station data</button>
+      <p id="report-status" role="status" aria-live="polite"></p><button id="retry-report" type="button" hidden><%= ui("Retry station data") %></button>
       <div id="report-warnings" aria-live="polite"></div>
       <section id="view-now" role="tabpanel" aria-labelledby="tab-now" tabindex="0">
         <div id="station-summary"></div>
-        <button id="open-tides" class="text-action" type="button">View water levels →</button>
-        <details id="station-photo" class="secondary-details"><summary>Station photo</summary><div id="station-photo-content" aria-live="polite"></div></details>
+        <button id="open-tides" class="text-action" type="button"><%= ui("View water levels →") %></button>
+        <details id="station-photo" class="secondary-details"><summary><%= ui("Station photo") %></summary><div id="station-photo-content" aria-live="polite"></div></details>
       </section>
       <section id="view-tides" role="tabpanel" aria-labelledby="tab-tides" tabindex="0" hidden>
-        <div class="range-controls"><label>History <select id="history-hours" aria-label="History"><option value="24">24 hours</option><option value="48" selected>48 hours</option><option value="72">72 hours</option><option value="168">7 days</option><option value="672" hidden disabled>28 days</option><option value="720">30 days</option></select></label><label id="planning-control">Plan ahead <select id="future-hours" aria-label="Plan ahead"><option value="0">Off</option><option value="24">24 hours</option><option value="72">3 days</option><option value="168" selected>7 days</option><option value="720">30 days</option></select></label></div>
-        <p id="uk-products-note" class="muted" hidden>Environment Agency provides measured sea levels every 15 minutes, usually delayed by 15–30 minutes. This free service does not provide future tide predictions, weather or station photos.</p>
-        <div id="station-charts"><div id="graph-partial" aria-label="Water-level chart"></div></div>
-        <details id="planning-products" class="secondary-details"><summary>Future tides &amp; observed difference</summary><section id="planning-charts" aria-label="Tide planning and differences"></section></details>
-        <details id="forecast-products" class="secondary-details"><summary>Forecasts &amp; flood context</summary><section id="station-context" aria-label="Forecasts and flood context"></section></details>
+        <div class="range-controls"><label><%= ui("History") %> <select id="history-hours" aria-label="<%= ui("History") %>"><option value="24"><%= ui("24 hours") %></option><option value="48" selected><%= ui("48 hours") %></option><option value="72"><%= ui("72 hours") %></option><option value="168"><%= ui("7 days") %></option><option value="672" hidden disabled><%= ui("28 days") %></option><option value="720"><%= ui("30 days") %></option></select></label><label id="planning-control"><%= ui("Plan ahead") %> <select id="future-hours" aria-label="<%= ui("Plan ahead") %>"><option value="0"><%= ui("Off") %></option><option value="24"><%= ui("24 hours") %></option><option value="72"><%= ui("3 days") %></option><option value="168" selected><%= ui("7 days") %></option><option value="720"><%= ui("30 days") %></option></select></label></div>
+        <p id="uk-products-note" class="muted" hidden><%= ui("Environment Agency provides measured sea levels every 15 minutes, usually delayed by 15–30 minutes. This free service does not provide future tide predictions, weather or station photos.") %></p>
+        <div id="station-charts"><div id="graph-partial" aria-label="<%= ui("Water-level chart") %>"></div></div>
+        <details id="planning-products" class="secondary-details"><summary><%= ui("Future tides & observed difference") %></summary><section id="planning-charts" aria-label="<%= ui("Tide planning and differences") %>"></section></details>
+        <details id="forecast-products" class="secondary-details"><summary><%= ui("Forecasts & flood context") %></summary><section id="station-context" aria-label="<%= ui("Forecasts and flood context") %>"></section></details>
       </section>
       <section id="view-weather" role="tabpanel" aria-labelledby="tab-weather" tabindex="0" hidden>
-        <p class="muted">Available station measurements and nearby buoy observations.</p><section id="weather-charts" aria-label="Station weather history" hidden></section><section id="nearby-buoys" aria-label="Nearby NOAA buoys"></section>
+        <p class="muted"><%= ui("Available station measurements and nearby buoy observations.") %></p><section id="weather-charts" aria-label="<%= ui("Station weather history") %>" hidden></section><section id="nearby-buoys" aria-label="<%= ui("Nearby NOAA buoys") %>"></section>
       </section>
       <section id="view-history" role="tabpanel" aria-labelledby="tab-history" tabindex="0" hidden>
     <details id="historical-explorer">
-      <summary>Explore historical dates &amp; export CSV</summary>
-      <h2>Historical water levels</h2>
-      <p class="muted">Investigate a storm or compare seasons. These fixed dates are separate from current conditions and future planning. Start/end dates include the whole UTC day.</p>
+      <summary><%= ui("Explore historical dates & export CSV") %></summary>
+      <h2><%= ui("Historical water levels") %></h2>
+      <p class="muted"><%= ui("Investigate a storm or compare seasons. These fixed dates are separate from current conditions and future planning. Start/end dates include the whole UTC day.") %></p>
       <form id="history-form" class="history-form">
-        <label for="history-start">Start date (UTC)</label>
+        <label for="history-start"><%= ui("Start date (UTC)") %></label>
         <input id="history-start" type="date" required min="1800-01-01">
-        <label for="history-end">End date (UTC)</label>
+        <label for="history-end"><%= ui("End date (UTC)") %></label>
         <input id="history-end" type="date" required min="1800-01-01">
-        <label for="history-resolution">Historical resolution</label>
+        <label for="history-resolution"><%= ui("Historical resolution") %></label>
         <select id="history-resolution" aria-describedby="history-help">
-          <option value="auto">Automatic</option>
-          <option value="fifteen_minute" hidden disabled>Fifteen-minute (past 28 days)</option>
-          <option value="six_minute">Six-minute (up to 30 days)</option>
-          <option value="hourly">Verified hourly (up to 365 days)</option>
-          <option value="monthly">Verified monthly means (up to 200 years)</option>
+          <option value="auto"><%= ui("Automatic") %></option>
+          <option value="fifteen_minute" hidden disabled><%= ui("Fifteen-minute (past 28 days)") %></option>
+          <option value="six_minute"><%= ui("Six-minute (up to 30 days)") %></option>
+          <option value="hourly"><%= ui("Verified hourly (up to 365 days)") %></option>
+          <option value="monthly"><%= ui("Verified monthly means (up to 200 years)") %></option>
         </select>
-        <button type="submit">Load historical data</button>
-        <button id="history-export" type="button" disabled>Export historical CSV</button>
+        <button type="submit"><%= ui("Load historical data") %></button>
+        <button id="history-export" type="button" disabled><%= ui("Export historical CSV") %></button>
       </form>
-      <p id="history-help" class="muted">Automatic uses six-minute, hourly, then monthly data as the range grows. Verified data can lag recent months. Monthly values represent full calendar months and use NOAA's MSL field relative to the stated datum; they are not storm peaks or individual tides. Availability varies by station.</p>
-      <p id="history-status" role="status" aria-live="polite">Choose dates and load historical data.</p>
+      <p id="history-help" class="muted"><%= ui("Automatic uses six-minute, hourly, then monthly data as the range grows. Verified data can lag recent months. Monthly values represent full calendar months and use NOAA's MSL field relative to the stated datum; they are not storm peaks or individual tides. Availability varies by station.") %></p>
+      <p id="history-status" role="status" aria-live="polite"><%= ui("Choose dates and load historical data.") %></p>
       <div id="history-results" aria-busy="false">
         <p id="history-caption" class="muted"></p>
-        <div id="history-chart" aria-label="Historical water-level chart"></div>
-        <div id="history-difference-chart" aria-label="Historical observed-minus-predicted chart"></div>
-        <details id="history-table" hidden><summary>View historical measurements as a table</summary><div class="table-scroll"><table><caption id="history-table-caption"></caption><thead><tr><th scope="col">Time / month</th><th scope="col">Product</th><th scope="col">Value</th><th scope="col">Quality / flags</th></tr></thead><tbody id="history-rows"></tbody></table></div><p id="history-page" class="muted"></p><button id="history-more" type="button" hidden>Show more historical measurements</button></details>
+        <div id="history-chart" aria-label="<%= ui("Historical water-level chart") %>"></div>
+        <div id="history-difference-chart" aria-label="<%= ui("Historical observed-minus-predicted chart") %>"></div>
+        <details id="history-table" hidden><summary><%= ui("View historical measurements as a table") %></summary><div class="table-scroll"><table><caption id="history-table-caption"></caption><thead><tr><th scope="col"><%= ui("Time / month") %></th><th scope="col"><%= ui("Product") %></th><th scope="col"><%= ui("Value") %></th><th scope="col"><%= ui("Quality / flags") %></th></tr></thead><tbody id="history-rows"></tbody></table></div><p id="history-page" class="muted"></p><button id="history-more" type="button" hidden><%= ui("Show more historical measurements") %></button></details>
       </div>
     </details>
       </section>
-      <details id="display-options" class="secondary-details"><summary>Display &amp; live updates</summary>
-        <div class="chart-controls"><label>Units <select id="height-units" aria-label="Units"><option value="english">US units</option><option value="metric">Metric</option></select></label><label>Time <select id="display-zone" aria-label="Time"><option value="local">Your local time</option><option value="station" disabled>Station local time</option><option value="utc">UTC</option></select></label></div>
-        <label class="live-updates"><input id="live-updates" type="checkbox" checked aria-describedby="live-update-status"> Live updates</label><button id="refresh-report" type="button">Refresh now</button><p id="live-update-status" class="muted">Live updates every 6 minutes while this tab is visible.</p>
+      <details id="display-options" class="secondary-details"><summary><%= ui("Display & live updates") %></summary>
+        <div class="chart-controls"><label><%= ui("Units") %> <select id="height-units" aria-label="<%= ui("Units") %>"><option value="english"><%= ui("US units") %></option><option value="metric"><%= ui("Metric") %></option></select></label><label><%= ui("Time") %> <select id="display-zone" aria-label="<%= ui("Time") %>"><option value="local"><%= ui("Your local time") %></option><option value="station" disabled><%= ui("Station local time") %></option><option value="utc">UTC</option></select></label></div>
+        <label class="live-updates"><input id="live-updates" type="checkbox" checked aria-describedby="live-update-status"> <%= ui("Live updates") %></label><button id="refresh-report" type="button"><%= ui("Refresh now") %></button><p id="live-update-status" class="muted"><%= ui("Live updates every 6 minutes while this tab is visible.") %></p>
       </details>
-    <details id="observations-table"><summary>View measurements as a table</summary><div class="table-scroll"><table><caption>Station observations and predictions</caption><thead><tr><th scope="col">Time</th><th scope="col">Product</th><th scope="col">Value</th><th scope="col">Quality / event</th></tr></thead><tbody id="measurement-rows"></tbody></table></div><p id="measurement-page" class="muted"></p><button id="more-measurements" type="button" hidden>Show more measurements</button></details>
-    <p><a id="noaa-station-link" target="_blank" rel="noopener noreferrer">View this station at NOAA</a> · <button id="share-station" type="button">Copy station link</button></p>
-    <p class="muted">Demonstration only; not for navigation. Predictions and observations are different products.</p>
+    <details id="observations-table"><summary><%= ui("View measurements as a table") %></summary><div class="table-scroll"><table><caption><%= ui("Station observations and predictions") %></caption><thead><tr><th scope="col"><%= ui("Time") %></th><th scope="col"><%= ui("Product") %></th><th scope="col"><%= ui("Value") %></th><th scope="col"><%= ui("Quality / event") %></th></tr></thead><tbody id="measurement-rows"></tbody></table></div><p id="measurement-page" class="muted"></p><button id="more-measurements" type="button" hidden><%= ui("Show more measurements") %></button></details>
+    <p><a id="noaa-station-link" target="_blank" rel="noopener noreferrer"><%= ui("View this station at NOAA") %></a> · <button id="share-station" type="button"><%= ui("Copy station link") %></button></p>
+    <p class="muted"><%= ui("Demonstration only; not for navigation. Predictions and observations are different products.") %></p>
     </div>
   </section>
-  <noscript>JavaScript is needed for the interactive explorer. <a href="https://tidesandcurrents.noaa.gov/map/">Browse NOAA's station map.</a></noscript>
+  <noscript><%= ui("JavaScript is needed for the interactive explorer.") %> <a href="https://tidesandcurrents.noaa.gov/map/"><%= ui("Browse NOAA's station map.") %></a></noscript>
 </main>
-<footer id="site-footer"><p class="station-attribution">Data provided by <a href="https://www.noaa.gov/" target="_blank" rel="noopener noreferrer">NOAA</a>’s <a href="https://oceanservice.noaa.gov/" target="_blank" rel="noopener noreferrer">National Ocean Service</a>, <a href="https://tidesandcurrents.noaa.gov/" target="_blank" rel="noopener noreferrer">Center for Operational Oceanographic Products and Services (CO-OPS)</a>.</p><p id="uk-attribution" hidden>This uses <a href="https://environment.data.gov.uk/flood-monitoring/doc/tidegauge" target="_blank" rel="noopener noreferrer">Environment Agency tide gauge data from the real-time data API (Beta)</a>, under the <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" target="_blank" rel="noopener noreferrer">Open Government Licence</a>.</p></footer>
+<footer id="site-footer"><p class="station-attribution"><%= ui("Data provided by") %> <a href="https://www.noaa.gov/" target="_blank" rel="noopener noreferrer">NOAA</a><%= ui("’s") %> <a href="https://oceanservice.noaa.gov/" target="_blank" rel="noopener noreferrer">National Ocean Service</a>, <a href="https://tidesandcurrents.noaa.gov/" target="_blank" rel="noopener noreferrer">Center for Operational Oceanographic Products and Services (CO-OPS)</a>.</p><p id="uk-attribution" hidden>This uses <a href="https://environment.data.gov.uk/flood-monitoring/doc/tidegauge" target="_blank" rel="noopener noreferrer">Environment Agency tide gauge data from the real-time data API (Beta)</a>, under the <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" target="_blank" rel="noopener noreferrer">Open Government Licence</a>.</p></footer>
