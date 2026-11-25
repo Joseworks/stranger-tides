@@ -13,44 +13,55 @@ class StationsController < ApplicationController
   end
 
   def catalog
-    catalog = Noaa::Catalog.new
-    products = Noaa::ProductCatalog.new
-    render json: { stations: products.enrich(catalog.stations), status: catalog.status,
-                   products_warning: products.warning }
+    render json: StationNetworks.new(params.fetch(:network, 'noaa')).call
   end
 
   def report
-    station = Noaa::Catalog.new.find(params.expect(:id))
-    render json: Noaa::StationReport.new(station, hours: params.fetch(:hours, 48),
-                                                  units: params.fetch(:units, 'english'),
-                                                  future_hours: params.fetch(:future_hours, 0)).call
+    station = find_station
+    provider = uk_station? ? EnvironmentAgency : Noaa
+    options = { hours: params.fetch(:hours, 48), units: params.fetch(:units, 'english'),
+                future_hours: params.fetch(:future_hours, 0) }
+    render json: provider::StationReport.new(station, **options).call
   end
 
   def context
-    station = Noaa::Catalog.new.find(params.expect(:id))
+    station = noaa_station
     render json: Noaa::StationContext.new(station, units: params.fetch(:units, 'english')).call
   end
 
   def history
-    station = Noaa::Catalog.new.find(params.expect(:id))
-    render json: Noaa::HistoryReport.new(station, begin_date: params[:begin_date],
-                                                  end_date: params[:end_date],
-                                                  resolution: params.fetch(:resolution, 'auto'),
-                                                  units: params.fetch(:units, 'english')).call
+    station = find_station
+    provider = uk_station? ? EnvironmentAgency : Noaa
+    options = { begin_date: params[:begin_date], end_date: params[:end_date],
+                resolution: params.fetch(:resolution, 'auto'),
+                units: params.fetch(:units, 'english') }
+    render json: provider::HistoryReport.new(station, **options).call
   end
 
   def nearby
-    station = Noaa::Catalog.new.find(params.expect(:id))
+    station = noaa_station
     render json: Noaa::NearbyBuoys.new(station, units: params.fetch(:units, 'english'),
                                                 hours: params.fetch(:hours, 48)).call
   end
 
   def photo
-    station = Noaa::Catalog.new.find(params.expect(:id))
+    station = noaa_station
     render json: Noaa::StationPhotos.new(station).call
   end
 
   private
+
+  def uk_station? = params[:id].to_s.start_with?('ea-')
+
+  def find_station
+    (uk_station? ? EnvironmentAgency::Catalog : Noaa::Catalog).new.find(params.expect(:id))
+  end
+
+  def noaa_station
+    raise Noaa::NoData, 'This product is not supplied by the UK tide-gauge API.' if uk_station?
+
+    find_station
+  end
 
   def no_data(error)
     render json: { error: translated_error(error) }, status: :unprocessable_content

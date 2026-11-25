@@ -136,6 +136,9 @@ th, td { padding: 7px; border-bottom: 1px solid var(--border); }
 .map-location-status { margin: 4px 0 0; padding: 8px; border-radius: 6px; background: white; color: #172d3b; box-shadow: 0 1px 5px #172d3b40; }
 
 .map-pin.selected-pin { width: 32px; height: 32px; box-shadow: 0 0 0 3px #ffffffb0, 0 2px 6px #172d3b50; }
+.map-pin.country-pin { width: 30px; height: 39px; min-height: 39px; border: 0; border-radius: 0; background: transparent; box-shadow: none; filter: drop-shadow(0 1px 2px #172d3b60); }
+.map-pin.country-pin.selected-pin { width: 40px; height: 52px; }
+.country-pin img { display: block; width: 100%; height: 100%; }
 
 .panel-heading > div:first-child { min-width: 0; }
 h1 { overflow-wrap: anywhere; }

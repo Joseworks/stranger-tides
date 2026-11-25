@@ -339,7 +339,32 @@
       "{0} · Times: {1}": "{0} · Zeiten: {1}",
       "{0} · {1} to {2} · {3} · {4} · {5} · {6}. Historical data do not auto-refresh.": "{0} · {1} bis {2} · {3} · {4} · {5} · {6}. Historische Daten werden nicht automatisch aktualisiert.",
       "{0}: sensor disabled{1}": "{0}: Sensor deaktiviert{1}",
-      "{0}–{1} of {2}": "{0}–{1} von {2}"
+      "{0}–{1} of {2}": "{0}–{1} von {2}",
+      "Station network": "Stationsnetz",
+      "United States — NOAA": "Vereinigte Staaten — NOAA",
+      "United Kingdom — Environment Agency": "Vereinigtes Königreich — Environment Agency",
+      "Both networks": "Beide Netze",
+      "Union flag pins mark UK Environment Agency gauges.": "Pins mit britischer Flagge kennzeichnen britische Pegel der Environment Agency.",
+      "28 days": "28 Tage",
+      "Fifteen-minute (past 28 days)": "15 Minuten (letzte 28 Tage)",
+      "Environment Agency provides measured sea levels every 15 minutes, usually delayed by 15–30 minutes. This free service does not provide future tide predictions, weather or station photos.": "Die Environment Agency liefert alle 15 Minuten gemessene Meeresspiegel, meist mit 15–30 Minuten Verzögerung. Dieser kostenlose Dienst bietet keine zukünftigen Gezeitenvorhersagen, Wetterdaten oder Stationsfotos.",
+      "View this station at Environment Agency": "Diese Station bei der Environment Agency ansehen",
+      "Loading Environment Agency station data…": "Stationsdaten der Environment Agency werden geladen…",
+      "Sea-level elevation relative to Ordnance Datum Newlyn (ODN), not height above the seabed or predicted tide. Measurements are 15-minute means; quality is not supplied by this feed.": "Meeresspiegelhöhe relativ zu Ordnance Datum Newlyn (ODN), keine Höhe über dem Meeresboden oder vorhergesagte Gezeit. Die Messungen sind 15-Minuten-Mittelwerte; diese Quelle liefert keine Qualitätsangaben.",
+      "Sea level relative to the station local datum. Measurements are 15-minute means; quality is not supplied by this feed.": "Meeresspiegel relativ zum lokalen Höhenbezug der Station. Die Messungen sind 15-Minuten-Mittelwerte; diese Quelle liefert keine Qualitätsangaben.",
+      "The catalog does not supply an operating status for this gauge. Use the observation timestamp to check current availability.": "Der Katalog nennt keinen Betriebsstatus für diesen Pegel. Prüfen Sie den Messzeitpunkt, um die aktuelle Verfügbarkeit festzustellen.",
+      "Past {0} hours · Source: {1}": "Letzte {0} Stunden · Quelle: {1}",
+      "{0} to {1} · {2} · {3}": "{0} bis {1} · {2} · {3}",
+      "Available networks remain usable.": "Verfügbare Netze bleiben nutzbar.",
+      "UK readings are 15-minute means from the rolling past 28 days. Future tides and hourly/monthly products are not supplied.": "Britische Messwerte sind 15-Minuten-Mittelwerte der jeweils letzten 28 Tage. Zukünftige Gezeiten und stündliche oder monatliche Produkte werden nicht bereitgestellt.",
+      "Loading fixed-date Environment Agency water levels…": "Wasserstände der Environment Agency für die gewählten Daten werden geladen…",
+      "Choose a supported station network.": "Wählen Sie ein unterstütztes Stationsnetz.",
+      "Choose a valid Environment Agency station.": "Wählen Sie eine gültige Station der Environment Agency.",
+      "This UK station is not in the current catalog.": "Diese britische Station ist nicht im aktuellen Katalog enthalten.",
+      "Environment Agency data are temporarily unavailable. Please retry.": "Daten der Environment Agency sind vorübergehend nicht verfügbar. Bitte erneut versuchen.",
+      "Choose a supported UK history period (up to 28 days) and units.": "Wählen Sie einen unterstützten britischen Zeitraum (bis zu 28 Tage) und Einheiten.",
+      "The UK readings response is truncated. Try a shorter period.": "Die Antwort mit britischen Messwerten ist abgeschnitten. Versuchen Sie einen kürzeren Zeitraum.",
+      "UK history is available for the past 28 days at 15-minute resolution.": "Britische historische Messwerte sind für die letzten 28 Tage mit 15-Minuten-Auflösung verfügbar."
     }
   }
 }

@@ -12,6 +12,8 @@
   </div>
   <section id="station-filters" class="discovery drawer" aria-label="<%= ui("Station filters") %>" hidden>
     <div class="drawer-heading"><h2><%= ui("Filter stations") %></h2><button type="button" data-close-drawer aria-label="<%= ui("Close filters") %>">×</button></div>
+    <label for="station-network"><%= ui("Station network") %></label>
+    <select id="station-network"><option value="noaa"><%= ui("United States — NOAA") %></option><option value="uk"><%= ui("United Kingdom — Environment Agency") %></option><option value="all"><%= ui("Both networks") %></option></select>
     <label for="station-layer"><%= ui("Show stations") %></label>
     <select id="station-layer">
       <option value="waterlevels"><%= ui("Active water-level stations") %></option>
@@ -49,9 +51,11 @@
     <div class="map-messages"><p id="map-status" class="muted" role="status"><%= ui("Loading map. You can also use the station list.") %></p><p id="catalog-alert" role="status" hidden></p></div>
     <div id="full_map" data-marker-icon="<%= asset_path('orange_marker.svg') %>"
          data-extra-marker-icon="<%= asset_path('purple_marker.svg') %>"
+         data-uk-marker-icon="<%= asset_path('uk_marker.svg') %>"
+         data-uk-extra-marker-icon="<%= asset_path('uk_extra_marker.svg') %>"
          data-maps-key="<%= ENV['STRANGER_TIDES_EMBED_MAPS_API_KEY'] %>"
          data-map-id="<%= ENV['STRANGER_TIDES_MAP_ID'] %>"></div>
-    <details class="map-legend"><summary><span class="station-swatch" aria-hidden="true"></span> <%= ui("Stations") %> <span class="station-swatch extra-swatch" aria-hidden="true"></span> <span id="legend-product"><%= ui("Stations with Extra Sensors") %></span></summary><p><%= ui("Each pin is one station. Tap overlapping pins to spread them out without zooming. Orange pin = other stations.") %> <span id="highlight-legend"><%= ui("Purple pin = specialized sensors.") %></span></p><button id="extra-products-toggle" type="button" aria-pressed="false"><%= ui("Show matching stations only") %></button></details>
+    <details class="map-legend"><summary><span class="station-swatch" aria-hidden="true"></span> <%= ui("Stations") %> <span class="station-swatch extra-swatch" aria-hidden="true"></span> <span id="legend-product"><%= ui("Stations with Extra Sensors") %></span></summary><p><%= ui("Each pin is one station. Tap overlapping pins to spread them out without zooming. Orange pin = other stations.") %> <span id="highlight-legend"><%= ui("Purple pin = specialized sensors.") %></span> <%= ui("Union flag pins mark UK Environment Agency gauges.") %></p><button id="extra-products-toggle" type="button" aria-pressed="false"><%= ui("Show matching stations only") %></button></details>
   </section>
   <section id="station-panel" aria-labelledby="station-heading" hidden>
     <div class="panel-heading">
@@ -73,7 +77,8 @@
         <details id="station-photo" class="secondary-details"><summary><%= ui("Station photo") %></summary><div id="station-photo-content" aria-live="polite"></div></details>
       </section>
       <section id="view-tides" role="tabpanel" aria-labelledby="tab-tides" tabindex="0" hidden>
-        <div class="range-controls"><label><%= ui("History") %> <select id="history-hours" aria-label="<%= ui("History") %>"><option value="24"><%= ui("24 hours") %></option><option value="48" selected><%= ui("48 hours") %></option><option value="72"><%= ui("72 hours") %></option><option value="168"><%= ui("7 days") %></option><option value="720"><%= ui("30 days") %></option></select></label><label><%= ui("Plan ahead") %> <select id="future-hours" aria-label="<%= ui("Plan ahead") %>"><option value="0"><%= ui("Off") %></option><option value="24"><%= ui("24 hours") %></option><option value="72"><%= ui("3 days") %></option><option value="168" selected><%= ui("7 days") %></option><option value="720"><%= ui("30 days") %></option></select></label></div>
+        <div class="range-controls"><label><%= ui("History") %> <select id="history-hours" aria-label="<%= ui("History") %>"><option value="24"><%= ui("24 hours") %></option><option value="48" selected><%= ui("48 hours") %></option><option value="72"><%= ui("72 hours") %></option><option value="168"><%= ui("7 days") %></option><option value="672" hidden disabled><%= ui("28 days") %></option><option value="720"><%= ui("30 days") %></option></select></label><label id="planning-control"><%= ui("Plan ahead") %> <select id="future-hours" aria-label="<%= ui("Plan ahead") %>"><option value="0"><%= ui("Off") %></option><option value="24"><%= ui("24 hours") %></option><option value="72"><%= ui("3 days") %></option><option value="168" selected><%= ui("7 days") %></option><option value="720"><%= ui("30 days") %></option></select></label></div>
+        <p id="uk-products-note" class="muted" hidden><%= ui("Environment Agency provides measured sea levels every 15 minutes, usually delayed by 15–30 minutes. This free service does not provide future tide predictions, weather or station photos.") %></p>
         <div id="station-charts"><div id="graph-partial" aria-label="<%= ui("Water-level chart") %>"></div></div>
         <details id="planning-products" class="secondary-details"><summary><%= ui("Future tides & observed difference") %></summary><section id="planning-charts" aria-label="<%= ui("Tide planning and differences") %>"></section></details>
         <details id="forecast-products" class="secondary-details"><summary><%= ui("Forecasts & flood context") %></summary><section id="station-context" aria-label="<%= ui("Forecasts and flood context") %>"></section></details>
@@ -94,6 +99,7 @@
         <label for="history-resolution"><%= ui("Historical resolution") %></label>
         <select id="history-resolution" aria-describedby="history-help">
           <option value="auto"><%= ui("Automatic") %></option>
+          <option value="fifteen_minute" hidden disabled><%= ui("Fifteen-minute (past 28 days)") %></option>
           <option value="six_minute"><%= ui("Six-minute (up to 30 days)") %></option>
           <option value="hourly"><%= ui("Verified hourly (up to 365 days)") %></option>
           <option value="monthly"><%= ui("Verified monthly means (up to 200 years)") %></option>
@@ -122,4 +128,4 @@
   </section>
   <noscript><%= ui("JavaScript is needed for the interactive explorer.") %> <a href="https://tidesandcurrents.noaa.gov/map/"><%= ui("Browse NOAA's station map.") %></a></noscript>
 </main>
-<footer id="site-footer"><p class="station-attribution"><%= ui("Data provided by") %> <a href="https://www.noaa.gov/" target="_blank" rel="noopener noreferrer">NOAA</a><%= ui("’s") %> <a href="https://oceanservice.noaa.gov/" target="_blank" rel="noopener noreferrer">National Ocean Service</a>, <a href="https://tidesandcurrents.noaa.gov/" target="_blank" rel="noopener noreferrer">Center for Operational Oceanographic Products and Services (CO-OPS)</a>.</p></footer>
+<footer id="site-footer"><p class="station-attribution"><%= ui("Data provided by") %> <a href="https://www.noaa.gov/" target="_blank" rel="noopener noreferrer">NOAA</a><%= ui("’s") %> <a href="https://oceanservice.noaa.gov/" target="_blank" rel="noopener noreferrer">National Ocean Service</a>, <a href="https://tidesandcurrents.noaa.gov/" target="_blank" rel="noopener noreferrer">Center for Operational Oceanographic Products and Services (CO-OPS)</a>.</p><p id="uk-attribution" hidden>This uses <a href="https://environment.data.gov.uk/flood-monitoring/doc/tidegauge" target="_blank" rel="noopener noreferrer">Environment Agency tide gauge data from the real-time data API (Beta)</a>, under the <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" target="_blank" rel="noopener noreferrer">Open Government Licence</a>.</p></footer>

@@ -339,7 +339,32 @@
       "{0} · Times: {1}": "{0} · Times: {1}",
       "{0} · {1} to {2} · {3} · {4} · {5} · {6}. Historical data do not auto-refresh.": "{0} · {1} to {2} · {3} · {4} · {5} · {6}. Historical data do not auto-refresh.",
       "{0}: sensor disabled{1}": "{0}: sensor disabled{1}",
-      "{0}–{1} of {2}": "{0}–{1} of {2}"
+      "{0}–{1} of {2}": "{0}–{1} of {2}",
+      "Station network": "Station network",
+      "United States — NOAA": "United States — NOAA",
+      "United Kingdom — Environment Agency": "United Kingdom — Environment Agency",
+      "Both networks": "Both networks",
+      "Union flag pins mark UK Environment Agency gauges.": "Union flag pins mark UK Environment Agency gauges.",
+      "28 days": "28 days",
+      "Fifteen-minute (past 28 days)": "Fifteen-minute (past 28 days)",
+      "Environment Agency provides measured sea levels every 15 minutes, usually delayed by 15–30 minutes. This free service does not provide future tide predictions, weather or station photos.": "Environment Agency provides measured sea levels every 15 minutes, usually delayed by 15–30 minutes. This free service does not provide future tide predictions, weather or station photos.",
+      "View this station at Environment Agency": "View this station at Environment Agency",
+      "Loading Environment Agency station data…": "Loading Environment Agency station data…",
+      "Sea-level elevation relative to Ordnance Datum Newlyn (ODN), not height above the seabed or predicted tide. Measurements are 15-minute means; quality is not supplied by this feed.": "Sea-level elevation relative to Ordnance Datum Newlyn (ODN), not height above the seabed or predicted tide. Measurements are 15-minute means; quality is not supplied by this feed.",
+      "Sea level relative to the station local datum. Measurements are 15-minute means; quality is not supplied by this feed.": "Sea level relative to the station local datum. Measurements are 15-minute means; quality is not supplied by this feed.",
+      "The catalog does not supply an operating status for this gauge. Use the observation timestamp to check current availability.": "The catalog does not supply an operating status for this gauge. Use the observation timestamp to check current availability.",
+      "Past {0} hours · Source: {1}": "Past {0} hours · Source: {1}",
+      "{0} to {1} · {2} · {3}": "{0} to {1} · {2} · {3}",
+      "Available networks remain usable.": "Available networks remain usable.",
+      "UK readings are 15-minute means from the rolling past 28 days. Future tides and hourly/monthly products are not supplied.": "UK readings are 15-minute means from the rolling past 28 days. Future tides and hourly/monthly products are not supplied.",
+      "Loading fixed-date Environment Agency water levels…": "Loading fixed-date Environment Agency water levels…",
+      "Choose a supported station network.": "Choose a supported station network.",
+      "Choose a valid Environment Agency station.": "Choose a valid Environment Agency station.",
+      "This UK station is not in the current catalog.": "This UK station is not in the current catalog.",
+      "Environment Agency data are temporarily unavailable. Please retry.": "Environment Agency data are temporarily unavailable. Please retry.",
+      "Choose a supported UK history period (up to 28 days) and units.": "Choose a supported UK history period (up to 28 days) and units.",
+      "The UK readings response is truncated. Try a shorter period.": "The UK readings response is truncated. Try a shorter period.",
+      "UK history is available for the past 28 days at 15-minute resolution.": "UK history is available for the past 28 days at 15-minute resolution."
     }
   }
 }

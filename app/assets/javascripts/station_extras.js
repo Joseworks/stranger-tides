@@ -233,6 +233,7 @@
       ['planning-charts', 'station-context', 'nearby-buoys'].forEach(id => byId(id)?.replaceChildren());
     },
     update(value) {
+      if (value.selected.provider === 'environment_agency') return;
       state = value;
       const id = encodeURIComponent(state.selected.station_id), units = state.report.units, hours = state.report.hours, revision = state.revision;
       load('context', `${id}:${units}:${revision}`, `/stations/${id}/context?${new URLSearchParams({units})}`);

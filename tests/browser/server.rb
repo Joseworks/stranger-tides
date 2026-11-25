@@ -14,6 +14,22 @@ ENV['STRANGER_TIDES_EMBED_MAPS_API_KEY'] = 'offline-browser-fixture'
 WebMock.stub_request(:get, Noaa::StationPhotos::INDEX_URL)
        .to_return(body: { '9414290' => 'ABCDFG' }.to_json)
 
+WebMock.stub_request(:get,
+                     "#{EnvironmentAgency::Client::ORIGIN}#{EnvironmentAgency::Client::ROOT}/id/stations")
+       .with(query: { type: 'TideGauge', _limit: 1000 }).to_return(body: {
+         items: [{ stationReference: 'E70039', label: 'Lowestoft', lat: 52.47, long: 1.75,
+                   status: 'api/statusActive',
+                   measures: [{ parameter: 'level', qualifier: 'Tidal Level',
+                                period: 900, unitName: 'mAOD' }] }]
+       }.to_json)
+WebMock.stub_request(:get, %r{https://environment.data.gov.uk/flood-monitoring/id/stations/E70039/readings})
+       .to_return do
+         now = Time.current.utc.change(sec: 0)
+         { body: { items: [45, 30, 15].map.with_index do |minutes, i|
+           { dateTime: (now - minutes.minutes).iso8601, value: (i - 1) * 0.3048 }
+         end }.to_json }
+       end
+
 stations = [
   { 'station_id' => '9414290', 'station_name' => 'San Francisco', 'latitude' => 37.8063,
     'longitude' => -122.4659, 'state' => 'CA',

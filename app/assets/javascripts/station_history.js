@@ -31,7 +31,7 @@
     if (!series.some(s => s.data.some(p => p[1] !== null))) {charts.get(id)?.destroy(); charts.delete(id); return;}
     const options = {
       chart: {animation: false, height: 330}, title: {text: title},
-      subtitle: {text: tr`${result.window.begin_date} to ${result.window.end_date} · ${result.datum} · NOAA CO-OPS`},
+      subtitle: {text: tr`${result.window.begin_date} to ${result.window.end_date} · ${result.datum} · ${result.source_name || 'NOAA CO-OPS'}`},
       time: {timezone: monthly() ? 'UTC' : state.zone()}, xAxis: {type: 'datetime'},
       yAxis: {title: {text: `${unit()}${id === 'history-chart' ? `, ${result.datum}` : ''}`}},
       tooltip: {xDateFormat: monthly() ? '%B %Y' : '%e %b %Y %H:%M', valueSuffix: ` ${unit()}`},
@@ -83,7 +83,7 @@
     request?.abort(); const token = ++version, controller = new AbortController(); request = controller;
     const params = parameters(); key = `${state.selected.station_id}:${params}`; requestedUnits = state.units;
     byId('history-export').disabled = true; byId('history-results').setAttribute('aria-busy','true');
-    byId('history-status').textContent = tr('Loading fixed-date NOAA water levels…');
+    byId('history-status').textContent = state.selected.provider === 'environment_agency' ? tr('Loading fixed-date Environment Agency water levels…') : tr('Loading fixed-date NOAA water levels…');
     try {
       const response = await fetch(`/stations/${encodeURIComponent(state.selected.station_id)}/history?${params}`, {signal: controller.signal});
       if (!response.headers.get('content-type')?.includes('application/json')) throw Error(tr('Historical data are unavailable. Try again.'));
@@ -119,7 +119,7 @@
     const params = new URLSearchParams(location.search);
     byId('history-start').value = params.get('begin_date') || past; byId('history-end').value = params.get('end_date') || today;
     for (const id of ['history-start','history-end']) byId(id).max = today;
-    if (['auto','six_minute','hourly','monthly'].includes(params.get('resolution'))) byId('history-resolution').value = params.get('resolution');
+    if (['auto','six_minute','hourly','monthly','fifteen_minute'].includes(params.get('resolution'))) byId('history-resolution').value = params.get('resolution');
     byId('historical-explorer').open = byId('historical-explorer').open || params.has('begin_date') || params.has('end_date');
     byId('history-form').addEventListener('submit', event => {event.preventDefault(); load();});
     byId('history-export').addEventListener('click', exportCsv);
@@ -139,6 +139,14 @@
     },
     update(value) {
       initialize(); state = value;
+      const uk = state.selected.provider === 'environment_agency', resolution = byId('history-resolution');
+      for (const option of resolution.options) if (option.value !== 'auto') option.disabled = option.hidden = uk ? option.value !== 'fifteen_minute' : option.value === 'fifteen_minute';
+      if (resolution.selectedOptions[0].disabled) resolution.value = 'auto';
+      byId('history-help').dataset.noaaHelp ||= byId('history-help').textContent;
+      byId('history-help').textContent = uk ? tr('UK readings are 15-minute means from the rolling past 28 days. Future tides and hourly/monthly products are not supplied.') : byId('history-help').dataset.noaaHelp;
+      const min = uk ? new Date(Date.now() - 27 * 86400000).toISOString().slice(0,10) : '1800-01-01';
+      for (const id of ['history-start','history-end']) byId(id).min = min;
+      if (uk && !key && !new URLSearchParams(location.search).has('begin_date') && byId('history-start').value < min) byId('history-start').value = min;
       if (!key && byId('historical-explorer').open) load();
       else if (key && requestedUnits !== state.units) load();
       else render();

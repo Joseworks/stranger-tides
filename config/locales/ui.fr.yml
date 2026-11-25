@@ -339,7 +339,32 @@
       "{0} · Times: {1}": "{0} · Heures : {1}",
       "{0} · {1} to {2} · {3} · {4} · {5} · {6}. Historical data do not auto-refresh.": "{0} · Du {1} au {2} · {3} · {4} · {5} · {6}. Les données historiques ne s’actualisent pas automatiquement.",
       "{0}: sensor disabled{1}": "{0} : capteur désactivé{1}",
-      "{0}–{1} of {2}": "{0}–{1} sur {2}"
+      "{0}–{1} of {2}": "{0}–{1} sur {2}",
+      "Station network": "Réseau de stations",
+      "United States — NOAA": "États-Unis — NOAA",
+      "United Kingdom — Environment Agency": "Royaume-Uni — Environment Agency",
+      "Both networks": "Les deux réseaux",
+      "Union flag pins mark UK Environment Agency gauges.": "Les repères au drapeau britannique indiquent les stations britanniques de l’Environment Agency.",
+      "28 days": "28 jours",
+      "Fifteen-minute (past 28 days)": "Quinze minutes (28 derniers jours)",
+      "Environment Agency provides measured sea levels every 15 minutes, usually delayed by 15–30 minutes. This free service does not provide future tide predictions, weather or station photos.": "L’Environment Agency fournit les niveaux marins mesurés toutes les 15 minutes, avec généralement 15 à 30 minutes de retard. Ce service gratuit ne fournit ni prévisions de marées, ni météo, ni photos des stations.",
+      "View this station at Environment Agency": "Voir cette station sur Environment Agency",
+      "Loading Environment Agency station data…": "Chargement des données de la station Environment Agency…",
+      "Sea-level elevation relative to Ordnance Datum Newlyn (ODN), not height above the seabed or predicted tide. Measurements are 15-minute means; quality is not supplied by this feed.": "Élévation du niveau marin par rapport à Ordnance Datum Newlyn (ODN), et non hauteur au-dessus du fond ou marée prévue. Les mesures sont des moyennes sur 15 minutes ; cette source ne fournit pas d’indicateur de qualité.",
+      "Sea level relative to the station local datum. Measurements are 15-minute means; quality is not supplied by this feed.": "Niveau marin relatif au référentiel local de la station. Les mesures sont des moyennes sur 15 minutes ; cette source ne fournit pas d’indicateur de qualité.",
+      "The catalog does not supply an operating status for this gauge. Use the observation timestamp to check current availability.": "Le catalogue ne précise pas l’état de fonctionnement de cette station. Consultez l’heure de mesure pour vérifier la disponibilité actuelle.",
+      "Past {0} hours · Source: {1}": "{0} dernières heures · Source : {1}",
+      "{0} to {1} · {2} · {3}": "{0} à {1} · {2} · {3}",
+      "Available networks remain usable.": "Les réseaux disponibles restent utilisables.",
+      "UK readings are 15-minute means from the rolling past 28 days. Future tides and hourly/monthly products are not supplied.": "Les relevés britanniques sont des moyennes sur 15 minutes des 28 derniers jours. Les marées futures et les produits horaires ou mensuels ne sont pas fournis.",
+      "Loading fixed-date Environment Agency water levels…": "Chargement des niveaux d’eau Environment Agency aux dates choisies…",
+      "Choose a supported station network.": "Choisissez un réseau de stations pris en charge.",
+      "Choose a valid Environment Agency station.": "Choisissez une station Environment Agency valide.",
+      "This UK station is not in the current catalog.": "Cette station britannique ne figure pas dans le catalogue actuel.",
+      "Environment Agency data are temporarily unavailable. Please retry.": "Les données de l’Environment Agency sont temporairement indisponibles. Réessayez.",
+      "Choose a supported UK history period (up to 28 days) and units.": "Choisissez une période historique britannique compatible (28 jours maximum) et des unités.",
+      "The UK readings response is truncated. Try a shorter period.": "La réponse des relevés britanniques est tronquée. Essayez une période plus courte.",
+      "UK history is available for the past 28 days at 15-minute resolution.": "L’historique britannique est disponible sur les 28 derniers jours avec une résolution de 15 minutes."
     }
   }
 }
