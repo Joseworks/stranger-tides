@@ -13,6 +13,9 @@ test('map-first home keeps search and map visible with filters and results tucke
   await expect(page.locator('.header-credit')).toHaveText('A Ruby on Rails demonstration by JoseWorks Technologies LLC.');
   await expect(page.getByRole('link',{name:'JoseWorks Technologies LLC',exact:true})).toHaveAttribute('href','https://www.joseworks.org');
   const footer=page.getByRole('contentinfo');await expect(footer).toContainText('Data provided by NOAA’s National Ocean Service');
+  await expect(footer.getByRole('link',{name:'NOAA',exact:true})).toHaveAttribute('href','https://www.noaa.gov/');
+  await expect(footer.getByRole('link',{name:'National Ocean Service',exact:true})).toHaveAttribute('href','https://oceanservice.noaa.gov/');
+  await expect(footer.getByRole('link',{name:'Center for Operational Oceanographic Products and Services (CO-OPS)',exact:true})).toHaveAttribute('href','https://tidesandcurrents.noaa.gov/');
   await expect(footer).toBeInViewport();expect(await footer.evaluate(n=>n.closest('#station-panel'))).toBeNull();
   const brandBox=await page.locator('.brand').boundingBox(),captionBox=await caption.boundingBox();expect(captionBox.y).toBeGreaterThanOrEqual(brandBox.y+brandBox.height);
   const bounds=await page.locator('#full_map').boundingBox(),tools=await page.locator('.explorer-toolbar').boundingBox(),size=page.viewportSize();expect(bounds.y).toBeCloseTo(tools.y+tools.height,0);expect(bounds.height).toBeGreaterThan(size.height*.5);
