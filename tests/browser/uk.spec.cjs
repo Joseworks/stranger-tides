@@ -23,6 +23,8 @@ test('UK gauges share the map, preserve 15-minute lines and hide unsupported pro
  await expect(page.locator('#graph-partial .highcharts-subtitle')).toContainText('672 hours');
  await page.getByRole('button',{name:'Filters',exact:true}).click();
  await page.getByLabel('Station network',{exact:true}).selectOption('noaa');
+ await expect(page.locator('#station-results button[data-station-id="9414290"]')).toHaveCount(1);
+ await expect(page.locator('#uk-attribution')).toBeVisible();
  await page.getByLabel('Find a station',{exact:true}).fill('9414290');
  await page.locator('#station-results button[data-station-id="9414290"]').click();
  await expect(page.locator('.latest-reading')).toContainText('MLLW');
@@ -30,6 +32,7 @@ test('UK gauges share the map, preserve 15-minute lines and hide unsupported pro
  await page.locator('#tab-now').click();
  await expect(page.locator('#station-photo')).toBeVisible();
  await expect(page.locator('#history-hours')).toHaveValue('720');
+ await expect(page.locator('#uk-attribution')).toBeHidden();
 });
 test('UK recent dates export CSV and the station timezone remains Europe/London',async({page})=>{
  await page.goto('/?network=uk&station=ea-E70039&units=metric&zone=station');

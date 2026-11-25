@@ -431,7 +431,7 @@
   }
   function closeStation() {
     generation++; pending?.abort(); spread?.close(); selected = null; report = null; window.StationPhotos.reset(); clearChart(); window.StationExtras.reset(); window.StationHistory.reset(); infoWindow?.close();
-    byId('station-panel').hidden = true; updateUrl();
+    byId('station-panel').hidden = true; updateAttribution(); updateUrl();
     window.StationLayout.closed();
     updateSelectedMarkers();
     if (savedFocus?.isConnected) {
@@ -474,7 +474,11 @@
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 });
     } catch (_) { finish('Location is unavailable. Try again or search by name or state.'); }
   }
+  function updateAttribution() {
+    byId('uk-attribution').hidden = byId('station-network').value === 'noaa' && !isUk(selected);
+  }
   function configureProvider(station) {
+    updateAttribution();
     const uk = isUk(station);
     for (const id of ['planning-control', 'planning-products', 'forecast-products', 'station-photo', 'tab-weather']) byId(id).hidden = uk;
     byId('uk-products-note').hidden = !uk;
@@ -492,7 +496,7 @@
       if (!response.ok) throw Error('Catalog unavailable');
       const payload = await response.json(); if (token !== catalogGeneration) return;
       stations = payload.stations; byId('catalog-alert').hidden = true;
-      byId('uk-attribution').hidden = network === 'noaa';
+      updateAttribution();
       text('catalog-status', payload.status.refreshed_at ? `Catalog refreshed ${date(payload.status.refreshed_at, 'UTC')} UTC${payload.status.stale ? ' · Refresh overdue' : ''}` : 'Saved station inventory · Automatic refresh not yet initialized');
       if (payload.products_warning) byId('catalog-status').append(element('span', ' · Additional product discovery unavailable; station search remains available.'));
       if (payload.network_warnings?.length) {text('catalog-alert', payload.network_warnings.join(' ') + ' Available networks remain usable.'); byId('catalog-alert').hidden = false;}
