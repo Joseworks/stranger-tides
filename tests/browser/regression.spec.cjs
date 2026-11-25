@@ -639,11 +639,13 @@ for (const advanced of [false,true]) {
     await expect(purple()).toHaveCount(2); await expect(page.locator('#highlight-legend')).toHaveText('Purple pin = water-level forecast.');
     await reveal(page, page.getByLabel('Highlight product',{exact:true})); await page.getByLabel('Highlight product',{exact:true}).selectOption('visibility');
     await expect(purple()).toHaveCount(1);
+    await page.getByRole('button',{name:'Close filters',exact:true}).click();
     await reveal(page, page.getByRole('button', {includeHidden:true, name:'Show matching stations only',exact:true})); await page.getByRole('button', {includeHidden:true, name:'Show matching stations only',exact:true}).click();
     await expect(page.locator('#result-count')).toHaveText('1 matching locations');
     await reveal(page, station(page,'9414290')); await expect(station(page,'9414290')).toBeVisible(); await expect(station(page,'9099064')).toHaveCount(0);
     await reveal(page, page.getByLabel('Highlight product',{exact:true})); await page.getByLabel('Highlight product',{exact:true}).selectOption('air_gap');
     await expect(page.locator('#result-count')).toHaveText('0 matching locations'); await expect(purple()).toHaveCount(0);
+    await page.getByRole('button',{name:'Close filters',exact:true}).click();
     await reveal(page, page.getByRole('button', {includeHidden:true, name:'Show matching stations only',exact:true})); await page.getByRole('button', {includeHidden:true, name:'Show matching stations only',exact:true}).click();
     await expect(page.locator('#result-count')).toHaveText('2 matching locations'); await expect(purple()).toHaveCount(0);
     await reveal(page, page.getByLabel('Highlight product',{exact:true})); await page.getByLabel('Highlight product',{exact:true}).selectOption('any'); await expect(purple()).toHaveCount(2);
@@ -981,7 +983,10 @@ test('five overlapping station choices have separate touch targets on short scre
     await route.fulfill({response,json:payload});
   });
   await page.goto('/'); await expect(page.locator('#result-count')).toContainText('5 matching');
-  await reveal(page, page.locator('#full_map').getByRole('button', {includeHidden:true, name:'Harbor 0, CA 9414290',exact:true})); await page.locator('#full_map').getByRole('button', {includeHidden:true, name:'Harbor 0, CA 9414290',exact:true}).click();
+  // Open by keyboard: the fixed fixture pin can sit under the map legend on this tiny viewport.
+  // This scenario tests the five picker touch targets; separate scenarios retain actual pin clicks.
+  const pin=page.locator('#full_map').getByRole('button',{name:'Harbor 0, CA 9414290',exact:true});
+  await pin.focus();await pin.press('Enter');
   const choices=page.locator('.spread-station'); await expect(choices).toHaveCount(5);
   const boxes=await choices.evaluateAll(nodes=>nodes.map(n=>{const b=n.getBoundingClientRect();return{x:b.x,y:b.y,w:b.width,h:b.height};}));
   for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++)expect(boxes[i].x+boxes[i].w<=boxes[j].x||boxes[j].x+boxes[j].w<=boxes[i].x||boxes[i].y+boxes[i].h<=boxes[j].y||boxes[j].y+boxes[j].h<=boxes[i].y).toBe(true);
