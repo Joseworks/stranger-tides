@@ -47,7 +47,7 @@ References: [Playwright API mocking](https://playwright.dev/docs/mock), [browser
 
 ## Station explorer changes
 
-The station explorer replaces the executable `/show_graph` response with the read-only JSON station-report API. Its deterministic suite covers 66 scenarios across four browser configurations (264 CI checks), including null gaps, prediction-only locations, IGLD, retries, delayed-response cancellation, deep links, unit/time changes, search and map failure. Existing Maps and NOAA credentials are never used by this offline suite.
+The station explorer replaces the executable `/show_graph` response with the read-only JSON station-report API. Its deterministic suite covers 75 scenarios across four browser configurations (300 CI checks), including null gaps, prediction-only locations, IGLD, retries, delayed-response cancellation, deep links, unit/time changes, search and map failure. Existing Maps and NOAA credentials are never used by this offline suite.
 
 Hosted checks recognize both the old production interface and the new explorer. They publish the full catalog difference and require staging's observing IDs to match NOAA's current active inventory. Exact production/staging inventory equality is optional via `LIVE_REQUIRE_IDENTICAL_CATALOGS=1`, because adding current stations and prediction locations is the intended feature. Both hosted apps now use the explorer; the legacy-interface comparison remains available for historical baselines.
 
@@ -60,3 +60,17 @@ The radial map tests cover individual legacy/advanced pins, no-zoom selection, E
 For real Google Maps radial selection, run `LIVE_REQUIRE_RADIAL=1 npm run test:live`. Before production promotion, use `LIVE_REQUIRE_RADIAL=1 LIVE_RADIAL_TARGET=staging npm run test:live -- --grep radial` to check only staging. These opt-in checks verify named choices, viewport-fit controls, search, live report loading and unchanged map center/zoom on desktop/mobile. The full post-deployment suite includes 12 hosted checks.
 
 Live-refresh regressions use a controlled browser clock to cover six-minute polling, pause/hidden/offline behavior, reconnect catch-up, no duplicate pending requests, cancellation after a newer selection, retained plots on core/optional failures, chart instances/ranges/hidden series and open table/scroll state. Product tests cover specialized-versus-common capabilities, legacy/advanced recoloring, matching-only mode and shared filter links. Catalog health request tests cover fresh, stale, missing and empty saved inventories without NOAA calls.
+
+## Physical device acceptance
+
+Use the [phone and tablet checklist](../../docs/device-acceptance.md) on real Brave Android and Safari hardware. Record device/OS/browser and the exact staging release, permission origin identity, denial/retry, fullscreen/rotation, radial station selection, and historical CSV download. Automated results never count as a physical-device pass. Keep all 264 existing CI checks as new history regressions are added.
+
+Historical regressions add fixed UTC dates, resolution selection, monthly calendar labels, timezone/unit changes, no reload/map movement/forced scroll, cancellation, empty/failure feedback, and complete CSV downloads including quality/flags, missing/zero/negative values and formula-like text. All 66 previous scenarios remain.
+
+Review regressions also exercise units changing during the first pending historical request and archive access/CSV when current conditions fail. Historical controls initialize from station selection independently of the live-report response.
+
+## Map-first layout coverage
+
+All 75 previous scenarios remain. `navigation.cjs` follows the public tab/drawer/disclosure controls before reaching a retained data-flow target; it does not mutate DOM state or enable a production test mode. `layout.spec.cjs` independently starts from the default collapsed interface and checks the map-first home, phone/tablet panel placement, keyboard tabs, shared History links, panel expansion, focus restoration, automatic-refresh detail focus and panel-scroll memory. Eleven new scenarios bring the suite to 86 scenarios / 344 CI checks, including cross-tab retained-data warnings, catalog-failure visibility and clipboard feedback. Hosted tests must similarly open the station list and Tides tab when checking real charts.
+
+Station-photo coverage adds three scenarios for loading on demand with attribution/gallery links, missing photos, service/image failures and retry, and delayed responses after changing stations. The header description stays visible below the title at phone and desktop sizes. The suite now has 89 scenarios / 356 CI checks.

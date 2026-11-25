@@ -6,7 +6,9 @@ Rails.application.routes.draw do
   get 'health/catalog' => 'health#catalog'
   get 'stations.json' => 'stations#catalog'
   get 'stations/:id/report' => 'stations#report', as: :station_report
+  get 'stations/:id/history' => 'stations#history'
   get 'stations/:id/context' => 'stations#context'
   get 'stations/:id/nearby' => 'stations#nearby'
+  get 'stations/:id/photo' => 'stations#photo'
   root 'stations#show_stations'
 end

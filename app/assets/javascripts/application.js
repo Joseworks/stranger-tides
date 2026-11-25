@@ -15,6 +15,9 @@
 //= require highcharts/highcharts
 //= require highcharts/highcharts-more
 //= require station_charts
+//= require station_layout
+//= require station_photos
+//= require station_history
 //= require station_extras
 //= require station_spread
 //= require stations

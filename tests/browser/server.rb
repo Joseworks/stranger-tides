@@ -11,6 +11,8 @@ require 'webmock'
 WebMock.enable!
 WebMock.disable_net_connect!(allow_localhost: true)
 ENV['STRANGER_TIDES_EMBED_MAPS_API_KEY'] = 'offline-browser-fixture'
+WebMock.stub_request(:get, Noaa::StationPhotos::INDEX_URL)
+       .to_return(body: { '9414290' => 'ABCDFG' }.to_json)
 
 stations = [
   { 'station_id' => '9414290', 'station_name' => 'San Francisco', 'latitude' => 37.8063,
@@ -80,7 +82,9 @@ def observation_fixture(station, now, scale)
 end
 
 def fixture_time(params, key)
-  Time.strptime("#{params.fetch(key)} +0000", '%Y%m%d %H:%M %z')
+  value = params.fetch(key)
+  value += ' 00:00' if value.length == 8
+  Time.strptime("#{value} +0000", '%Y%m%d %H:%M %z')
 end
 
 def future_fixture?(params, now)
@@ -93,6 +97,11 @@ end
 
 def fixture_rows(params, station)
   product = params.fetch('product')
+  if product == 'monthly_mean'
+    return [{ year: '2020', month: '1', MSL: '0', inferred: '0' },
+            { year: '2020', month: '2', MSL: '', inferred: '1' },
+            { year: '2020', month: '3', MSL: '3.25', inferred: '0' }]
+  end
   future = product == 'ofs_water_level' || future_fixture?(params, Time.current.utc.change(sec: 0))
   now = fixture_time(params, future ? 'begin_date' : 'end_date')
   scale = params['units'] == 'metric' ? 0.3048 : 1

@@ -1,6 +1,7 @@
 // Public, read-only smoke checks. No settings, catalogs or station data are changed.
 const { test, expect } = require('@playwright/test');
 const fs = require('node:fs/promises');
+const {reveal}=require('./navigation.cjs');
 const targets = {
   production: process.env.PRODUCTION_URL || 'https://stranger-tides.com/',
   staging: process.env.STAGING_URL || 'https://stranger-tides-staging.herokuapp.com/'
@@ -26,7 +27,9 @@ for (const [name, url] of Object.entries(targets)) {
     for (const [id, stationName, datum] of [['9414290', 'San Francisco', 'MLLW'], ['9099064', 'Duluth', 'IGLD']]) {
       if (modern) {
         await page.getByLabel('Find a station', { exact: true }).fill(id);
+        await reveal(page,page.locator(`#station-results button[data-station-id="${id}"]`));
         await page.locator(`#station-results button[data-station-id="${id}"]`).click();
+        if(await page.locator('#tab-tides').count())await page.locator('#tab-tides').click();
         await expect(page.locator('#graph-partial .highcharts-title')).toHaveText(`${stationName}, ${stations.find(s => s.station_id === id).state}`, { timeout: 30000 });
         const marker = page.getByRole('button', { name: `${stationName}, ${stations.find(s => s.station_id === id).state} ${id}`, exact: true });
         await marker.focus(); await marker.press('Enter');

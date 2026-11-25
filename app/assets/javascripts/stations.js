@@ -72,6 +72,7 @@
       `${s.station_name} ${s.station_id} ${s.state || ''}`.toLocaleLowerCase().includes(search));
     text('result-count', `${filtered.length} matching locations`);
     text('highlight-legend', `Purple pin = ${highlightedLabel().toLocaleLowerCase()}.`);
+    text('legend-product', byId('station-product').value === 'specialized' ? 'Extra sensors' : highlightedLabel());
     text('product-status', `${filtered.filter(highlighted).length} of ${filtered.length} matching stations advertise ${highlightedLabel().toLocaleLowerCase()}. Check reading timestamps for current availability.`);
     byId('station-results').replaceChildren(...filtered.slice(0, visibleCount).map(s => {
       const item = document.createElement('li'); const button = element('button', `${stationLabel(s)} ${s.station_id}`);
@@ -106,11 +107,29 @@
         marker = new google.maps.marker.AdvancedMarkerElement({map, position, title, content, zIndex: hasExtras ? 1000 : 1});
       } else {
         marker = new google.maps.Marker({map, position, title, optimized: false, zIndex: hasExtras ? 1000 : 1,
-          icon: hasExtras ? byId('full_map').dataset.extraMarkerIcon : byId('full_map').dataset.markerIcon});
+          icon: markerIcon(station)});
       }
       marker.addListener('click', () => spread.open(station, filtered));
       marker.strangerTidesHighlight = hasExtras;
+      marker.strangerTidesStation = station;
       markers.set(station.station_id, marker);
+    });
+    updateSelectedMarkers();
+  }
+  function markerIcon(station) {
+    const size = station.station_id === selected?.station_id ? 36 : 24;
+    return {url: highlighted(station) ? byId('full_map').dataset.extraMarkerIcon : byId('full_map').dataset.markerIcon,
+      scaledSize: new google.maps.Size(size, size), anchor: new google.maps.Point(size / 2, size / 2)};
+  }
+  function updateSelectedMarkers() {
+    markers.forEach((marker, id) => {
+      const active = id === selected?.station_id;
+      if (marker.strangerTidesSelected === active) return;
+      marker.strangerTidesSelected = active;
+      marker.content?.classList.toggle('selected-pin', active);
+      marker.setZIndex?.(active ? 5000 : marker.strangerTidesHighlight ? 1000 : 1);
+      marker.zIndex = active ? 5000 : marker.strangerTidesHighlight ? 1000 : 1;
+      if (marker.setIcon) marker.setIcon(markerIcon(marker.strangerTidesStation));
     });
   }
   window.initMap = () => {
@@ -158,13 +177,15 @@
     locationPosition = null; locationIntent++;
     spread?.close();
     measurementLimit = 1000; byId('observations-table').open = false;
-    savedFocus = document.activeElement; selected = station; report = null; window.StationExtras.reset(); updateStationZone();
-    byId('station-panel').hidden = false; text('station-heading', `${stationLabel(station)} ${station.station_id}`);
+    savedFocus = document.activeElement; selected = station; report = null; window.StationPhotos.reset(station); window.StationExtras.reset(); window.StationHistory.reset(); updateStationZone();
+    byId('station-panel').hidden = false; text('station-heading', stationLabel(station));
+    text('station-code', `NOAA ${station.station_id}`); window.StationLayout.selected(station);
     byId('noaa-station-link').href = `https://tidesandcurrents.noaa.gov/stationhome.html?id=${encodeURIComponent(station.station_id)}`;
     positionSelectedStation({preserveViewport});
+    updateSelectedMarkers();
     const heading = byId('station-heading'), bounds = heading.getBoundingClientRect();
     if (bounds.top >= 0 && bounds.bottom <= window.innerHeight) heading.focus({ preventScroll: true });
-    updateUrl(); loadReport();
+    updateUrl(); updateHistory(); loadReport();
   }
   function retainFailedProducts(payload) {
     const compatible = report && ['units', 'datum', 'hours', 'future_hours'].every(key => report[key] === payload[key]);
@@ -198,12 +219,13 @@
     pending?.abort(); const token = ++generation; pending = new AbortController();
     const updating = Boolean(report);
     if (!updating) {
-      clearChart(); byId('station-summary').replaceChildren(); byId('measurement-rows').replaceChildren();
+      clearChart(); byId('station-summary').replaceChildren(); byId('report-warnings').replaceChildren(); byId('measurement-rows').replaceChildren();
       byId('observations-table').hidden = true;
     }
     byId('retry-report').hidden = true;
     byId('station-charts').setAttribute('aria-busy', 'true');
     text('report-status', updating ? 'Updating station charts…' : 'Loading NOAA station data…');
+    byId('report-status').classList.remove('quiet-status');
     try {
       const params = new URLSearchParams({ hours: byId('history-hours').value, future_hours: byId('future-hours').value, units: byId('height-units').value });
       const response = await fetch(`/stations/${encodeURIComponent(selected.station_id)}/report?${params}`, { signal: pending.signal });
@@ -332,19 +354,25 @@
   }
   function renderReport({automatic = false} = {}) {
     updateStationZone();
-    updateUrl(); const summary = byId('station-summary'); summary.replaceChildren();
+    const detailsOpen = byId('station-details')?.open;
+    const restoreDetailsFocus = document.activeElement === byId('station-details')?.querySelector('summary');
+    updateUrl(); const summary = byId('station-summary'), warnings = byId('report-warnings'); summary.replaceChildren(); warnings.replaceChildren();
     const latest = report.latest;
     text('report-status', report.stale ? 'No recent observation. Check timestamps before using these data.' : 'Station data loaded.');
-    if (report.retained_products?.length) summary.append(element('p', 'Some products could not be refreshed. Previous data for those products remain displayed; check their timestamps.', 'muted report-warning'));
+    if (report.retained_products?.length) warnings.append(element('p', 'Some products could not be refreshed. Previous data for those products remain displayed; check their timestamps.', 'muted report-warning'));
     if (report.warnings.length) {
-      summary.append(element('p', report.warnings.map(w => `${w.product.replaceAll('_', ' ')}: ${w.message}`).join(' '), 'muted report-warning'));
+      warnings.append(element('p', report.warnings.map(w => `${w.product.replaceAll('_', ' ')}: ${w.message}`).join(' '), 'muted report-warning'));
       byId('retry-report').hidden = false;
     }
-    summary.append(element('p', latest ? `${latest.value.toFixed(2)} ${unit()} above ${report.datum} · ${quality(latest.quality)}` : 'No water-level observation available.', 'latest-reading'));
+    const reading = element('p', '', 'latest-reading');
+    if (latest) {
+      reading.append(element('strong', `${latest.value.toFixed(2)} ${unit()}`), document.createTextNode(' '), element('span', `above ${report.datum} · ${quality(latest.quality)}`));
+    } else reading.textContent = 'No water-level observation available.';
+    summary.append(reading);
     if (latest) {
       const age = element('p', ''); age.id = 'reading-age'; summary.append(age);
       const freshness = element('p', '', 'report-warning'); freshness.id = 'reading-freshness';
-      freshness.setAttribute('role', 'status'); summary.append(freshness); updateFreshness();
+      freshness.setAttribute('role', 'status'); warnings.append(freshness); updateFreshness();
     }
     if (report.datum) summary.append(element('p', `Height reference: ${report.datum} · Times: ${zone()}`, 'muted'));
     if (report.datum === 'IGLD') {
@@ -361,6 +389,13 @@
     (report.sensors || []).filter(sensor => !sensor.enabled).forEach(sensor => {
       summary.append(element('p', `${sensor.name}: sensor disabled${sensor.message ? ` · ${sensor.message}` : ''}`, 'muted'));
     });
+    const details = document.createElement('details'); details.id = 'station-details';
+    details.open = Boolean(detailsOpen);
+    details.append(element('summary', 'Station details & sensor status'));
+    [...summary.children].filter(node => !node.matches('.latest-reading, #reading-age, #reading-freshness, #next-events, .report-warning')).forEach(node => details.append(node));
+    summary.append(details);
+    if (restoreDetailsFocus) details.querySelector('summary').focus({preventScroll:true});
+    if (!report.stale && !report.warnings.length) byId('report-status').classList.add('quiet-status');
     const series = [ ['Observed water level', report.observations], ['Predicted water level', report.predictions] ]
       .filter(([, values]) => values.some(point => point.value !== null))
       .map(([name, values]) => ({ name: name === 'Predicted water level' && selected.prediction_type === 'S' ? 'Predicted high/low events' : name,
@@ -382,13 +417,23 @@
     }
     renderWeatherCharts(automatic);
     window.StationExtras.update({ selected, report, zone, date, unit, revision: generation, preserveView: automatic });
+    updateHistory();
     byId('observations-table').hidden = ![report.observations, report.predictions, ...Object.values(report.weather_series || {})].some(values => values.length);
     renderMeasurements();
+    window.StationLayout.reflow();
   }
   function closeStation() {
-    generation++; pending?.abort(); spread?.close(); selected = null; report = null; clearChart(); window.StationExtras.reset(); infoWindow?.close();
+    generation++; pending?.abort(); spread?.close(); selected = null; report = null; window.StationPhotos.reset(); clearChart(); window.StationExtras.reset(); window.StationHistory.reset(); infoWindow?.close();
     byId('station-panel').hidden = true; updateUrl();
-    if (savedFocus?.isConnected) savedFocus.focus(); else byId('station-search').focus();
+    window.StationLayout.closed();
+    updateSelectedMarkers();
+    if (savedFocus?.isConnected) {
+      if (savedFocus.closest('#station-list')) window.StationLayout.openDrawer('list');
+      savedFocus.focus({preventScroll:true});
+    } else byId('station-search').focus({preventScroll:true});
+  }
+  function updateHistory() {
+    if (selected) window.StationHistory.update({selected, units: byId('height-units').value, zone, date});
   }
   function locateStations() {
     const button = byId('locate');
@@ -435,9 +480,9 @@
     byId('extra-products-toggle').addEventListener('click', () => { byId('station-layer').value = byId('station-layer').value === 'additional' ? lastLayer : 'additional'; visibleCount = 100; renderResults(); updateUrl(); });
     byId('more-stations').addEventListener('click', () => { visibleCount += 100; renderResults(); });
     byId('close-station').addEventListener('click', closeStation);
-    byId('station-panel').addEventListener('keydown', event => { if (event.key === 'Escape') closeStation(); });
-    for (const id of ['history-hours', 'height-units', 'future-hours']) byId(id).addEventListener('change', () => { updateUrl(); if (selected) { measurementLimit = 1000; loadReport(); } });
-    byId('display-zone').addEventListener('change', () => { if (report) renderReport(); });
+    byId('station-panel').addEventListener('keydown', event => { if (event.key === 'Escape' && !event.target.closest('input,select,textarea')) closeStation(); });
+    for (const id of ['history-hours', 'height-units', 'future-hours']) byId(id).addEventListener('change', () => { updateUrl(); if (selected) { measurementLimit = 1000; updateHistory(); loadReport(); } });
+    byId('display-zone').addEventListener('change', () => { if (report) renderReport(); else updateHistory(); });
     byId('retry-report').addEventListener('click', loadReport);
     byId('observations-table').addEventListener('toggle', renderMeasurements);
     byId('more-measurements').addEventListener('click', () => {
@@ -453,6 +498,7 @@
     byId('share-station').addEventListener('click', async () => {
       try { await navigator.clipboard.writeText(window.location.href); text('report-status', 'Station link copied.'); }
       catch (_) { text('report-status', 'Copy the station link from your address bar.'); }
+      byId('report-status').classList.remove('quiet-status');
     });
     byId('locate').addEventListener('click', locateStations);
     try {
@@ -461,10 +507,16 @@
       text('catalog-status', payload.status.refreshed_at ? `Catalog refreshed ${date(payload.status.refreshed_at, 'UTC')} UTC${payload.status.stale ? ' · Refresh overdue' : ''}` : 'Saved station inventory · Automatic refresh not yet initialized');
       renderResults();
       if (payload.products_warning) byId('catalog-status').append(element('span', ' · Additional product discovery unavailable; station search remains available.'));
-      if (!stations.length) text('catalog-status', 'No stations are available. Please try again later.');
+      if (!stations.length) {
+        text('catalog-status', 'No stations are available. Please try again later.');
+        text('catalog-alert', 'No stations are available. Please reload to retry.'); byId('catalog-alert').hidden = false;
+      }
       const initial = stations.find(s => s.station_id === params.get('station'));
       if (initial) selectStation(initial);
-    } catch (_) { text('catalog-status', 'The station catalog is unavailable. Please reload to retry.'); }
+    } catch (_) {
+      text('catalog-status', 'The station catalog is unavailable. Please reload to retry.');
+      text('catalog-alert', 'The station catalog is unavailable. Please reload to retry.'); byId('catalog-alert').hidden = false;
+    }
     const key = byId('full_map').dataset.mapsKey;
     if (!key) { text('map-status', 'The map is unavailable. Use the station list to explore data.'); return; }
     const script = document.createElement('script');
