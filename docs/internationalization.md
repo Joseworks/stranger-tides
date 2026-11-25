@@ -6,7 +6,7 @@ Independent feature branch `codex/internationalization`, based on main. English 
 
 Use `?locale=en`, `es`, `fr` or `de`. An explicit supported choice is remembered in a host-only, HttpOnly, SameSite=Lax cookie (Secure on HTTPS); the URL takes precedence over the cookie, with English fallback. Language changes preserve station IDs, units, time-zone choice, selected tab and historical dates already encoded in the URL. They perform a deliberate page navigation; measurement/time selectors keep their existing in-place behavior.
 
-The top-right selector pairs the native language name with a small decorative flag (UK, Spain, France or Germany). The name and translated accessible label identify the language; the flag is hidden from screen readers. Flags are local SVG assets and update with the selected locale. The control remains visible at a 320-pixel viewport width.
+The top-right selector shows only a small flag (UK, Spain, France or Germany) and dropdown arrow. Opening the native select reveals the full language names. The translated accessible label identifies the control; the decorative flag is hidden from screen readers. Flags are local SVG assets and update with the selected locale. The control has a 48-by-44-pixel touch target and keyboard focus outline, and remains visible at a 320-pixel viewport width.
 
 Rails scopes the locale to each request with `I18n.with_locale`, sets HTML `lang` and Content-Language, and varies responses by Cookie. It never sets a process-wide user locale. Language values are allowlisted before setting cookies or choosing translations.
 
